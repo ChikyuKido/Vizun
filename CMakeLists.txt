@@ -13,7 +13,7 @@ find_package(Vulkan REQUIRED)
 include_directories(src)
 include_directories(${Vulkan_INCLUDE_DIR})
 
-add_subdirectory(lib/splog)
+add_subdirectory(lib/spdlog)
 add_subdirectory(lib/glfw)
 set(BUILD_SHARED_LIBS OFF)
 set(GLFW_BUILD_EXAMPLES OFF)
