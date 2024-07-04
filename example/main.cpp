@@ -1,6 +1,5 @@
 
 #include "graphics/RenderWindow.hpp"
-#include "utils/Logger.hpp"
 
 
 int main() {

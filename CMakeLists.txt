@@ -6,8 +6,11 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 option(VIZUN_BUILD_EXAMPLES "Build the Vizun example programs" ON)
+option(VIZUN_ENABLE_VALIDATION_LAYER "Enables the validation layer for vulkan" ON)
 set(VIZUN_BUILD_EXAMPLES ON)
+set(VIZUN_ENABLE_VALIDATION_LAYER ON)
 
+set(SPDLOG_FMT_EXTERNAL ON)
 find_package(Vulkan REQUIRED)
 
 include_directories(src)
@@ -28,12 +31,21 @@ set(SOURCE_FILES
         src/graphics/VulkanBase.cpp
         src/graphics/VulkanBase.hpp
         src/utils/VulkanConfig.hpp
+        src/utils/VulkanUtils.hpp
+        src/utils/VulkanUtils.cpp
 )
 add_library(Vizun ${SOURCE_FILES})
-target_link_libraries(Vizun PUBLIC glfw ${Vulkan_LIBRARIES} spdlog)
+target_link_libraries(Vizun PUBLIC glfw ${Vulkan_LIBRARIES} spdlog stdc++)
+
+target_compile_options(Vizun PRIVATE -ftime-trace)
+
+
 
 if(VIZUN_BUILD_EXAMPLES)
     message("Building vizun examples")
     add_subdirectory(example)
+endif ()
+if (VIZUN_ENABLE_VALIDATION_LAYER)
+    add_definitions(-DVIZUN_ENABLE_VALIDATION_LAYER)
 endif ()
 

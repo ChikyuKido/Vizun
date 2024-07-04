@@ -1,6 +1,8 @@
 
 #include "RenderWindow.hpp"
+
 #include "utils/Logger.hpp"
+#include "utils/VulkanUtils.hpp"
 namespace vz {
 
 RenderWindow::RenderWindow(const int width, const int height, std::string title) : RenderWindow(width,height,std::move(title),VulkanConfig() /*TODO: default config*/) {}
@@ -69,8 +71,32 @@ void RenderWindow::initVulkan() {
     uint32_t glfwExtensionCount;
     const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
     for(uint32_t i = 0;i<glfwExtensionCount;i++) {
-        m_vulkanConfig.instanceConfig.enableExtensionsNames.push_back(glfwExtensions[i]);
+        m_vulkanConfig.instanceConfig.enableExtensionNames.push_back(glfwExtensions[i]);
+        VZ_LOG_INFO("Enable GLFW Extension: {}", glfwExtensions[i]);
     }
-    m_vulkanBase.createInstance(m_vulkanConfig);
+#ifdef VIZUN_ENABLE_VALIDATION_LAYER
+    if(std::ranges::find(m_vulkanConfig.instanceConfig.enableLayerNames, "VK_LAYER_KHRONOS_validation") == m_vulkanConfig.instanceConfig.enableLayerNames.end()) {
+        if(!VulkanUtils::isLayerSupported("VK_LAYER_KHRONOS_validation")) {
+            VZ_LOG_ERROR("Cannot activate validation layer because it is not supported");
+        }else {
+            m_vulkanConfig.instanceConfig.enableLayerNames.push_back("VK_LAYER_KHRONOS_validation");
+            VZ_LOG_INFO("Validation layer enabled");
+        }
+    }
+
+#endif
+
+    if(!m_vulkanBase.createInstance(m_vulkanConfig)) {
+        VZ_LOG_ERROR("Could not create vulkan instance");
+        return;
+    }
+    if(!m_vulkanBase.pickPhyiscalDevice()) {
+        VZ_LOG_ERROR("Failed to find a suitable physical device");
+        return;
+    }
+    if(!m_vulkanBase.createLogicalDevice(m_vulkanConfig)) {
+        VZ_LOG_ERROR("Failed to create logical device");
+        return;
+    }
 }
 } // namespace vz
