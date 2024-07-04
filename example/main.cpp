@@ -1,9 +1,13 @@
-#include "RenderWindow.hpp"
 
-#include <iostream>
+#include "graphics/RenderWindow.hpp"
+#include "utils/Logger.hpp"
+
 
 int main() {
-    vz::RenderWindow render_window;
-    std::cout << "test" << std::endl;
+    const vz::RenderWindow renderWindow(800,600,"Vizun");
+
+    while(!renderWindow.shouldWindowClose()) {
+        glfwPollEvents();
+    }
     return 0;
 }
