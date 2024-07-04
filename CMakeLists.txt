@@ -1,26 +1,31 @@
 cmake_minimum_required(VERSION 3.28)
-project(c-template)
+project(Vizun)
 
 set(CMAKE_CXX_STANDARD 20)
-
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
+
+option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
+option(VIZUN_BUILD_EXAMPLES "Build the Vizun example programs" ON)
+set(VIZUN_BUILD_EXAMPLES ON)
 
 include_directories(src)
 
-set(SOURCE_FILES
-        src/main.cpp
-)
-add_executable(c-template ${SOURCE_FILES})
+add_subdirectory(lib/glfw)
+set(BUILD_SHARED_LIBS OFF)
+set(GLFW_BUILD_EXAMPLES OFF)
+set(GLFW_BUILD_TESTS OFF)
+set(GLFW_BUILD_DOCS OFF)
+set(GLFW_INSTALL OFF)
 
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    message("Configuring for Debug")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g")
-    add_definitions(-DDEBUG)
-elseif (CMAKE_BUILD_TYPE STREQUAL "Release")
-    message("Configuring for Release")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
-    add_definitions(-DDEBUG)
-elseif (CMAKE_BUILD_TYPE STREQUAL "Dist-Release")
-    message("Configuring for Dist-Release")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -fomit-frame-pointer -flto -DNDEBUG -ffast-math")
+set(SOURCE_FILES
+        src/RenderWindow.cpp
+        src/RenderWindow.hpp
+)
+add_library(Vizun ${SOURCE_FILES})
+target_link_libraries(Vizun PUBLIC glfw)
+
+if(VIZUN_BUILD_EXAMPLES)
+    message("Building vizun examples")
+    add_subdirectory(example)
 endif ()
+
