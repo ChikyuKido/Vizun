@@ -3,6 +3,7 @@
 
 #ifndef VULKAN_HPP_NO_EXCEPTIONS
 #define VULKAN_HPP_NO_EXCEPTIONS
+#include "VulkanSwapchain.hpp"
 #endif
 #ifndef VULKAN_HPP_NO_SMART_HANDLE
 #define VULKAN_HPP_NO_SMART_HANDLE
@@ -22,10 +23,11 @@
 #include "utils/VulkanConfig.hpp"
 #include <GLFW/glfw3.h>
 
-#define VKR(result) if(result != vk::Result::eSuccess) VZ_LOG_ERROR("Failed to execute vulkan method")
+#define VKR(result) \
+    if (result != vk::Result::eSuccess) VZ_LOG_ERROR("Failed to execute vulkan method")
 
 namespace vz {
-
+class VulkanSwapchain;
 struct VulkanQueue {
     uint32_t queueFamilyIndex;
     vk::Queue queue;
@@ -48,11 +50,14 @@ public:
     vk::SurfaceKHR surface;
     VulkanQueue graphicsQueue;
     VulkanQueue presentQueue;
+    VulkanSwapchain vulkanSwapchain;
+
     ~VulkanBase();
     bool createInstance();
     bool pickPhyiscalDevice();
     bool createSurface(GLFWwindow* window);
     bool createLogicalDevice();
+    bool setupSwapchain();
     void setVulkanConfig(const VulkanConfig* config);
 private:
     const VulkanConfig* m_vulkanConfig{nullptr};

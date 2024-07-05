@@ -104,6 +104,9 @@ bool VulkanBase::createLogicalDevice() {
     presentQueue.queue = device.getQueue(presentQueue.queueFamilyIndex, 0);
     return true;
 }
+bool VulkanBase::setupSwapchain() {
+    return vulkanSwapchain.setupSwapchain(this);
+}
 void VulkanBase::setVulkanConfig(const VulkanConfig* config) {
     m_vulkanConfig = config;
 }
@@ -115,7 +118,15 @@ int VulkanBase::rateDeviceSuitability(const vk::PhysicalDevice device) const {
     return score;
 }
 bool VulkanBase::isDeviceSuitable(vk::PhysicalDevice device) const {
-    return findQueueFamilies(device).isComplete() && areDeviceExtensionsSupported(device);
+    const QueueFamilyIndices familyIndices = findQueueFamilies(device);
+    const bool extensionsSupported = areDeviceExtensionsSupported(device);
+    bool swapChainAdequate = false;
+    if(extensionsSupported) {
+        VulkanSwapChainSupportDetails swapChainSupport = VulkanSwapchain::querySwapChainSupport(device,surface);
+        swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
+
+    }
+    return familyIndices.isComplete() && extensionsSupported && swapChainAdequate;
 }
 bool VulkanBase::areDeviceExtensionsSupported(vk::PhysicalDevice device) const {
     std::vector<vk::ExtensionProperties> extensions = device.enumerateDeviceExtensionProperties().value;
