@@ -11,6 +11,7 @@ m_width(width),
 m_height(height),
 m_title(std::move(title)) {
     m_vulkanConfig = vulkanConfig;
+    m_vulkanBase.setVulkanConfig(&m_vulkanConfig);
     if (!initGLFW()) {
         VZ_LOG_ERROR("Failed to initialize GLFW. Cannot create Window");
     } else {
@@ -71,6 +72,8 @@ void RenderWindow::initVulkan() {
         m_vulkanConfig.instanceConfig.enableExtensionNames.push_back(glfwExtensions[i]);
         VZ_LOG_INFO("Enable GLFW Extension: {}", glfwExtensions[i]);
     }
+    m_vulkanConfig.deviceConfig.enableDeviceFeatures.push_back(vk::KHRSwapchainExtensionName);
+    VZ_LOG_INFO("Added swapchain device extension");
 #ifdef VIZUN_ENABLE_VALIDATION_LAYER
     if (std::ranges::find(m_vulkanConfig.instanceConfig.enableLayerNames, "VK_LAYER_KHRONOS_validation") ==
         m_vulkanConfig.instanceConfig.enableLayerNames.end()) {
@@ -83,22 +86,21 @@ void RenderWindow::initVulkan() {
     }
 #endif
 
-    if (!m_vulkanBase.createInstance(m_vulkanConfig)) {
+    if (!m_vulkanBase.createInstance()) {
         VZ_LOG_ERROR("Could not create vulkan instance");
+        return;
+    }
+    if(!m_vulkanBase.createSurface(m_windowHandle)) {
+        VZ_LOG_ERROR("Could not create surface");
         return;
     }
     if (!m_vulkanBase.pickPhyiscalDevice()) {
         VZ_LOG_ERROR("Failed to find a suitable physical device");
         return;
     }
-    if (!m_vulkanBase.createLogicalDevice(m_vulkanConfig,m_surface)) {
+    if (!m_vulkanBase.createLogicalDevice()) {
         VZ_LOG_ERROR("Failed to create logical device");
         return;
     }
-}
-void RenderWindow::createSurface() {
-    VkSurfaceKHR tempSurface;
-    glfwCreateWindowSurface(m_vulkanBase.instance,m_windowHandle,nullptr,&tempSurface);
-    m_surface = tempSurface;
 }
 } // namespace vz

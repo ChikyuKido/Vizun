@@ -7,6 +7,7 @@ int main() {
 
     while(!renderWindow.shouldWindowClose()) {
         glfwPollEvents();
+
     }
     return 0;
 }

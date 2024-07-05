@@ -32,8 +32,6 @@ private:
     void destroyWindow();
     void recreateWindow();
     void initVulkan();
-    void createSurface();
-
 };
 
 }

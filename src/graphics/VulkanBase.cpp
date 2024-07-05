@@ -1,40 +1,38 @@
-//
-// Created by kido on 7/4/24.
-//
-
 #include "VulkanBase.hpp"
-
 #include "utils/Logger.hpp"
 #include "utils/VulkanConfig.hpp"
+
 
 #include <map>
 #include <set>
 
 namespace vz {
+VulkanBase::VulkanBase(const VulkanConfig* vulkanConfig) : m_vulkanConfig(vulkanConfig) {}
+VulkanBase::VulkanBase() = default;
 VulkanBase::~VulkanBase() {
     instance.destroy();
     device.destroy();
 }
-bool VulkanBase::createInstance(const VulkanConfig& vulkanConfig) {
+bool VulkanBase::createInstance() {
     vk::ApplicationInfo applicationInfo;
-    applicationInfo.pApplicationName = vulkanConfig.instanceConfig.applicationName;
-    applicationInfo.applicationVersion = vulkanConfig.instanceConfig.applicationVersion;
+    applicationInfo.pApplicationName = m_vulkanConfig->instanceConfig.applicationName;
+    applicationInfo.applicationVersion = m_vulkanConfig->instanceConfig.applicationVersion;
     applicationInfo.pEngineName = "Vizun";
     applicationInfo.engineVersion = VK_MAKE_VERSION(0, 0, 1);
     applicationInfo.apiVersion = VK_API_VERSION_1_2;
 
     vk::InstanceCreateInfo instanceInfo;
     instanceInfo.pApplicationInfo = &applicationInfo;
-    instanceInfo.enabledExtensionCount = vulkanConfig.instanceConfig.enableExtensionNames.size();
-    instanceInfo.ppEnabledExtensionNames = vulkanConfig.instanceConfig.enableExtensionNames.data();
-    instanceInfo.enabledLayerCount = vulkanConfig.instanceConfig.enableLayerNames.size();
-    instanceInfo.ppEnabledLayerNames = vulkanConfig.instanceConfig.enableLayerNames.data();
+    instanceInfo.enabledExtensionCount = m_vulkanConfig->instanceConfig.enableExtensionNames.size();
+    instanceInfo.ppEnabledExtensionNames = m_vulkanConfig->instanceConfig.enableExtensionNames.data();
+    instanceInfo.enabledLayerCount = m_vulkanConfig->instanceConfig.enableLayerNames.size();
+    instanceInfo.ppEnabledLayerNames = m_vulkanConfig->instanceConfig.enableLayerNames.data();
 
     return vk::createInstance(&instanceInfo, nullptr, &instance) == vk::Result::eSuccess;
 }
 bool VulkanBase::pickPhyiscalDevice() {
     auto deviceResult = instance.enumeratePhysicalDevices();
-    if(deviceResult.result != vk::Result::eSuccess) {
+    if (deviceResult.result != vk::Result::eSuccess) {
         VZ_LOG_ERROR("Failed to find physical devices");
         return false;
     }
@@ -45,7 +43,7 @@ bool VulkanBase::pickPhyiscalDevice() {
     }
     std::multimap<int, vk::PhysicalDevice> candidates;
     for (auto device : devices) {
-        if (!findQueueFamilies(device).isComplete()) {
+        if (!isDeviceSuitable(device)) {
             VZ_LOG_INFO("GPU {} is not compatible", static_cast<char*>(device.getProperties().deviceName));
             continue;
         }
@@ -63,13 +61,22 @@ bool VulkanBase::pickPhyiscalDevice() {
     }
     return true;
 }
-bool VulkanBase::createLogicalDevice(const VulkanConfig& vulkanConfig,const vk::SurfaceKHR& surface) {
-    QueueFamilyIndices indices = findQueueFamilies(physicalDevice,surface);
+bool VulkanBase::createSurface(GLFWwindow* window) {
+    VkSurfaceKHR tempSurface;
+    const VkResult res = glfwCreateWindowSurface(instance,window,nullptr,&tempSurface);
+    if(res != VK_SUCCESS) {
+        return false;
+    }
+    surface = tempSurface;
+    return true;
+}
+bool VulkanBase::createLogicalDevice() {
+    QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 
     std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
-    std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily.value(), indices.presentFamily.value()};
+    std::set uniqueQueueFamilies = {indices.graphicsFamily.value(), indices.presentFamily.value()};
 
-    float const queuePriority = 1.0f;
+    const float queuePriority = 1.0f;
     for (uint32_t queueFamily : uniqueQueueFamilies) {
         vk::DeviceQueueCreateInfo queueCreateInfo;
         queueCreateInfo.queueFamilyIndex = queueFamily;
@@ -84,21 +91,21 @@ bool VulkanBase::createLogicalDevice(const VulkanConfig& vulkanConfig,const vk::
     deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
     deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
     deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
-    deviceCreateInfo.enabledExtensionCount = vulkanConfig.deviceConfig.enableDeviceFeatures.size();
-    deviceCreateInfo.ppEnabledExtensionNames = vulkanConfig.deviceConfig.enableDeviceFeatures.data();
+    deviceCreateInfo.enabledExtensionCount = m_vulkanConfig->deviceConfig.enableDeviceFeatures.size();
+    deviceCreateInfo.ppEnabledExtensionNames = m_vulkanConfig->deviceConfig.enableDeviceFeatures.data();
 
     vk::ResultValue<vk::Device> result = physicalDevice.createDevice(deviceCreateInfo);
-    if(result.result != vk::Result::eSuccess) {
-        return false;
-    }
+    if (result.result != vk::Result::eSuccess) { return false; }
     device = result.value;
 
     graphicsQueue.queueFamilyIndex = indices.graphicsFamily.value();
-    graphicsQueue.queue = device.getQueue(graphicsQueue.queueFamilyIndex,0);
+    graphicsQueue.queue = device.getQueue(graphicsQueue.queueFamilyIndex, 0);
     presentQueue.queueFamilyIndex = indices.presentFamily.value();
-    presentQueue.queue = device.getQueue(presentQueue.queueFamilyIndex,0);
+    presentQueue.queue = device.getQueue(presentQueue.queueFamilyIndex, 0);
     return true;
-
+}
+void VulkanBase::setVulkanConfig(const VulkanConfig* config) {
+    m_vulkanConfig = config;
 }
 int VulkanBase::rateDeviceSuitability(const vk::PhysicalDevice device) const {
     int score = 0;
@@ -107,7 +114,19 @@ int VulkanBase::rateDeviceSuitability(const vk::PhysicalDevice device) const {
     if (!device.getFeatures().geometryShader) { return 0; }
     return score;
 }
-QueueFamilyIndices VulkanBase::findQueueFamilies(const vk::PhysicalDevice device, const vk::SurfaceKHR& surface) const {
+bool VulkanBase::isDeviceSuitable(vk::PhysicalDevice device) const {
+    return findQueueFamilies(device).isComplete() && areDeviceExtensionsSupported(device);
+}
+bool VulkanBase::areDeviceExtensionsSupported(vk::PhysicalDevice device) const {
+    std::vector<vk::ExtensionProperties> extensions = device.enumerateDeviceExtensionProperties().value;
+    std::set<std::string> requiredExtensions(m_vulkanConfig->deviceConfig.enableDeviceFeatures.begin(), m_vulkanConfig->deviceConfig.enableDeviceFeatures.end());
+    for (const auto& extension : extensions) {
+        requiredExtensions.erase(extension.extensionName);
+    }
+
+    return requiredExtensions.empty();
+}
+QueueFamilyIndices VulkanBase::findQueueFamilies(const vk::PhysicalDevice device) const {
     QueueFamilyIndices indices;
     int i = 0;
     for (const auto& queueFamily : device.getQueueFamilyProperties()) {

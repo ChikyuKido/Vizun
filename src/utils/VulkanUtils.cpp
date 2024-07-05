@@ -8,10 +8,9 @@ namespace  vz {
 bool VulkanUtils::isLayerSupported(const char* layer) {
     static auto layers = vk::enumerateInstanceLayerProperties();
     for (auto l : layers) {
-        if(strcmp(l.layerName, layer) == 0) {
-            return true;
-        }
+        if (strcmp(l.layerName, layer) == 0) { return true; }
     }
     return false;
 }
-}
+
+} // namespace vz

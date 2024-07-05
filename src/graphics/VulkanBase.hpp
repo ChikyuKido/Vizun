@@ -3,7 +3,6 @@
 
 #ifndef VULKAN_HPP_NO_EXCEPTIONS
 #define VULKAN_HPP_NO_EXCEPTIONS
-#include <optional>
 #endif
 #ifndef VULKAN_HPP_NO_SMART_HANDLE
 #define VULKAN_HPP_NO_SMART_HANDLE
@@ -18,8 +17,10 @@
 #define VULKAN_HPP_NO_TO_STRING
 #endif
 
+#include <optional>
 #include <vulkan/vulkan.hpp>
 #include "utils/VulkanConfig.hpp"
+#include <GLFW/glfw3.h>
 
 #define VKR(result) if(result != vk::Result::eSuccess) VZ_LOG_ERROR("Failed to execute vulkan method")
 
@@ -39,19 +40,27 @@ struct QueueFamilyIndices {
 
 class VulkanBase {
 public:
+    VulkanBase(const VulkanConfig* vulkanConfig);
+    VulkanBase();
     vk::Instance instance;
     vk::Device device = nullptr;
     vk::PhysicalDevice physicalDevice = nullptr;
+    vk::SurfaceKHR surface;
     VulkanQueue graphicsQueue;
     VulkanQueue presentQueue;
-
     ~VulkanBase();
-    bool createInstance(const VulkanConfig& vulkanConfig);
+    bool createInstance();
     bool pickPhyiscalDevice();
-    bool createLogicalDevice(const VulkanConfig& vulkanConfig,const vk::SurfaceKHR& surface);
+    bool createSurface(GLFWwindow* window);
+    bool createLogicalDevice();
+    void setVulkanConfig(const VulkanConfig* config);
 private:
+    const VulkanConfig* m_vulkanConfig{nullptr};
+
     int rateDeviceSuitability(vk::PhysicalDevice device) const;
-    QueueFamilyIndices findQueueFamilies(vk::PhysicalDevice device,const vk::SurfaceKHR& surface) const;
+    bool isDeviceSuitable(vk::PhysicalDevice device) const;
+    bool areDeviceExtensionsSupported(vk::PhysicalDevice device) const;
+    QueueFamilyIndices findQueueFamilies(vk::PhysicalDevice device) const;
 };
 }
 
