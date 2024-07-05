@@ -8,6 +8,7 @@
 #include "utils/VulkanConfig.hpp"
 
 #include <map>
+#include <set>
 
 namespace vz {
 VulkanBase::~VulkanBase() {
@@ -62,29 +63,40 @@ bool VulkanBase::pickPhyiscalDevice() {
     }
     return true;
 }
-bool VulkanBase::createLogicalDevice(const VulkanConfig& vulkanConfig) {
-    QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
+bool VulkanBase::createLogicalDevice(const VulkanConfig& vulkanConfig,const vk::SurfaceKHR& surface) {
+    QueueFamilyIndices indices = findQueueFamilies(physicalDevice,surface);
 
-    float queuePriority = 1.0f;
-    vk::DeviceQueueCreateInfo queueCreateInfo;
-    queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
-    queueCreateInfo.queueCount = 1;
-    queueCreateInfo.pQueuePriorities = &queuePriority;
+    std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
+    std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily.value(), indices.presentFamily.value()};
+
+    float const queuePriority = 1.0f;
+    for (uint32_t queueFamily : uniqueQueueFamilies) {
+        vk::DeviceQueueCreateInfo queueCreateInfo;
+        queueCreateInfo.queueFamilyIndex = queueFamily;
+        queueCreateInfo.queueCount = 1;
+        queueCreateInfo.pQueuePriorities = &queuePriority;
+        queueCreateInfos.push_back(queueCreateInfo);
+    }
 
     vk::PhysicalDeviceFeatures deviceFeatures;
 
     vk::DeviceCreateInfo deviceCreateInfo;
-    deviceCreateInfo.queueCreateInfoCount = 1;
-    deviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
+    deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
+    deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
     deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
     deviceCreateInfo.enabledExtensionCount = vulkanConfig.deviceConfig.enableDeviceFeatures.size();
     deviceCreateInfo.ppEnabledExtensionNames = vulkanConfig.deviceConfig.enableDeviceFeatures.data();
 
-    vk::ResultValue<vk::Device> result  = physicalDevice.createDevice(deviceCreateInfo);
+    vk::ResultValue<vk::Device> result = physicalDevice.createDevice(deviceCreateInfo);
     if(result.result != vk::Result::eSuccess) {
         return false;
     }
     device = result.value;
+
+    graphicsQueue.queueFamilyIndex = indices.graphicsFamily.value();
+    graphicsQueue.queue = device.getQueue(graphicsQueue.queueFamilyIndex,0);
+    presentQueue.queueFamilyIndex = indices.presentFamily.value();
+    presentQueue.queue = device.getQueue(presentQueue.queueFamilyIndex,0);
     return true;
 
 }
@@ -95,12 +107,17 @@ int VulkanBase::rateDeviceSuitability(const vk::PhysicalDevice device) const {
     if (!device.getFeatures().geometryShader) { return 0; }
     return score;
 }
-QueueFamilyIndices VulkanBase::findQueueFamilies(const vk::PhysicalDevice device) const {
+QueueFamilyIndices VulkanBase::findQueueFamilies(const vk::PhysicalDevice device, const vk::SurfaceKHR& surface) const {
     QueueFamilyIndices indices;
     int i = 0;
     for (const auto& queueFamily : device.getQueueFamilyProperties()) {
         if (queueFamily.queueFlags & vk::QueueFlagBits::eGraphics) {
             indices.graphicsFamily = i;
+        }
+        if(device.getSurfaceSupportKHR(i,surface).value) {
+            indices.presentFamily = i;
+        }
+        if(indices.isComplete()) {
             break;
         }
         i++;

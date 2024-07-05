@@ -26,13 +26,14 @@
 namespace vz {
 
 struct VulkanQueue {
-    uint32_t queueIndex;
+    uint32_t queueFamilyIndex;
     vk::Queue queue;
 };
 struct QueueFamilyIndices {
     std::optional<uint32_t> graphicsFamily;
-    bool isComplete() {
-        return graphicsFamily.has_value();
+    std::optional<uint32_t> presentFamily;
+    bool isComplete() const {
+        return graphicsFamily.has_value() && presentFamily.has_value();
     }
 };
 
@@ -41,13 +42,16 @@ public:
     vk::Instance instance;
     vk::Device device = nullptr;
     vk::PhysicalDevice physicalDevice = nullptr;
+    VulkanQueue graphicsQueue;
+    VulkanQueue presentQueue;
+
     ~VulkanBase();
     bool createInstance(const VulkanConfig& vulkanConfig);
     bool pickPhyiscalDevice();
-    bool createLogicalDevice(const VulkanConfig& vulkanConfig);
+    bool createLogicalDevice(const VulkanConfig& vulkanConfig,const vk::SurfaceKHR& surface);
 private:
     int rateDeviceSuitability(vk::PhysicalDevice device) const;
-    QueueFamilyIndices findQueueFamilies(vk::PhysicalDevice device) const;
+    QueueFamilyIndices findQueueFamilies(vk::PhysicalDevice device,const vk::SurfaceKHR& surface) const;
 };
 }
 

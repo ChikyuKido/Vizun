@@ -1,7 +1,8 @@
 #ifndef RENDERWINDOW_HPP
 #define RENDERWINDOW_HPP
 
-#include "GLFW/glfw3.h"
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
 #include "VulkanBase.hpp"
 #include "utils/VulkanConfig.hpp"
 
@@ -24,14 +25,14 @@ private:
     GLFWwindow* m_windowHandle{nullptr};
     VulkanConfig m_vulkanConfig;
     VulkanBase m_vulkanBase;
+    vk::SurfaceKHR m_surface;
 
-
-    void logGLFWVersion() const;
     bool initGLFW() const;
     bool createWindow();
     void destroyWindow();
     void recreateWindow();
     void initVulkan();
+    void createSurface();
 
 };
 
