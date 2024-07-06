@@ -3,7 +3,6 @@
 
 #ifndef VULKAN_HPP_NO_EXCEPTIONS
 #define VULKAN_HPP_NO_EXCEPTIONS
-#include "VulkanSwapchain.hpp"
 #endif
 #ifndef VULKAN_HPP_NO_SMART_HANDLE
 #define VULKAN_HPP_NO_SMART_HANDLE
@@ -50,15 +49,14 @@ public:
     vk::SurfaceKHR surface;
     VulkanQueue graphicsQueue;
     VulkanQueue presentQueue;
-    VulkanSwapchain vulkanSwapchain;
 
-    ~VulkanBase();
+    void cleanup() const;
     bool createInstance();
     bool pickPhyiscalDevice();
     bool createSurface(GLFWwindow* window);
     bool createLogicalDevice();
-    bool setupSwapchain();
     void setVulkanConfig(const VulkanConfig* config);
+    const VulkanConfig* getVulkanConfig() const;
 private:
     const VulkanConfig* m_vulkanConfig{nullptr};
 

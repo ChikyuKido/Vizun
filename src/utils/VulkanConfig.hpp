@@ -16,9 +16,14 @@ struct VulkanInstanceConfig {
 struct VulkanDeviceConfig {
     std::vector<const char*> enableDeviceFeatures;
 };
+struct VulkanSwapchainConfig {
+    vk::PresentModeKHR presentMode = vk::PresentModeKHR::eImmediate;
+    bool forcePresentMode = false;
+};
 struct VulkanConfig {
     VulkanInstanceConfig instanceConfig;
     VulkanDeviceConfig deviceConfig;
+    VulkanSwapchainConfig vulkanSwapchainConfig;
 };
 
 

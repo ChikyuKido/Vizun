@@ -4,6 +4,7 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include "VulkanBase.hpp"
+#include "VulkanSwapchain.hpp"
 #include "utils/VulkanConfig.hpp"
 
 #include <string>
@@ -25,6 +26,7 @@ private:
     GLFWwindow* m_windowHandle{nullptr};
     VulkanConfig m_vulkanConfig;
     VulkanBase m_vulkanBase;
+    VulkanSwapchain m_vulkanSwapchain;
     vk::SurfaceKHR m_surface;
 
     bool initGLFW() const;

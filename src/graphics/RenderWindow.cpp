@@ -22,7 +22,9 @@ m_title(std::move(title)) {
 }
 
 RenderWindow::~RenderWindow() {
+    m_vulkanSwapchain.cleanup(m_vulkanBase);
     m_vulkanBase.instance.destroySurfaceKHR(m_surface);
+    m_vulkanBase.cleanup();
     destroyWindow();
     glfwTerminate();
 }
@@ -100,6 +102,15 @@ void RenderWindow::initVulkan() {
     }
     if (!m_vulkanBase.createLogicalDevice()) {
         VZ_LOG_ERROR("Failed to create logical device");
+        return;
+    }
+
+    if(!m_vulkanSwapchain.createSwapchain(m_vulkanBase,m_windowHandle)) {
+        VZ_LOG_ERROR("Failed to create swapchain");
+        return;
+    }
+    if(!m_vulkanSwapchain.createImageViews(m_vulkanBase)) {
+        VZ_LOG_ERROR("Failed to create swapchain image views");
         return;
     }
 }

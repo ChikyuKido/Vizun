@@ -1,7 +1,8 @@
 #include "VulkanBase.hpp"
+
+#include "VulkanSwapchain.hpp"
 #include "utils/Logger.hpp"
 #include "utils/VulkanConfig.hpp"
-
 
 #include <map>
 #include <set>
@@ -9,7 +10,7 @@
 namespace vz {
 VulkanBase::VulkanBase(const VulkanConfig* vulkanConfig) : m_vulkanConfig(vulkanConfig) {}
 VulkanBase::VulkanBase() = default;
-VulkanBase::~VulkanBase() {
+void VulkanBase::cleanup() const {
     instance.destroy();
     device.destroy();
 }
@@ -76,7 +77,7 @@ bool VulkanBase::createLogicalDevice() {
     std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
     std::set uniqueQueueFamilies = {indices.graphicsFamily.value(), indices.presentFamily.value()};
 
-    const float queuePriority = 1.0f;
+    constexpr float queuePriority = 1.0f;
     for (uint32_t queueFamily : uniqueQueueFamilies) {
         vk::DeviceQueueCreateInfo queueCreateInfo;
         queueCreateInfo.queueFamilyIndex = queueFamily;
@@ -94,7 +95,7 @@ bool VulkanBase::createLogicalDevice() {
     deviceCreateInfo.enabledExtensionCount = m_vulkanConfig->deviceConfig.enableDeviceFeatures.size();
     deviceCreateInfo.ppEnabledExtensionNames = m_vulkanConfig->deviceConfig.enableDeviceFeatures.data();
 
-    vk::ResultValue<vk::Device> result = physicalDevice.createDevice(deviceCreateInfo);
+    const vk::ResultValue<vk::Device> result = physicalDevice.createDevice(deviceCreateInfo);
     if (result.result != vk::Result::eSuccess) { return false; }
     device = result.value;
 
@@ -104,11 +105,12 @@ bool VulkanBase::createLogicalDevice() {
     presentQueue.queue = device.getQueue(presentQueue.queueFamilyIndex, 0);
     return true;
 }
-bool VulkanBase::setupSwapchain() {
-    return vulkanSwapchain.setupSwapchain(this);
-}
+
 void VulkanBase::setVulkanConfig(const VulkanConfig* config) {
     m_vulkanConfig = config;
+}
+const VulkanConfig* VulkanBase::getVulkanConfig() const {
+    return m_vulkanConfig;
 }
 int VulkanBase::rateDeviceSuitability(const vk::PhysicalDevice device) const {
     int score = 0;
@@ -124,7 +126,6 @@ bool VulkanBase::isDeviceSuitable(vk::PhysicalDevice device) const {
     if(extensionsSupported) {
         VulkanSwapChainSupportDetails swapChainSupport = VulkanSwapchain::querySwapChainSupport(device,surface);
         swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
-
     }
     return familyIndices.isComplete() && extensionsSupported && swapChainAdequate;
 }
