@@ -27,7 +27,7 @@ public:
 private:
     vk::SurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats) const;
     vk::PresentModeKHR chooseSwapPresentMode(const VulkanConfig* vulkanConfig,const std::vector<vk::PresentModeKHR>& availablePresentModes) const;
-    vk::Extent2D chooseSwapExent(const vk::SurfaceCapabilitiesKHR& capabilities,GLFWwindow* window);
+    vk::Extent2D chooseSwapExent(const vk::SurfaceCapabilitiesKHR& capabilities,GLFWwindow* window) const;
 
 };
 }

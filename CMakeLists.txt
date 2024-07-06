@@ -35,13 +35,24 @@ set(SOURCE_FILES
         src/utils/VulkanUtils.cpp
         src/graphics/VulkanSwapchain.cpp
         src/graphics/VulkanSwapchain.hpp
+        src/graphics/Shader.cpp
+        src/graphics/Shader.hpp
+        src/graphics/VulkanGraphicsPipeline.cpp
+        src/graphics/VulkanGraphicsPipeline.hpp
+        src/graphics/VulkanGraphicsPipeline.cpp
+        src/graphics/VulkanGraphicsPipeline.hpp
 )
 add_library(Vizun ${SOURCE_FILES})
 target_link_libraries(Vizun PUBLIC glfw ${Vulkan_LIBRARIES} spdlog stdc++)
 
 target_compile_options(Vizun PRIVATE -ftime-trace)
 
+add_custom_target(build_shaders ALL
+        COMMAND "${PROJECT_SOURCE_DIR}/rsc/shaders/compile.sh"
+        WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/rsc/shaders"
+)
 
+add_dependencies(Vizun build_shaders)
 
 if(VIZUN_BUILD_EXAMPLES)
     message("Building vizun examples")

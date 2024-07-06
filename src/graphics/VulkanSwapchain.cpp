@@ -75,9 +75,11 @@ bool VulkanSwapchain::createImageViews(const VulkanBase& vulkanBase) {
     for(size_t i = 0;i < swapchainImages.size();i++) {
         vk::ImageViewCreateInfo createInfo;
         createInfo.image = swapchainImages[i];
+        createInfo.viewType = vk::ImageViewType::e2D;
+        createInfo.format = swapchainFormat;
         createInfo.components = {vk::ComponentSwizzle::eIdentity,vk::ComponentSwizzle::eIdentity,vk::ComponentSwizzle::eIdentity,vk::ComponentSwizzle::eIdentity};
         createInfo.subresourceRange = {vk::ImageAspectFlagBits::eColor,0,1,0,1};
-        vk::ResultValue<vk::ImageView> imageViewRes = vulkanBase.device.createImageView(createInfo);
+        const vk::ResultValue<vk::ImageView> imageViewRes = vulkanBase.device.createImageView(createInfo);
         if(imageViewRes.result != vk::Result::eSuccess) {
             return false;
         }
@@ -114,7 +116,7 @@ vk::PresentModeKHR VulkanSwapchain::chooseSwapPresentMode(const VulkanConfig* vu
     return vk::PresentModeKHR::eFifo;
 }
 vk::Extent2D VulkanSwapchain::chooseSwapExent(const vk::SurfaceCapabilitiesKHR& capabilities,
-                                              GLFWwindow* window) {
+                                              GLFWwindow* window) const {
     if(capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
         return capabilities.currentExtent;
     }else {

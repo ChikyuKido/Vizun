@@ -4,8 +4,7 @@
 #include "utils/VulkanUtils.hpp"
 namespace vz {
 
-RenderWindow::RenderWindow(const int width, const int height, std::string title) : RenderWindow(width,height,std::move(title),VulkanConfig() /*TODO: default config*/) {}
-
+RenderWindow::RenderWindow(const int width, const int height, std::string title) : RenderWindow(width,height,std::move(title),VulkanConfig()) {}
 RenderWindow::RenderWindow(const int width, const int height, std::string title,const VulkanConfig& vulkanConfig) :
 m_width(width),
 m_height(height),
@@ -111,6 +110,10 @@ void RenderWindow::initVulkan() {
     }
     if(!m_vulkanSwapchain.createImageViews(m_vulkanBase)) {
         VZ_LOG_ERROR("Failed to create swapchain image views");
+        return;
+    }
+    if(!m_vulkanGraphicsPipeline.createGraphicsPipeline(m_vulkanBase)) {
+        VZ_LOG_ERROR("Failed to create graphics pipeline");
         return;
     }
 }

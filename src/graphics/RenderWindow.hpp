@@ -2,11 +2,12 @@
 #define RENDERWINDOW_HPP
 
 #define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
 #include "VulkanBase.hpp"
+#include "VulkanGraphicsPipeline.hpp"
 #include "VulkanSwapchain.hpp"
 #include "utils/VulkanConfig.hpp"
 
+#include <GLFW/glfw3.h>
 #include <string>
 
 namespace vz {
@@ -27,6 +28,7 @@ private:
     VulkanConfig m_vulkanConfig;
     VulkanBase m_vulkanBase;
     VulkanSwapchain m_vulkanSwapchain;
+    VulkanGraphicsPipeline m_vulkanGraphicsPipeline;
     vk::SurfaceKHR m_surface;
 
     bool initGLFW() const;

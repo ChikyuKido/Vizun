@@ -8,8 +8,8 @@
 namespace vz {
 
 struct VulkanInstanceConfig {
-    const char* applicationName;
-    uint32_t applicationVersion;
+    const char* applicationName = "Vizun";
+    uint32_t applicationVersion = VK_MAKE_VERSION(1,0,0);
     std::vector<const char*> enableExtensionNames;
     std::vector<const char*> enableLayerNames;
 };
@@ -17,7 +17,7 @@ struct VulkanDeviceConfig {
     std::vector<const char*> enableDeviceFeatures;
 };
 struct VulkanSwapchainConfig {
-    vk::PresentModeKHR presentMode = vk::PresentModeKHR::eImmediate;
+    vk::PresentModeKHR presentMode = vk::PresentModeKHR::eFifo;
     bool forcePresentMode = false;
 };
 struct VulkanConfig {
