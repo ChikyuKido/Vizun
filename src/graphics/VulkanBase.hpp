@@ -22,8 +22,47 @@
 #include "utils/VulkanConfig.hpp"
 #include <GLFW/glfw3.h>
 
-#define VKR(result) \
-    if (result != vk::Result::eSuccess) VZ_LOG_ERROR("Failed to execute vulkan method")
+/**
+ * Executes the given call and assigns its result to the variable if the result was a success; if not, it returns false.
+ * @param variable the variable to assign the value to
+ * @param call the Vulkan call that returns a ResultType
+ */
+#define VK_RESULT_ASSIGN(variable, call) \
+{ \
+const auto res = call; \
+VK_RETURN_FALSE_WITH_LOG(res.result, "Failed to execute call: " + extractFunctionName(#call), __FILE__, __LINE__) \
+(variable) = res.value; \
+}
+
+/**
+ * Returns from the current method with false and prints the entered text as an error log with the result code added.
+ * @param result the result of the Vulkan method
+ * @param text the text for the log
+ * @param file the source file where the macro is called
+ * @param line the line number in the source file where the macro is called
+ */
+#define VK_RETURN_FALSE_WITH_LOG(result, text, file, line) \
+{ \
+const std::string errorMsg = std::string(file) + ":" + std::to_string(line) + " - " + text + " Error code: " + std::to_string(static_cast<int>(result)); \
+RETURN_FALSE_WITH_LOG((result) != vk::Result::eSuccess, errorMsg.c_str()) \
+}
+
+/**
+ * Returns from the current method with false and prints the entered text as an error log if the condition is true.
+ * @param condition the condition to evaluate
+ * @param text the text for the log
+ */
+#define RETURN_FALSE_WITH_LOG(condition, text) \
+if (condition) { \
+VZ_LOG_ERROR(text); \
+return false; \
+}
+
+inline std::string extractFunctionName(const std::string& functionCall) {
+    size_t pos = functionCall.find('(');
+    return (pos != std::string::npos) ? functionCall.substr(0, pos) : functionCall;
+}
+
 
 namespace vz {
 class VulkanSwapchain;

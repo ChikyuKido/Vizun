@@ -29,6 +29,7 @@ private:
     VulkanBase m_vulkanBase;
     VulkanSwapchain m_vulkanSwapchain;
     VulkanGraphicsPipeline m_vulkanGraphicsPipeline;
+    VulkanRenderPass m_vulkanRenderPass;
     vk::SurfaceKHR m_surface;
 
     bool initGLFW() const;

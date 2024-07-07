@@ -112,7 +112,11 @@ void RenderWindow::initVulkan() {
         VZ_LOG_ERROR("Failed to create swapchain image views");
         return;
     }
-    if(!m_vulkanGraphicsPipeline.createGraphicsPipeline(m_vulkanBase)) {
+    if(!m_vulkanRenderPass.createRenderPass(m_vulkanBase,m_vulkanSwapchain)) {
+        VZ_LOG_ERROR("Failed to create render pass");
+        return;
+    }
+    if(!m_vulkanGraphicsPipeline.createGraphicsPipeline(m_vulkanBase,m_vulkanSwapchain,m_vulkanRenderPass)) {
         VZ_LOG_ERROR("Failed to create graphics pipeline");
         return;
     }

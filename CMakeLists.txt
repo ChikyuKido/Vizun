@@ -35,12 +35,12 @@ set(SOURCE_FILES
         src/utils/VulkanUtils.cpp
         src/graphics/VulkanSwapchain.cpp
         src/graphics/VulkanSwapchain.hpp
-        src/graphics/Shader.cpp
-        src/graphics/Shader.hpp
         src/graphics/VulkanGraphicsPipeline.cpp
         src/graphics/VulkanGraphicsPipeline.hpp
         src/graphics/VulkanGraphicsPipeline.cpp
         src/graphics/VulkanGraphicsPipeline.hpp
+        src/graphics/VulkanRenderPass.cpp
+        src/graphics/VulkanRenderPass.hpp
 )
 add_library(Vizun ${SOURCE_FILES})
 target_link_libraries(Vizun PUBLIC glfw ${Vulkan_LIBRARIES} spdlog stdc++)
