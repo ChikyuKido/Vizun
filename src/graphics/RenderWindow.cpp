@@ -21,11 +21,46 @@ m_title(std::move(title)) {
 }
 
 RenderWindow::~RenderWindow() {
+    m_vulkanBase.device.waitIdle();
+    m_vulkanBase.device.destroySemaphore(m_imageAvailableSemaphore);
+    m_vulkanBase.device.destroySemaphore(m_renderFinishedSemphore);
+    m_vulkanBase.device.destroyFence(m_inFlightFence);
+    m_vulkanBase.device.destroyCommandPool(m_commandPool);
+    m_vulkanGraphicsPipeline.cleanup(m_vulkanBase);
+    m_vulkanRenderPass.cleanup(m_vulkanBase);
     m_vulkanSwapchain.cleanup(m_vulkanBase);
     m_vulkanBase.instance.destroySurfaceKHR(m_surface);
     m_vulkanBase.cleanup();
     destroyWindow();
     glfwTerminate();
+}
+void RenderWindow::draw() {
+    m_vulkanBase.device.waitForFences(1,&m_inFlightFence,vk::True,UINT64_MAX);
+    m_vulkanBase.device.resetFences(1,&m_inFlightFence);
+    uint32_t imageIndex;
+    imageIndex = m_vulkanBase.device.acquireNextImageKHR(m_vulkanSwapchain.swapchain,UINT64_MAX,m_imageAvailableSemaphore,nullptr).value;
+    m_commandBuffer.reset();
+    recordCommandBuffer(imageIndex);
+    vk::SubmitInfo submitInfo;
+    vk::Semaphore waitSemaphores[] {m_imageAvailableSemaphore};
+    vk::PipelineStageFlags waitStages[] = {vk::PipelineStageFlagBits::eColorAttachmentOutput};
+    submitInfo.waitSemaphoreCount = 1;
+    submitInfo.pWaitSemaphores = waitSemaphores;
+    submitInfo.pWaitDstStageMask = waitStages;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &m_commandBuffer;
+    vk::Semaphore signalSemaphores[] {m_imageAvailableSemaphore};
+    submitInfo.signalSemaphoreCount = 1;
+    submitInfo.pSignalSemaphores = signalSemaphores;
+    m_vulkanBase.graphicsQueue.queue.submit(1,&submitInfo,m_inFlightFence);
+    vk::PresentInfoKHR presentInfo;
+    presentInfo.waitSemaphoreCount = 1;
+    presentInfo.pWaitSemaphores = signalSemaphores;
+    vk::SwapchainKHR swapchains[] = {m_vulkanSwapchain.swapchain};
+    presentInfo.swapchainCount = 1;
+    presentInfo.pSwapchains = swapchains;
+    presentInfo.pImageIndices = &imageIndex;
+    m_vulkanBase.presentQueue.queue.presentKHR(&presentInfo);
 }
 void RenderWindow::setResizable(const bool resizable) {
     if (m_resizable != resizable) {
@@ -91,7 +126,7 @@ void RenderWindow::initVulkan() {
         VZ_LOG_ERROR("Could not create vulkan instance");
         return;
     }
-    if(!m_vulkanBase.createSurface(m_windowHandle)) {
+    if (!m_vulkanBase.createSurface(m_windowHandle)) {
         VZ_LOG_ERROR("Could not create surface");
         return;
     }
@@ -104,21 +139,99 @@ void RenderWindow::initVulkan() {
         return;
     }
 
-    if(!m_vulkanSwapchain.createSwapchain(m_vulkanBase,m_windowHandle)) {
+    if (!m_vulkanSwapchain.createSwapchain(m_vulkanBase, m_windowHandle)) {
         VZ_LOG_ERROR("Failed to create swapchain");
         return;
     }
-    if(!m_vulkanSwapchain.createImageViews(m_vulkanBase)) {
+    if (!m_vulkanSwapchain.createImageViews(m_vulkanBase)) {
         VZ_LOG_ERROR("Failed to create swapchain image views");
         return;
     }
-    if(!m_vulkanRenderPass.createRenderPass(m_vulkanBase,m_vulkanSwapchain)) {
+    if (!m_vulkanRenderPass.createRenderPass(m_vulkanBase, m_vulkanSwapchain)) {
         VZ_LOG_ERROR("Failed to create render pass");
         return;
     }
-    if(!m_vulkanGraphicsPipeline.createGraphicsPipeline(m_vulkanBase,m_vulkanSwapchain,m_vulkanRenderPass)) {
+    if (!m_vulkanGraphicsPipeline.createGraphicsPipeline(m_vulkanBase, m_vulkanSwapchain, m_vulkanRenderPass)) {
         VZ_LOG_ERROR("Failed to create graphics pipeline");
         return;
     }
+    if (!m_vulkanSwapchain.createFramebuffers(m_vulkanBase, m_vulkanRenderPass)) {
+        VZ_LOG_ERROR("Failed to create framebuffers");
+        return;
+    }
+    if (!createCommandPool()) {
+        VZ_LOG_ERROR("Failed to create commandPool");
+        return;
+    }
+    if (!createCommandBuffer()) {
+        VZ_LOG_ERROR("Failed to create commandBuffer");
+        return;
+    }
+    if (!createSyncObjects()) {
+        VZ_LOG_ERROR("Failed to create sync objects");
+        return;
+    }
+}
+bool RenderWindow::createCommandPool() {
+    vk::CommandPoolCreateInfo poolInfo;
+    poolInfo.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
+    poolInfo.queueFamilyIndex = m_vulkanBase.graphicsQueue.queueFamilyIndex;
+    VK_RESULT_ASSIGN(m_commandPool, m_vulkanBase.device.createCommandPool(poolInfo));
+    return true;
+}
+bool RenderWindow::createCommandBuffer() {
+    vk::CommandBufferAllocateInfo allocInfo;
+    allocInfo.commandPool = m_commandPool;
+    allocInfo.level = vk::CommandBufferLevel::ePrimary;
+    allocInfo.commandBufferCount = 1;
+
+    std::vector<vk::CommandBuffer> commandBuffers;
+    VK_RESULT_ASSIGN(commandBuffers, m_vulkanBase.device.allocateCommandBuffers(allocInfo));
+    m_commandBuffer = commandBuffers[0];
+    return true;
+}
+bool RenderWindow::createSyncObjects() {
+    vk::SemaphoreCreateInfo sempahoreInfo;
+    vk::FenceCreateInfo fenceInfo;
+    fenceInfo.flags = vk::FenceCreateFlagBits::eSignaled;
+    VK_RESULT_ASSIGN(m_renderFinishedSemphore,m_vulkanBase.device.createSemaphore(sempahoreInfo));
+    VK_RESULT_ASSIGN(m_imageAvailableSemaphore,m_vulkanBase.device.createSemaphore(sempahoreInfo));
+    VK_RESULT_ASSIGN(m_inFlightFence,m_vulkanBase.device.createFence(fenceInfo));
+    return true;
+}
+bool RenderWindow::recordCommandBuffer(uint32_t imageIndex) {
+    vk::CommandBufferBeginInfo beginInfo;
+    m_commandBuffer.begin(beginInfo);
+
+    vk::RenderPassBeginInfo renderPassInfo;
+    renderPassInfo.renderPass = m_vulkanRenderPass.renderPass;
+    renderPassInfo.framebuffer = m_vulkanSwapchain.swapchainFramebuffers[imageIndex];
+    renderPassInfo.renderArea.offset = vk::Offset2D{0,0};
+    renderPassInfo.renderArea.extent = m_vulkanSwapchain.swapchainExtent;
+    vk::ClearValue clearColor;
+    clearColor.color = {0.0f, 0.0f, 0.0f, 1.0f};
+    renderPassInfo.clearValueCount = 1;
+    renderPassInfo.pClearValues = &clearColor;
+    m_commandBuffer.beginRenderPass(renderPassInfo,vk::SubpassContents::eInline);
+    m_commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics,m_vulkanGraphicsPipeline.pipeline);
+
+
+    vk::Viewport viewport;
+    viewport.x = 0.0f;
+    viewport.y = 0.0f;
+    viewport.width = static_cast<float>(m_vulkanSwapchain.swapchainExtent.width);
+    viewport.height = static_cast<float>(m_vulkanSwapchain.swapchainExtent.height);
+    viewport.minDepth = 0.0f;
+    viewport.maxDepth = 1.0f;
+    m_commandBuffer.setViewport(0, 1, &viewport);
+
+    vk::Rect2D scissor{};
+    scissor.offset = vk::Offset2D{0, 0};
+    scissor.extent = m_vulkanSwapchain.swapchainExtent;
+    m_commandBuffer.setScissor(0,1,&scissor);
+    m_commandBuffer.draw(3,1,0,0);
+    m_commandBuffer.endRenderPass();
+    m_commandBuffer.end();
+    return true;
 }
 } // namespace vz

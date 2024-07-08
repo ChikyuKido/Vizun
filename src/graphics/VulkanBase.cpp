@@ -11,8 +11,8 @@ namespace vz {
 VulkanBase::VulkanBase(const VulkanConfig* vulkanConfig) : m_vulkanConfig(vulkanConfig) {}
 VulkanBase::VulkanBase() = default;
 void VulkanBase::cleanup() const {
-    instance.destroy();
     device.destroy();
+    instance.destroy();
 }
 bool VulkanBase::createInstance() {
     vk::ApplicationInfo applicationInfo;

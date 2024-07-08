@@ -3,6 +3,7 @@
 
 
 #include "VulkanBase.hpp"
+#include "VulkanRenderPass.hpp"
 
 namespace vz {
 
@@ -17,12 +18,14 @@ public:
     vk::SwapchainKHR swapchain;
     std::vector<vk::Image> swapchainImages;
     std::vector<vk::ImageView> swapchainImageViews;
+    std::vector<vk::Framebuffer> swapchainFramebuffers;
     vk::Extent2D swapchainExtent;
     vk::Format swapchainFormat;
     static VulkanSwapChainSupportDetails querySwapChainSupport(const vk::PhysicalDevice& device,const vk::SurfaceKHR& surface);
 
     bool createSwapchain(const VulkanBase& vulkanBase,GLFWwindow* window);
     bool createImageViews(const VulkanBase& vulkanBase);
+    bool createFramebuffers(const VulkanBase& vulkanBase,const VulkanRenderPass& renderPass);
     void cleanup(const VulkanBase& vulkanBase) const;
 private:
     vk::SurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats) const;

@@ -31,6 +31,18 @@ bool VulkanRenderPass::createRenderPass(const VulkanBase& vulkanBase,const Vulka
     createInfo.subpassCount = 1;
     createInfo.pSubpasses = &subpass;
 
+    vk::SubpassDependency dependency;
+    dependency.srcSubpass = vk::SubpassExternal;
+    dependency.dstSubpass = 0;
+    dependency.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+    dependency.srcAccessMask = vk::AccessFlagBits::eNone;
+    dependency.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+    dependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
+
+    createInfo.dependencyCount = 1;
+    createInfo.pDependencies = &dependency;
+
+
     vk::ResultValue<vk::RenderPass> renderPassRes = vulkanBase.device.createRenderPass(createInfo);
     if(renderPassRes.result != vk::Result::eSuccess) {
         return false;

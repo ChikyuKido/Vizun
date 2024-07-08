@@ -1,6 +1,7 @@
 
 #include "VulkanSwapchain.hpp"
 
+#include "VulkanRenderPass.hpp"
 #include "utils/Logger.hpp"
 namespace vz {
 
@@ -72,22 +73,46 @@ bool VulkanSwapchain::createSwapchain(const VulkanBase& vulkanBase, GLFWwindow* 
 }
 bool VulkanSwapchain::createImageViews(const VulkanBase& vulkanBase) {
     swapchainImageViews.resize(swapchainImages.size());
-    for(size_t i = 0;i < swapchainImages.size();i++) {
+    for (size_t i = 0; i < swapchainImages.size(); i++) {
         vk::ImageViewCreateInfo createInfo;
         createInfo.image = swapchainImages[i];
         createInfo.viewType = vk::ImageViewType::e2D;
         createInfo.format = swapchainFormat;
-        createInfo.components = {vk::ComponentSwizzle::eIdentity,vk::ComponentSwizzle::eIdentity,vk::ComponentSwizzle::eIdentity,vk::ComponentSwizzle::eIdentity};
-        createInfo.subresourceRange = {vk::ImageAspectFlagBits::eColor,0,1,0,1};
+        createInfo.components = {vk::ComponentSwizzle::eIdentity,
+                                 vk::ComponentSwizzle::eIdentity,
+                                 vk::ComponentSwizzle::eIdentity,
+                                 vk::ComponentSwizzle::eIdentity};
+        createInfo.subresourceRange = {vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1};
         const vk::ResultValue<vk::ImageView> imageViewRes = vulkanBase.device.createImageView(createInfo);
-        if(imageViewRes.result != vk::Result::eSuccess) {
-            return false;
-        }
+        if (imageViewRes.result != vk::Result::eSuccess) { return false; }
         swapchainImageViews[i] = imageViewRes.value;
     }
     return true;
 }
+bool VulkanSwapchain::createFramebuffers(const VulkanBase& vulkanBase,const VulkanRenderPass& renderPass) {
+    swapchainFramebuffers.resize(swapchainImageViews.size());
+    for (size_t i = 0; i < swapchainImageViews.size(); i++) {
+        VkImageView attachments[] = {
+            swapchainImageViews[i]
+        };
+
+        VkFramebufferCreateInfo framebufferInfo{};
+        framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        framebufferInfo.renderPass = renderPass.renderPass;
+        framebufferInfo.attachmentCount = 1;
+        framebufferInfo.pAttachments = attachments;
+        framebufferInfo.width = swapchainExtent.width;
+        framebufferInfo.height = swapchainExtent.height;
+        framebufferInfo.layers = 1;
+
+        VK_RESULT_ASSIGN(swapchainFramebuffers[i],vulkanBase.device.createFramebuffer(framebufferInfo))
+    }
+    return true;
+}
 void VulkanSwapchain::cleanup(const VulkanBase& vulkanBase) const {
+    for (auto framebuffer : swapchainFramebuffers) {
+        vulkanBase.device.destroyFramebuffer(framebuffer);
+    }
     for (auto imageView : swapchainImageViews) {
         vulkanBase.device.destroyImageView(imageView);
     }
