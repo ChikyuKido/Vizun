@@ -23,7 +23,7 @@ public:
     vk::Format swapchainFormat;
     static VulkanSwapChainSupportDetails querySwapChainSupport(const vk::PhysicalDevice& device,const vk::SurfaceKHR& surface);
 
-    bool createSwapchain(const VulkanBase& vulkanBase,GLFWwindow* window);
+    bool createSwapchain(const VulkanBase& vulkanBase, GLFWwindow* window);
     bool createImageViews(const VulkanBase& vulkanBase);
     bool createFramebuffers(const VulkanBase& vulkanBase,const VulkanRenderPass& renderPass);
     void cleanup(const VulkanBase& vulkanBase) const;

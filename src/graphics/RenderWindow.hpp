@@ -11,43 +11,38 @@
 #include <string>
 
 namespace vz {
+class Renderer;
 class RenderWindow {
 public:
-    RenderWindow(int width, int height, std::string title);
-    RenderWindow(int width, int height, std::string title,const VulkanConfig& vulkanConfig);
+    RenderWindow(const int width, const int height, std::string title);
+    RenderWindow(const int width, const int height, std::string title, const VulkanConfig& vulkanConfig);
     ~RenderWindow();
+
     void draw();
-    void setResizable(bool resizable);
+    void setResizable(const bool resizable);
     bool isResizeable() const;
     bool shouldWindowClose() const;
+    GLFWwindow* getWindowHandle();
+    VulkanBase* getVulkanBase();
 
 private:
-    int m_width,m_height;
-    bool m_resizable{false};
-    std::string m_title;
-    GLFWwindow* m_windowHandle{nullptr};
-    VulkanConfig m_vulkanConfig;
-    VulkanBase m_vulkanBase;
-    VulkanSwapchain m_vulkanSwapchain;
-    VulkanGraphicsPipeline m_vulkanGraphicsPipeline;
-    VulkanRenderPass m_vulkanRenderPass;
-    vk::CommandPool m_commandPool;
-    vk::CommandBuffer m_commandBuffer;
-    vk::SurfaceKHR m_surface;
-    vk::Semaphore m_imageAvailableSemaphore;
-    vk::Semaphore m_renderFinishedSemphore;
-    vk::Fence m_inFlightFence;
-
     bool initGLFW() const;
     bool createWindow();
+    bool initVulkan();
     void destroyWindow();
     void recreateWindow();
-    void initVulkan();
-    bool createCommandPool();
-    bool createCommandBuffer();
-    bool createSyncObjects();
-    bool recordCommandBuffer(uint32_t imageIndex);
+
+    int m_width;
+    int m_height;
+    std::string m_title;
+    bool m_resizable = false;
+    GLFWwindow* m_windowHandle = nullptr;
+
+    VulkanConfig m_vulkanConfig;
+    VulkanBase m_vulkanBase;
+    Renderer* m_renderer = nullptr;
 };
+
 
 }
 

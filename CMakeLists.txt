@@ -41,6 +41,10 @@ set(SOURCE_FILES
         src/graphics/VulkanGraphicsPipeline.hpp
         src/graphics/VulkanRenderPass.cpp
         src/graphics/VulkanRenderPass.hpp
+        src/graphics/Renderer.cpp
+        src/graphics/Renderer.hpp
+        src/graphics/RenderTarget.cpp
+        src/graphics/RenderTarget.hpp
 )
 add_library(Vizun ${SOURCE_FILES})
 target_link_libraries(Vizun PUBLIC glfw ${Vulkan_LIBRARIES} spdlog stdc++)

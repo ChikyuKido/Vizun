@@ -141,7 +141,7 @@ vk::PresentModeKHR VulkanSwapchain::chooseSwapPresentMode(const VulkanConfig* vu
     return vk::PresentModeKHR::eFifo;
 }
 vk::Extent2D VulkanSwapchain::chooseSwapExent(const vk::SurfaceCapabilitiesKHR& capabilities,
-                                              GLFWwindow* window) const {
+                                               GLFWwindow* window) const {
     if(capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
         return capabilities.currentExtent;
     }else {
