@@ -2,6 +2,7 @@
 
 #include "RenderTarget.hpp"
 #include "Renderer.hpp"
+#include "utils/Events.hpp"
 #include "utils/Logger.hpp"
 
 namespace vz {
@@ -12,13 +13,14 @@ RenderWindow(width, height, std::move(title), VulkanConfig()) {
 
 RenderWindow::RenderWindow(const int width, const int height, std::string title, const VulkanConfig& vulkanConfig) 
     : m_width(width), m_height(height), m_title(std::move(title)), m_vulkanConfig(vulkanConfig) {
+    m_vulkanBase.setVulkanConfig(&m_vulkanConfig);
     if (!initGLFW()) {
         VZ_LOG_ERROR("Failed to initialize GLFW. Cannot create Window");
     } else {
         if (!createWindow()) {
             VZ_LOG_ERROR("Could not create GLFW window");
         } else {
-            m_vulkanBase.setVulkanConfig(&m_vulkanConfig);
+            glfwSetFramebufferSizeCallback(m_windowHandle,[](GLFWwindow*, int width, int height) {Events::resizeSignal.emit(width,height);});
             if(!initVulkan()) {
                 VZ_LOG_ERROR("Could not initialize vulkan");
                 return;

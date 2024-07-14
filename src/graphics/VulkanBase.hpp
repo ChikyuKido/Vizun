@@ -17,10 +17,18 @@
 #define VULKAN_HPP_NO_TO_STRING
 #endif
 
+#include "utils/VulkanConfig.hpp"
+
+#include <GLFW/glfw3.h>
 #include <optional>
 #include <vulkan/vulkan.hpp>
-#include "utils/VulkanConfig.hpp"
-#include <GLFW/glfw3.h>
+#include "Vertex.hpp"
+//TODO: remove test code
+const std::vector<Vertex> vertices = {
+    {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+    {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+    {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+};
 
 /**
  * Executes the given call and assigns its result to the variable if the result was a success; if not, it returns false.

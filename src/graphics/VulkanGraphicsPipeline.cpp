@@ -2,6 +2,7 @@
 
 #include "VulkanGraphicsPipeline.hpp"
 
+#include "Vertex.hpp"
 #include "VulkanSwapchain.hpp"
 #include "utils/Logger.hpp"
 
@@ -43,12 +44,14 @@ bool VulkanGraphicsPipeline::createGraphicsPipeline(const VulkanBase& vulkanBase
     dynamicState.dynamicStateCount = dynamicStates.size();
     dynamicState.pDynamicStates = dynamicStates.data();
 
+    auto bindingDescription = Vertex::getBindingDescritption();
+    auto attributeDescriptions = Vertex::getAttributeDescriptions();
 
     vk::PipelineVertexInputStateCreateInfo vertexInputInfo;
-    vertexInputInfo.vertexBindingDescriptionCount = 0;
-    vertexInputInfo.pVertexBindingDescriptions = nullptr;
-    vertexInputInfo.vertexAttributeDescriptionCount = 0;
-    vertexInputInfo.pVertexAttributeDescriptions = nullptr;
+    vertexInputInfo.vertexBindingDescriptionCount = 1;
+    vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
+    vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
+    vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
     vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
     inputAssembly.topology = vk::PrimitiveTopology::eTriangleList;

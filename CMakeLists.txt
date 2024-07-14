@@ -23,6 +23,7 @@ set(GLFW_BUILD_EXAMPLES OFF)
 set(GLFW_BUILD_TESTS OFF)
 set(GLFW_BUILD_DOCS OFF)
 set(GLFW_INSTALL OFF)
+add_subdirectory(lib/glm/glm)
 
 set(SOURCE_FILES
         src/graphics/RenderWindow.cpp
@@ -45,11 +46,16 @@ set(SOURCE_FILES
         src/graphics/Renderer.hpp
         src/graphics/RenderTarget.cpp
         src/graphics/RenderTarget.hpp
+        src/utils/Events.cpp
+        src/utils/Events.hpp
+        src/utils/Events.cpp
+        src/utils/Events.hpp
+        src/graphics/Vertex.hpp
+        src/graphics/VertexBuffer.cpp
+        src/graphics/VertexBuffer.hpp
 )
 add_library(Vizun ${SOURCE_FILES})
-target_link_libraries(Vizun PUBLIC glfw ${Vulkan_LIBRARIES} spdlog stdc++)
-
-target_compile_options(Vizun PRIVATE -ftime-trace)
+target_link_libraries(Vizun PUBLIC glfw ${Vulkan_LIBRARIES} glm-header-only spdlog stdc++)
 
 add_custom_target(build_shaders ALL
         COMMAND "${PROJECT_SOURCE_DIR}/rsc/shaders/compile.sh"

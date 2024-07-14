@@ -71,6 +71,32 @@ bool VulkanSwapchain::createSwapchain(const VulkanBase& vulkanBase, GLFWwindow* 
 
     return true;
 }
+bool VulkanSwapchain::recreateSwapchain(const VulkanBase& vulkanBase,const VulkanRenderPass& renderPass, GLFWwindow* window) {
+    int width = 0;
+    int height = 0;
+    glfwGetFramebufferSize(window, &width, &height);
+    while (width == 0 || height == 0) {
+        glfwGetFramebufferSize(window, &width, &height);
+        glfwWaitEvents();
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    vulkanBase.device.waitIdle();
+    cleanup(vulkanBase);
+    if(!createSwapchain(vulkanBase,window)) {
+        VZ_LOG_CRITICAL("Failed to create swapchain. ");
+        return false;
+    }
+    if(!createImageViews(vulkanBase)) {
+        VZ_LOG_CRITICAL("Failed to create image views");
+        return false;
+    }
+    if(!createFramebuffers(vulkanBase,renderPass)) {
+        VZ_LOG_CRITICAL("Failed to create framebuffers");
+        return false;
+    }
+    return true;
+
+}
 bool VulkanSwapchain::createImageViews(const VulkanBase& vulkanBase) {
     swapchainImageViews.resize(swapchainImages.size());
     for (size_t i = 0; i < swapchainImages.size(); i++) {
@@ -144,17 +170,17 @@ vk::Extent2D VulkanSwapchain::chooseSwapExent(const vk::SurfaceCapabilitiesKHR& 
                                                GLFWwindow* window) const {
     if(capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
         return capabilities.currentExtent;
-    }else {
-        int width,height;
-        glfwGetFramebufferSize(window,&width,&height);
-        vk::Extent2D actualExtent = {
-            static_cast<uint32_t>(width),
-            static_cast<uint32_t>(height)
-        };
-        actualExtent.width = std::clamp(actualExtent.width,capabilities.minImageExtent.width,capabilities.maxImageExtent.width);
-        actualExtent.height = std::clamp(actualExtent.height,capabilities.minImageExtent.height,capabilities.maxImageExtent.height);
-
-        return actualExtent;
     }
+    int width,height;
+    glfwGetFramebufferSize(window,&width,&height);
+    vk::Extent2D actualExtent = {
+        static_cast<uint32_t>(width),
+        static_cast<uint32_t>(height)
+    };
+    actualExtent.width = std::clamp(actualExtent.width,capabilities.minImageExtent.width,capabilities.maxImageExtent.width);
+    actualExtent.height = std::clamp(actualExtent.height,capabilities.minImageExtent.height,capabilities.maxImageExtent.height);
+
+    return actualExtent;
+
 }
 } // namespace vz

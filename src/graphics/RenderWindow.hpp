@@ -35,7 +35,7 @@ private:
     int m_width;
     int m_height;
     std::string m_title;
-    bool m_resizable = false;
+    bool m_resizable = true;
     GLFWwindow* m_windowHandle = nullptr;
 
     VulkanConfig m_vulkanConfig;

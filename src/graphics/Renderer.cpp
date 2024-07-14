@@ -2,10 +2,13 @@
 
 #include "RenderTarget.hpp"
 #include "RenderWindow.hpp"
+#include "Vertex.hpp"
+#include "utils/Events.hpp"
 #include "utils/Logger.hpp"
 
-namespace vz {
+#include <iostream>
 
+namespace vz {
 Renderer::Renderer(RenderWindow* window, const VulkanConfig& vulkanConfig) 
     : m_window(window), m_vulkanConfig(vulkanConfig), m_vulkanBase(*window->getVulkanBase()) {
     if (!m_vulkanSwapchain.createSwapchain(m_vulkanBase, m_window->getWindowHandle())) {
@@ -40,6 +43,9 @@ Renderer::Renderer(RenderWindow* window, const VulkanConfig& vulkanConfig)
         VZ_LOG_ERROR("Failed to create sync objects");
         return;
     }
+    Events::resizeSignal.connect([this](int, int) {
+        m_framebufferResized = true;
+    });
 }
 
 Renderer::~Renderer() {
@@ -47,14 +53,23 @@ Renderer::~Renderer() {
 }
 void Renderer::begin() {
     m_vulkanBase.device.waitForFences(1, &m_inFlightFences[m_currentFrame], vk::True, UINT64_MAX);
-    m_vulkanBase.device.resetFences(1, &m_inFlightFences[m_currentFrame]);
 
-    m_imageIndex = m_vulkanBase.device
-                       .acquireNextImageKHR(m_vulkanSwapchain.swapchain,
+    vk::ResultValue<uint32_t> imageIndexResult = m_vulkanBase.device.acquireNextImageKHR(m_vulkanSwapchain.swapchain,
                                             UINT64_MAX,
                                             m_imageAvailableSemaphores[m_currentFrame],
-                                            nullptr)
-                       .value;
+                                            nullptr);
+    if(imageIndexResult.result == vk::Result::eErrorOutOfDateKHR) {
+        VZ_LOG_INFO("Swapchain acquire");
+        m_vulkanSwapchain.recreateSwapchain(m_vulkanBase,m_vulkanRenderPass,m_window->getWindowHandle());
+        begin(); // call it again so that the begin is in a valid state.
+        return;
+    }
+    if(imageIndexResult.result != vk::Result::eSuccess && imageIndexResult.result  != vk::Result::eSuboptimalKHR) {
+        VZ_LOG_CRITICAL("Failed to acquire swap chain image!");
+    }
+    m_imageIndex = imageIndexResult.value;
+
+    m_vulkanBase.device.resetFences(1, &m_inFlightFences[m_currentFrame]);
 
     m_commandBuffers[m_currentFrame].reset();
 
@@ -114,10 +129,21 @@ void Renderer::end() {
     presentInfo.pSwapchains = swapchains;
     presentInfo.pImageIndices = &m_imageIndex;
 
-    m_vulkanBase.presentQueue.queue.presentKHR(&presentInfo);
+    vk::Result result = m_vulkanBase.presentQueue.queue.presentKHR(&presentInfo);
+    if(result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || m_framebufferResized) {
+        VZ_LOG_INFO("Swapchain present");
+        m_framebufferResized = false;
+        m_vulkanSwapchain.recreateSwapchain(m_vulkanBase,m_vulkanRenderPass,m_window->getWindowHandle());
+        return;
+    }
+    if(result != vk::Result::eSuccess) {
+        VZ_LOG_CRITICAL("Failed to present swap chain image!");
+    }
 
     m_currentFrame = (m_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
+
+
 void Renderer::draw(RenderTarget renderTarget) {
     //renderTarget.draw(m_commandBuffers[m_currentFrame]);
     //test

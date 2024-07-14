@@ -10,6 +10,7 @@ int main() {
     vulkanConfig.instanceConfig.applicationName = "Example";
     vulkanConfig.instanceConfig.applicationVersion = VK_MAKE_VERSION(1,0,0);
     vz::RenderWindow renderWindow(800,600,"Vizun",vulkanConfig);
+    //renderWindow.setResizable(true);
 
     uint32_t frames = 0;
     auto next_time_point = std::chrono::steady_clock::now() + std::chrono::seconds(1);

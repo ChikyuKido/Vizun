@@ -42,6 +42,7 @@ private:
     std::vector<vk::Fence> m_inFlightFences;
     size_t m_currentFrame = 0;
     uint32_t m_imageIndex = 0;
+    bool m_framebufferResized = false;
     const int MAX_FRAMES_IN_FLIGHT = 2;
 };
 
