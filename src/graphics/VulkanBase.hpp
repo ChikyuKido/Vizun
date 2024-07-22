@@ -18,17 +18,35 @@
 #endif
 
 #include "utils/VulkanConfig.hpp"
-
+#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <optional>
 #include <vulkan/vulkan.hpp>
 #include "Vertex.hpp"
 //TODO: remove test code
-const std::vector<Vertex> vertices = {
+const std::vector<Vertex> verticesTest = {
     {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
     {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
     {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
 };
+
+#define VKF(call) \
+{ \
+auto result = call; \
+if(result != vk::Result::eSuccess) { \
+VZ_LOG_CRITICAL("{}:{} - Failed to execute call: {}. Error Code: {}", __FILE__, __LINE__,extractFunctionName(#call),static_cast<int>(result)); \
+}\
+}
+
+#define VKA(call) \
+{ \
+auto result = call; \
+if(result != vk::Result::eSuccess) { \
+VZ_LOG_ERROR("{}:{} - Failed to execute call: {}. Error Code: {}", __FILE__, __LINE__, extractFunctionName(#call),static_cast<int>(result));; \
+}\
+}
+
+
 
 /**
  * Executes the given call and assigns its result to the variable if the result was a success; if not, it returns false.
@@ -41,6 +59,7 @@ const auto res = call; \
 VK_RETURN_FALSE_WITH_LOG(res.result, "Failed to execute call: " + extractFunctionName(#call), __FILE__, __LINE__) \
 (variable) = res.value; \
 }
+
 
 /**
  * Returns from the current method with false and prints the entered text as an error log with the result code added.

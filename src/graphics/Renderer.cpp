@@ -3,46 +3,41 @@
 #include "RenderTarget.hpp"
 #include "RenderWindow.hpp"
 #include "Vertex.hpp"
+#include "VertexBuffer.hpp"
 #include "utils/Events.hpp"
 #include "utils/Logger.hpp"
 
 #include <iostream>
 
 namespace vz {
+VertexBuffer vertexBuffer;
 Renderer::Renderer(RenderWindow* window, const VulkanConfig& vulkanConfig) 
     : m_window(window), m_vulkanConfig(vulkanConfig), m_vulkanBase(*window->getVulkanBase()) {
     if (!m_vulkanSwapchain.createSwapchain(m_vulkanBase, m_window->getWindowHandle())) {
-        VZ_LOG_ERROR("Failed to create swapchain");
-        return;
+        VZ_LOG_CRITICAL("Failed to create swapchain");
     }
     if (!m_vulkanSwapchain.createImageViews(m_vulkanBase)) {
-        VZ_LOG_ERROR("Failed to create swapchain image views");
-        return;
+        VZ_LOG_CRITICAL("Failed to create swapchain image views");
     }
     if (!m_vulkanRenderPass.createRenderPass(m_vulkanBase, m_vulkanSwapchain)) {
-        VZ_LOG_ERROR("Failed to create render pass");
-        return;
+        VZ_LOG_CRITICAL("Failed to create render pass");
     }
     if (!m_vulkanGraphicsPipeline.createGraphicsPipeline(m_vulkanBase, m_vulkanSwapchain, m_vulkanRenderPass)) {
-        VZ_LOG_ERROR("Failed to create graphics pipeline");
-        return;
+        VZ_LOG_CRITICAL("Failed to create graphics pipeline");
     }
     if (!m_vulkanSwapchain.createFramebuffers(m_vulkanBase, m_vulkanRenderPass)) {
-        VZ_LOG_ERROR("Failed to create framebuffers");
-        return;
+        VZ_LOG_CRITICAL("Failed to create framebuffers");
     }
     if (!createCommandPool()) {
-        VZ_LOG_ERROR("Failed to create commandPool");
-        return;
+        VZ_LOG_CRITICAL("Failed to create commandPool");
     }
     if (!createCommandBuffer()) {
-        VZ_LOG_ERROR("Failed to create commandBuffer");
-        return;
+        VZ_LOG_CRITICAL("Failed to create commandBuffer");
     }
     if (!createSyncObjects()) {
-        VZ_LOG_ERROR("Failed to create sync objects");
-        return;
+        VZ_LOG_CRITICAL("Failed to create sync objects");
     }
+    vertexBuffer.createVertexBuffer(m_vulkanBase,verticesTest);
     Events::resizeSignal.connect([this](int, int) {
         m_framebufferResized = true;
     });
@@ -52,9 +47,9 @@ Renderer::~Renderer() {
     cleanup();
 }
 void Renderer::begin() {
-    m_vulkanBase.device.waitForFences(1, &m_inFlightFences[m_currentFrame], vk::True, UINT64_MAX);
+    VKF(m_vulkanBase.device.waitForFences(1, &m_inFlightFences[m_currentFrame], vk::True, UINT64_MAX));
 
-    vk::ResultValue<uint32_t> imageIndexResult = m_vulkanBase.device.acquireNextImageKHR(m_vulkanSwapchain.swapchain,
+    const vk::ResultValue<uint32_t> imageIndexResult = m_vulkanBase.device.acquireNextImageKHR(m_vulkanSwapchain.swapchain,
                                             UINT64_MAX,
                                             m_imageAvailableSemaphores[m_currentFrame],
                                             nullptr);
@@ -69,12 +64,12 @@ void Renderer::begin() {
     }
     m_imageIndex = imageIndexResult.value;
 
-    m_vulkanBase.device.resetFences(1, &m_inFlightFences[m_currentFrame]);
+    VKF(m_vulkanBase.device.resetFences(1, &m_inFlightFences[m_currentFrame]));
 
-    m_commandBuffers[m_currentFrame].reset();
+    VKF(m_commandBuffers[m_currentFrame].reset());
 
     vk::CommandBufferBeginInfo beginInfo;
-    m_commandBuffers[m_currentFrame].begin(beginInfo);
+    VKF(m_commandBuffers[m_currentFrame].begin(beginInfo));
 
     vk::RenderPassBeginInfo renderPassInfo;
     renderPassInfo.renderPass = m_vulkanRenderPass.renderPass;
@@ -106,7 +101,7 @@ void Renderer::begin() {
 }
 void Renderer::end() {
     m_commandBuffers[m_currentFrame].endRenderPass();
-    m_commandBuffers[m_currentFrame].end();
+    VKF(m_commandBuffers[m_currentFrame].end());
     vk::SubmitInfo submitInfo;
     vk::Semaphore waitSemaphores[] = { m_imageAvailableSemaphores[m_currentFrame] };
     vk::PipelineStageFlags waitStages[] = { vk::PipelineStageFlagBits::eColorAttachmentOutput };
@@ -119,7 +114,7 @@ void Renderer::end() {
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
 
-    m_vulkanBase.graphicsQueue.queue.submit(1, &submitInfo, m_inFlightFences[m_currentFrame]);
+    VKF(m_vulkanBase.graphicsQueue.queue.submit(1, &submitInfo, m_inFlightFences[m_currentFrame]));
 
     vk::PresentInfoKHR presentInfo;
     presentInfo.waitSemaphoreCount = 1;
@@ -144,15 +139,20 @@ void Renderer::end() {
 }
 
 
+
+
 void Renderer::draw(RenderTarget renderTarget) {
     //renderTarget.draw(m_commandBuffers[m_currentFrame]);
     //test
-    m_commandBuffers[m_currentFrame].draw(3, 1, 0, 0);
+    vk::Buffer vertexBuffers[] = {vertexBuffer.m_buffer};
+    vk::DeviceSize offsets[] = {0};
+    m_commandBuffers[m_currentFrame].bindVertexBuffers(0,1,vertexBuffers,offsets);
+    m_commandBuffers[m_currentFrame].draw(verticesTest.size(), 1, 0, 0);
 }
 
 
 void Renderer::cleanup() {
-    m_vulkanBase.device.waitIdle();
+    VKA(m_vulkanBase.device.waitIdle());
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         m_vulkanBase.device.destroySemaphore(m_imageAvailableSemaphores[i]);
         m_vulkanBase.device.destroySemaphore(m_renderFinishedSemaphores[i]);

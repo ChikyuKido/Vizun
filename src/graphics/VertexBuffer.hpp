@@ -7,10 +7,12 @@ namespace vz {
 
 class VertexBuffer {
 public:
-    bool createVertexBuffer(const VulkanBase& vulkanBase);
-    void cleanup(const VulkanBase& vulkanBase);
-private:
     vk::Buffer m_buffer;
+    bool createVertexBuffer(const VulkanBase& vulkanBase,const std::vector<Vertex>& vertices);
+    void cleanup(const VulkanBase& vulkanBase) const;
+private:
+    vk::DeviceMemory m_bufferMemory;
+    uint32_t findMemoryType(const VulkanBase& vulkanBase,uint32_t typeFilter, vk::MemoryPropertyFlags properties) const;
 };
 
 }

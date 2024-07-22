@@ -17,7 +17,6 @@ VulkanSwapChainSupportDetails VulkanSwapchain::querySwapChainSupport(const vk::P
     const vk::ResultValue<std::vector<vk::PresentModeKHR>> presentModesRes = device.getSurfacePresentModesKHR(surface);
     if (presentModesRes.result != vk::Result::eSuccess) { return details; }
     details.presentModes = presentModesRes.value;
-
     return details;
 }
 bool VulkanSwapchain::createSwapchain(const VulkanBase& vulkanBase, GLFWwindow* window) {
@@ -80,19 +79,16 @@ bool VulkanSwapchain::recreateSwapchain(const VulkanBase& vulkanBase,const Vulka
         glfwWaitEvents();
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
-    vulkanBase.device.waitIdle();
+    VKA(vulkanBase.device.waitIdle());
     cleanup(vulkanBase);
     if(!createSwapchain(vulkanBase,window)) {
         VZ_LOG_CRITICAL("Failed to create swapchain. ");
-        return false;
     }
     if(!createImageViews(vulkanBase)) {
         VZ_LOG_CRITICAL("Failed to create image views");
-        return false;
     }
     if(!createFramebuffers(vulkanBase,renderPass)) {
         VZ_LOG_CRITICAL("Failed to create framebuffers");
-        return false;
     }
     return true;
 

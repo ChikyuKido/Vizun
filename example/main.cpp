@@ -9,6 +9,8 @@ int main() {
     vz::VulkanConfig vulkanConfig;
     vulkanConfig.instanceConfig.applicationName = "Example";
     vulkanConfig.instanceConfig.applicationVersion = VK_MAKE_VERSION(1,0,0);
+    vulkanConfig.vulkanSwapchainConfig.presentMode = vk::PresentModeKHR::eFifo;
+    vulkanConfig.vulkanSwapchainConfig.forcePresentMode = true;
     vz::RenderWindow renderWindow(800,600,"Vizun",vulkanConfig);
     //renderWindow.setResizable(true);
 

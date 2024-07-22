@@ -2,12 +2,9 @@
 #define RENDERWINDOW_HPP
 
 #define GLFW_INCLUDE_VULKAN
-#include "VulkanBase.hpp"
-#include "VulkanGraphicsPipeline.hpp"
-#include "VulkanSwapchain.hpp"
-#include "utils/VulkanConfig.hpp"
-
 #include <GLFW/glfw3.h>
+#include "VulkanBase.hpp"
+#include "utils/VulkanConfig.hpp"
 #include <string>
 
 namespace vz {
