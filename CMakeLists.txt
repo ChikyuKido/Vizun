@@ -51,8 +51,8 @@ set(SOURCE_FILES
         src/utils/Events.cpp
         src/utils/Events.hpp
         src/graphics/Vertex.hpp
-        src/graphics/VertexBuffer.cpp
-        src/graphics/VertexBuffer.hpp
+        src/graphics/VulkanBuffer.cpp
+        src/graphics/VulkanBuffer.hpp
 )
 add_library(Vizun ${SOURCE_FILES})
 target_link_libraries(Vizun PUBLIC glfw ${Vulkan_LIBRARIES} glm-header-only spdlog stdc++)

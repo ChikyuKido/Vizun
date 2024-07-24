@@ -3,14 +3,14 @@
 #include "RenderTarget.hpp"
 #include "RenderWindow.hpp"
 #include "Vertex.hpp"
-#include "VertexBuffer.hpp"
+#include "VulkanBuffer.hpp"
 #include "utils/Events.hpp"
 #include "utils/Logger.hpp"
 
 #include <iostream>
 
 namespace vz {
-VertexBuffer vertexBuffer;
+VertexIndexBuffer viBuffer;
 Renderer::Renderer(RenderWindow* window, const VulkanConfig& vulkanConfig) 
     : m_window(window), m_vulkanConfig(vulkanConfig), m_vulkanBase(*window->getVulkanBase()) {
     if (!m_vulkanSwapchain.createSwapchain(m_vulkanBase, m_window->getWindowHandle())) {
@@ -37,7 +37,7 @@ Renderer::Renderer(RenderWindow* window, const VulkanConfig& vulkanConfig)
     if (!createSyncObjects()) {
         VZ_LOG_CRITICAL("Failed to create sync objects");
     }
-    vertexBuffer.createVertexBuffer(m_vulkanBase,verticesTest);
+    viBuffer.createBuffer(m_vulkanBase,vertices,indices);
     Events::resizeSignal.connect([this](int, int) {
         m_framebufferResized = true;
     });
@@ -54,7 +54,6 @@ void Renderer::begin() {
                                             m_imageAvailableSemaphores[m_currentFrame],
                                             nullptr);
     if(imageIndexResult.result == vk::Result::eErrorOutOfDateKHR) {
-        VZ_LOG_INFO("Swapchain acquire");
         m_vulkanSwapchain.recreateSwapchain(m_vulkanBase,m_vulkanRenderPass,m_window->getWindowHandle());
         begin(); // call it again so that the begin is in a valid state.
         return;
@@ -126,7 +125,6 @@ void Renderer::end() {
 
     vk::Result result = m_vulkanBase.presentQueue.queue.presentKHR(&presentInfo);
     if(result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || m_framebufferResized) {
-        VZ_LOG_INFO("Swapchain present");
         m_framebufferResized = false;
         m_vulkanSwapchain.recreateSwapchain(m_vulkanBase,m_vulkanRenderPass,m_window->getWindowHandle());
         return;
@@ -144,15 +142,20 @@ void Renderer::end() {
 void Renderer::draw(RenderTarget renderTarget) {
     //renderTarget.draw(m_commandBuffers[m_currentFrame]);
     //test
-    vk::Buffer vertexBuffers[] = {vertexBuffer.m_buffer};
+    vk::Buffer vertexBuffers[] = {viBuffer.getBuffer()};
     vk::DeviceSize offsets[] = {0};
     m_commandBuffers[m_currentFrame].bindVertexBuffers(0,1,vertexBuffers,offsets);
-    m_commandBuffers[m_currentFrame].draw(verticesTest.size(), 1, 0, 0);
+    m_commandBuffers[m_currentFrame].bindIndexBuffer(viBuffer.getBuffer(),viBuffer.getIndicesOffsetSize(),viBuffer.getIndexType());
+    m_commandBuffers[m_currentFrame].drawIndexed(viBuffer.getIndicesCount(),1,0,0,0);
+    // m_commandBuffers[m_currentFrame].bindVertexBuffers(0,1,vertexBuffers,offsets);
+    // m_commandBuffers[m_currentFrame].bindIndexBuffer(indexBuffer.getBuffer(),0,vk::IndexType::eUint32);
+    // m_commandBuffers[m_currentFrame].drawIndexed(indices.size(),1,0,0,0);
 }
 
 
 void Renderer::cleanup() {
     VKA(m_vulkanBase.device.waitIdle());
+    viBuffer.cleanup(m_vulkanBase);
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         m_vulkanBase.device.destroySemaphore(m_imageAvailableSemaphores[i]);
         m_vulkanBase.device.destroySemaphore(m_renderFinishedSemaphores[i]);

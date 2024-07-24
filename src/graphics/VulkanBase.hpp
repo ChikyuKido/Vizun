@@ -24,10 +24,15 @@
 #include <vulkan/vulkan.hpp>
 #include "Vertex.hpp"
 //TODO: remove test code
-const std::vector<Vertex> verticesTest = {
-    {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-    {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-    {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+const std::vector<Vertex> vertices = {
+    {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+    {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+    {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+    {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
+};
+
+const std::vector<uint16_t> indices = {
+    0, 1, 2, 2, 3, 0
 };
 
 #define VKF(call) \
@@ -115,12 +120,14 @@ public:
     vk::SurfaceKHR surface;
     VulkanQueue graphicsQueue;
     VulkanQueue presentQueue;
+    vk::CommandPool nonRenderingPool;
 
     void cleanup() const;
     bool createInstance();
     bool pickPhyiscalDevice();
     bool createSurface(GLFWwindow* window);
     bool createLogicalDevice();
+    bool createNonRenderingPool();
     void setVulkanConfig(const VulkanConfig* config);
     const VulkanConfig* getVulkanConfig() const;
 private:

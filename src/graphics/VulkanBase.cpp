@@ -11,6 +11,7 @@ namespace vz {
 VulkanBase::VulkanBase(const VulkanConfig* vulkanConfig) : m_vulkanConfig(vulkanConfig) {}
 VulkanBase::VulkanBase() = default;
 void VulkanBase::cleanup() const {
+    device.destroyCommandPool(nonRenderingPool);
     device.destroy();
     instance.destroy();
 }
@@ -103,6 +104,13 @@ bool VulkanBase::createLogicalDevice() {
     graphicsQueue.queue = device.getQueue(graphicsQueue.queueFamilyIndex, 0);
     presentQueue.queueFamilyIndex = indices.presentFamily.value();
     presentQueue.queue = device.getQueue(presentQueue.queueFamilyIndex, 0);
+    return true;
+}
+bool VulkanBase::createNonRenderingPool() {
+    vk::CommandPoolCreateInfo poolInfo;
+    poolInfo.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
+    poolInfo.queueFamilyIndex = graphicsQueue.queueFamilyIndex;
+    VK_RESULT_ASSIGN(nonRenderingPool, device.createCommandPool(poolInfo));
     return true;
 }
 

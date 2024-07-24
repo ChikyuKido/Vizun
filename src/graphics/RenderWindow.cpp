@@ -106,21 +106,21 @@ bool RenderWindow::initVulkan() {
 #endif
 
     if (!m_vulkanBase.createInstance()) {
-        VZ_LOG_ERROR("Could not create vulkan instance");
-        return false;
+        VZ_LOG_CRITICAL("Could not create vulkan instance");
     }
     if (!m_vulkanBase.createSurface(m_windowHandle)) {
-        VZ_LOG_ERROR("Could not create surface");
-        return false;
+        VZ_LOG_CRITICAL("Could not create surface");
     }
     if (!m_vulkanBase.pickPhyiscalDevice()) {
-        VZ_LOG_ERROR("Failed to find a suitable physical device");
-        return false;
+        VZ_LOG_CRITICAL("Failed to find a suitable physical device");
     }
     if (!m_vulkanBase.createLogicalDevice()) {
-        VZ_LOG_ERROR("Failed to create logical device");
-        return false;
+        VZ_LOG_CRITICAL("Failed to create logical device");
     }
+    if (!m_vulkanBase.createNonRenderingPool()) {
+        VZ_LOG_CRITICAL("Failed to non rendering pool");
+    }
+
     return true;
 }
 void RenderWindow::destroyWindow() {
