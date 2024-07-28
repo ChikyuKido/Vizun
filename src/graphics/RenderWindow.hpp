@@ -1,6 +1,5 @@
 #ifndef RENDERWINDOW_HPP
 #define RENDERWINDOW_HPP
-
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include "VulkanBase.hpp"

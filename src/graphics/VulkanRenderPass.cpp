@@ -1,9 +1,5 @@
-//
-// Created by kido on 7/7/24.
-//
 
 #include "VulkanRenderPass.hpp"
-
 #include "VulkanSwapchain.hpp"
 namespace vz {
 void VulkanRenderPass::cleanup(const VulkanBase& vulkanBase) {

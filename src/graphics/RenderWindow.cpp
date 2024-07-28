@@ -4,6 +4,8 @@
 #include "Renderer.hpp"
 #include "utils/Events.hpp"
 #include "utils/Logger.hpp"
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
 
 namespace vz {
 

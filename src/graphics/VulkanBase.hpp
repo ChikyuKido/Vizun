@@ -65,6 +65,19 @@ VK_RETURN_FALSE_WITH_LOG(res.result, "Failed to execute call: " + extractFunctio
 (variable) = res.value; \
 }
 
+/**
+ * Executes the given call and assigns its result to the variable as a shared pointer if the result was a success; if not, it returns false.
+ * @param variable the variable to assign the value to
+ * @param call the Vulkan call that returns a ResultType
+ * @param the type of the shared pointer
+ */
+#define VK_RESULT_ASSIGN_SHARED(variable, call,type) \
+{ \
+const auto res = call; \
+VK_RETURN_FALSE_WITH_LOG(res.result, "Failed to execute call: " + extractFunctionName(#call), __FILE__, __LINE__) \
+(variable) = std::make_shared<type>(res.value); \
+}
+
 
 /**
  * Returns from the current method with false and prints the entered text as an error log with the result code added.

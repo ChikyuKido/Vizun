@@ -12,6 +12,20 @@ namespace vz {
 void VulkanGraphicsPipeline::cleanup(const VulkanBase& vulkanBase) {
     vulkanBase.device.destroyPipeline(pipeline);
     vulkanBase.device.destroyPipelineLayout(pipelineLayout);
+    vulkanBase.device.destroyDescriptorSetLayout(descriptorSetLayout);
+}
+bool VulkanGraphicsPipeline::createDescriptorSetLayout(const VulkanBase& vulkanBase) {
+    vk::DescriptorSetLayoutBinding uboLayoutBinding;
+    uboLayoutBinding.binding = 0;
+    uboLayoutBinding.descriptorType = vk::DescriptorType::eUniformBuffer;
+    uboLayoutBinding.descriptorCount = 1;
+    uboLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eVertex;
+
+    vk::DescriptorSetLayoutCreateInfo layoutInfo;
+    layoutInfo.bindingCount = 1;
+    layoutInfo.pBindings = &uboLayoutBinding;
+    VK_RESULT_ASSIGN(descriptorSetLayout,vulkanBase.device.createDescriptorSetLayout(layoutInfo))
+    return true;
 }
 bool VulkanGraphicsPipeline::createGraphicsPipeline(const VulkanBase& vulkanBase,const VulkanSwapchain& vulkanSwapchain,const VulkanRenderPass& vulkanRenderPass) {
     auto vertShaderCode = loadShaderContent("rsc/shaders/default_vert.spv");
@@ -79,7 +93,7 @@ bool VulkanGraphicsPipeline::createGraphicsPipeline(const VulkanBase& vulkanBase
     rasterizer.polygonMode = vk::PolygonMode::eFill;
     rasterizer.lineWidth = 1.0f;
     rasterizer.cullMode = vk::CullModeFlagBits::eBack;
-    rasterizer.frontFace = vk::FrontFace::eClockwise;
+    rasterizer.frontFace = vk::FrontFace::eCounterClockwise;
     rasterizer.depthBiasEnable = vk::False;
 
     vk::PipelineMultisampleStateCreateInfo multisampling;
@@ -107,8 +121,8 @@ bool VulkanGraphicsPipeline::createGraphicsPipeline(const VulkanBase& vulkanBase
     colorBlendState.pAttachments = &colorBlendAttachment;
 
     vk::PipelineLayoutCreateInfo pipelineLayoutInfo;
-    pipelineLayoutInfo.setLayoutCount = 0;
-    pipelineLayoutInfo.pSetLayouts = nullptr;
+    pipelineLayoutInfo.setLayoutCount = 1;
+    pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
     pipelineLayoutInfo.pushConstantRangeCount = 0;
     pipelineLayoutInfo.pPushConstantRanges = nullptr;
 

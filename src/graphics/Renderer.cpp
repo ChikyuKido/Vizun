@@ -6,6 +6,8 @@
 #include "VulkanBuffer.hpp"
 #include "utils/Events.hpp"
 #include "utils/Logger.hpp"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <iostream>
 
@@ -22,6 +24,9 @@ Renderer::Renderer(RenderWindow* window, const VulkanConfig& vulkanConfig)
     if (!m_vulkanRenderPass.createRenderPass(m_vulkanBase, m_vulkanSwapchain)) {
         VZ_LOG_CRITICAL("Failed to create render pass");
     }
+    if (!m_vulkanGraphicsPipeline.createDescriptorSetLayout(m_vulkanBase)) {
+        VZ_LOG_CRITICAL("Failed to create descriptor set layout");
+    }
     if (!m_vulkanGraphicsPipeline.createGraphicsPipeline(m_vulkanBase, m_vulkanSwapchain, m_vulkanRenderPass)) {
         VZ_LOG_CRITICAL("Failed to create graphics pipeline");
     }
@@ -37,7 +42,15 @@ Renderer::Renderer(RenderWindow* window, const VulkanConfig& vulkanConfig)
     if (!createSyncObjects()) {
         VZ_LOG_CRITICAL("Failed to create sync objects");
     }
+    createUniformBuffers();
+    if (!createDescriptorPool()) {
+        VZ_LOG_CRITICAL("Failed to create descriptor pool");
+    }
+    if (!createDescriptorSets()) {
+        VZ_LOG_CRITICAL("Failed to create descriptor sets");
+    }
     viBuffer.createBuffer(m_vulkanBase,vertices,indices);
+    m_texture.loadImageTexture(m_vulkanBase,"rsc/texts/img.png");
     Events::resizeSignal.connect([this](int, int) {
         m_framebufferResized = true;
     });
@@ -62,7 +75,7 @@ void Renderer::begin() {
         VZ_LOG_CRITICAL("Failed to acquire swap chain image!");
     }
     m_imageIndex = imageIndexResult.value;
-
+    updateUniformBufferTest();
     VKF(m_vulkanBase.device.resetFences(1, &m_inFlightFences[m_currentFrame]));
 
     VKF(m_commandBuffers[m_currentFrame].reset());
@@ -97,6 +110,19 @@ void Renderer::begin() {
     scissor.extent = m_vulkanSwapchain.swapchainExtent;
     m_commandBuffers[m_currentFrame].setScissor(0, 1, &scissor);
 
+}
+void Renderer::updateUniformBufferTest() {
+    static auto startTime = std::chrono::high_resolution_clock::now();
+
+    auto currentTime = std::chrono::high_resolution_clock::now();
+    float time = std::chrono::duration<float>(currentTime - startTime).count();
+    UniformBufferObject ubo{};
+    ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(7200.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    ubo.proj = glm::perspective(glm::radians(45.0f),
+        m_vulkanSwapchain.swapchainExtent.width  /static_cast<float>(m_vulkanSwapchain.swapchainExtent.height), 0.1f, 10.0f);
+    ubo.proj[1][1] *= -1;
+    m_uniformBuffers[m_currentFrame].uploadData(&ubo);
 }
 void Renderer::end() {
     m_commandBuffers[m_currentFrame].endRenderPass();
@@ -146,6 +172,8 @@ void Renderer::draw(RenderTarget renderTarget) {
     vk::DeviceSize offsets[] = {0};
     m_commandBuffers[m_currentFrame].bindVertexBuffers(0,1,vertexBuffers,offsets);
     m_commandBuffers[m_currentFrame].bindIndexBuffer(viBuffer.getBuffer(),viBuffer.getIndicesOffsetSize(),viBuffer.getIndexType());
+    m_commandBuffers[m_currentFrame].bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_vulkanGraphicsPipeline.pipelineLayout,
+    0, 1, &m_descriptorSets[m_currentFrame], 0, nullptr);
     m_commandBuffers[m_currentFrame].drawIndexed(viBuffer.getIndicesCount(),1,0,0,0);
     // m_commandBuffers[m_currentFrame].bindVertexBuffers(0,1,vertexBuffers,offsets);
     // m_commandBuffers[m_currentFrame].bindIndexBuffer(indexBuffer.getBuffer(),0,vk::IndexType::eUint32);
@@ -155,6 +183,9 @@ void Renderer::draw(RenderTarget renderTarget) {
 
 void Renderer::cleanup() {
     VKA(m_vulkanBase.device.waitIdle());
+    m_texture.cleanup(m_vulkanBase);
+    m_vulkanBase.device.destroyDescriptorPool(m_descriptorPool);
+    for (auto b : m_uniformBuffers) b.cleanup(m_vulkanBase);
     viBuffer.cleanup(m_vulkanBase);
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         m_vulkanBase.device.destroySemaphore(m_imageAvailableSemaphores[i]);
@@ -202,4 +233,53 @@ bool Renderer::createSyncObjects() {
     }
     return true;
 }
+bool Renderer::createUniformBuffers() {
+    m_uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        m_uniformBuffers[i].createBuffer(m_vulkanBase, sizeof(UniformBufferObject));
+    }
+    return true;
+}
+bool Renderer::createDescriptorPool() {
+    vk::DescriptorPoolSize poolSize;
+    poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
+
+    vk::DescriptorPoolCreateInfo poolInfo;
+    poolInfo.poolSizeCount = 1;
+    poolInfo.pPoolSizes = &poolSize;
+    poolInfo.maxSets = MAX_FRAMES_IN_FLIGHT;
+
+    VK_RESULT_ASSIGN(m_descriptorPool,m_vulkanBase.device.createDescriptorPool(poolInfo));
+    return true;
+}
+bool Renderer::createDescriptorSets() {
+    std::vector<vk::DescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT,m_vulkanGraphicsPipeline.descriptorSetLayout);
+    vk::DescriptorSetAllocateInfo allocInfo;
+    allocInfo.descriptorPool = m_descriptorPool;
+    allocInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+    allocInfo.pSetLayouts = layouts.data();
+
+    m_descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
+    VK_RESULT_ASSIGN(m_descriptorSets,m_vulkanBase.device.allocateDescriptorSets(allocInfo))
+
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        vk::DescriptorBufferInfo bufferInfo;
+        bufferInfo.buffer = m_uniformBuffers[i].getBuffer();
+        bufferInfo.offset = 0;
+        bufferInfo.range = m_uniformBuffers[i].getBufferSize();
+
+        vk::WriteDescriptorSet descriptorWrite{};
+        descriptorWrite.pBufferInfo = &bufferInfo;
+        descriptorWrite.dstSet = m_descriptorSets[i];
+        descriptorWrite.dstBinding = 0;
+        descriptorWrite.dstArrayElement = 0;
+        descriptorWrite.descriptorType = vk::DescriptorType::eUniformBuffer;
+        descriptorWrite.descriptorCount = 1;
+
+        m_vulkanBase.device.updateDescriptorSets(1,&descriptorWrite,0,nullptr);
+    }
+
+    return true;
+}
+
 } // namespace vz

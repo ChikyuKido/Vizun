@@ -14,6 +14,7 @@ set(SPDLOG_FMT_EXTERNAL ON)
 find_package(Vulkan REQUIRED)
 
 include_directories(src)
+include_directories(lib/stb_image)
 include_directories(${Vulkan_INCLUDE_DIR})
 
 add_subdirectory(lib/spdlog)
@@ -53,8 +54,11 @@ set(SOURCE_FILES
         src/graphics/Vertex.hpp
         src/graphics/VulkanBuffer.cpp
         src/graphics/VulkanBuffer.hpp
+        src/graphics/VulkanImage.cpp
+        src/graphics/VulkanImage.hpp
 )
 add_library(Vizun ${SOURCE_FILES})
+
 target_link_libraries(Vizun PUBLIC glfw ${Vulkan_LIBRARIES} glm-header-only spdlog stdc++)
 
 add_custom_target(build_shaders ALL

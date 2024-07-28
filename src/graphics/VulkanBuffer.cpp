@@ -1,6 +1,7 @@
 #include "VulkanBuffer.hpp"
 
 #include "utils/Logger.hpp"
+#include "utils/VulkanUtils.hpp"
 
 namespace vz {
 #pragma region VulkanBuffer
@@ -18,47 +19,50 @@ bool VulkanBuffer::createBuffer(const VulkanBase& vulkanBase,
     vk::MemoryRequirements memRequirements = vulkanBase.device.getBufferMemoryRequirements(m_buffer);
     vk::MemoryAllocateInfo allocInfo;
     allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = findMemoryType(vulkanBase, memRequirements.memoryTypeBits, memoryPropertyBits);
+    allocInfo.memoryTypeIndex = VulkanUtils::findMemoryType(vulkanBase, memRequirements.memoryTypeBits, memoryPropertyBits);
     VK_RESULT_ASSIGN(m_bufferMemory, vulkanBase.device.allocateMemory(allocInfo));
     VKF(vulkanBase.device.bindBufferMemory(m_buffer, m_bufferMemory, 0));
-
-
     return true;
 }
-bool VulkanBuffer::mapData(const VulkanBase& vulkanBase, const void* bufferData) {
-    void* data = nullptr;
-    VKF(vulkanBase.device.mapMemory(m_bufferMemory, 0, m_size, {}, &data));
-    memcpy(data, bufferData, m_size);
-    vulkanBase.device.unmapMemory(m_bufferMemory);
+bool VulkanBuffer::mapData(const VulkanBase& vulkanBase) {
+    if(m_mappedData != nullptr) {
+        VZ_LOG_ERROR("Data is already mapped");
+        return false;
+    }
+    VKF(vulkanBase.device.mapMemory(m_bufferMemory, 0, m_size, {}, &m_mappedData));
     return true;
+}
+bool VulkanBuffer::uploadData(const void* data) {
+    if(m_mappedData == nullptr) {
+        VZ_LOG_ERROR("Can't upload data because buffer is not mapped");
+        return false;
+    }
+    memcpy(m_mappedData, data, m_size);
+    return true;
+}
+bool VulkanBuffer::unmapData(const VulkanBase& vulkanBase) {
+    if (m_mappedData == nullptr) {
+        VZ_LOG_ERROR("Can't unmap data because data is not mapped");
+        return false;
+    }
+    vulkanBase.device.unmapMemory(m_bufferMemory);
+    m_mappedData = nullptr;
+    return true;
+}
+void VulkanBuffer::uploadDataInstant(const VulkanBase& vulkanBase, const void* data) {
+    mapData(vulkanBase);
+    uploadData(data);
+    unmapData(vulkanBase);
 }
 bool VulkanBuffer::copyBuffer(const VulkanBase& vulkanBase, const VulkanBuffer& srcBuffer) {
-    vk::CommandBufferAllocateInfo allocInfo;
-    allocInfo.level = vk::CommandBufferLevel::ePrimary;
-    allocInfo.commandPool = vulkanBase.nonRenderingPool;
-    allocInfo.commandBufferCount = 1;
 
-    std::vector<vk::CommandBuffer> commandBuffers;
-    VK_RESULT_ASSIGN(commandBuffers,vulkanBase.device.allocateCommandBuffers(allocInfo));
-    vk::CommandBuffer commandBuffer = commandBuffers[0];
-
-    vk::CommandBufferBeginInfo beginInfo;
-    beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
-    VKF(commandBuffer.begin(beginInfo));
-
+    vk::CommandBuffer commandBuffer = VulkanUtils::beginSingleTimeCommands(vulkanBase);
     vk::BufferCopy copyRegion;
     copyRegion.size = m_size;
     commandBuffer.copyBuffer(srcBuffer.getBuffer(),m_buffer,1,&copyRegion);
-    VKF(commandBuffer.end());
 
-    vk::SubmitInfo submitInfo;
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &commandBuffer;
+    VulkanUtils::endSingleTimeCommands(vulkanBase,commandBuffer);
 
-    VKF(vulkanBase.graphicsQueue.queue.submit(1,&submitInfo,nullptr));
-    VKF(vulkanBase.graphicsQueue.queue.waitIdle());
-
-    vulkanBase.device.freeCommandBuffers(vulkanBase.nonRenderingPool,1,&commandBuffer);
     return true;
 }
 
@@ -75,15 +79,8 @@ const vk::DeviceMemory& VulkanBuffer::getBufferMemory() const {
 size_t VulkanBuffer::getBufferSize() const {
     return m_size;
 }
-uint32_t VulkanBuffer::findMemoryType(const VulkanBase& vulkanBase, uint32_t typeFilter, vk::MemoryPropertyFlags properties) const {
-    vk::PhysicalDeviceMemoryProperties memProperties = vulkanBase.physicalDevice.getMemoryProperties();
-    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
-        if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
-            return i;
-        }
-    }
-
-    VZ_LOG_CRITICAL("Failed to find suitable memory type!");
+const void* VulkanBuffer::getMappedData() const {
+    return m_mappedData;
 }
 #pragma endregion
 #pragma region VertexBuffer
@@ -95,7 +92,7 @@ bool VertexBuffer::createBuffer(const VulkanBase& vulkanBase, const std::vector<
                                     vk::BufferUsageFlagBits::eTransferSrc,
                                     vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent))
         return false;
-    stagingBuffer.mapData(vulkanBase, vertices.data());
+    stagingBuffer.uploadDataInstant(vulkanBase, vertices.data());
 
     if (!VulkanBuffer::createBuffer(vulkanBase,
                                     size,
@@ -132,7 +129,7 @@ bool IndexBuffer::createBuffer(const VulkanBase& vulkanBase, size_t indicesSize,
                                     vk::BufferUsageFlagBits::eTransferSrc,
                                     vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent))
         return false;
-    stagingBuffer.mapData(vulkanBase, indicesData);
+    stagingBuffer.uploadDataInstant(vulkanBase, indicesData);
 
     if (!VulkanBuffer::createBuffer(vulkanBase,
                                     indicesSize,
@@ -192,12 +189,13 @@ bool VertexIndexBuffer::createBuffer(const VulkanBase& vulkanBase,
     void* data = nullptr;
     VKF(vulkanBase.device.mapMemory(stagingBuffer.getBufferMemory(), 0, m_size, {}, &data));
     memcpy(data, vertices.data(), verticesSize);
-    memcpy(static_cast<char*>(data) + verticesSize,indicesData,indicesSize);
+    memcpy(static_cast<char*>(data) + verticesSize, indicesData, indicesSize);
     vulkanBase.device.unmapMemory(stagingBuffer.getBufferMemory());
 
     if (!VulkanBuffer::createBuffer(vulkanBase,
                                     bufferSize,
-                                    vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eVertexBuffer,
+                                    vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer |
+                                        vk::BufferUsageFlagBits::eVertexBuffer,
                                     vk::MemoryPropertyFlagBits::eDeviceLocal))
         return false;
     copyBuffer(vulkanBase, stagingBuffer);
@@ -208,7 +206,20 @@ bool VertexIndexBuffer::createBuffer(const VulkanBase& vulkanBase,
     m_indicesOffset = verticesSize;
 
     return true;
-
 }
+
+#pragma endregion
+#pragma region UniformBuffer
+
+bool UniformBuffer::createBuffer(const VulkanBase& vulkanBase, size_t size) {
+    if (!VulkanBuffer::createBuffer(vulkanBase,
+                                    size,
+                                    vk::BufferUsageFlagBits::eUniformBuffer,
+                                    vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent))
+        return false;
+    mapData(vulkanBase);
+    return true;
+}
+
 #pragma endregion
 } // namespace vz
