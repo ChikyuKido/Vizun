@@ -15,6 +15,7 @@ find_package(Vulkan REQUIRED)
 
 include_directories(src)
 include_directories(lib/stb_image)
+include_directories(lib/glm)
 include_directories(${Vulkan_INCLUDE_DIR})
 
 add_subdirectory(lib/spdlog)
@@ -24,7 +25,9 @@ set(GLFW_BUILD_EXAMPLES OFF)
 set(GLFW_BUILD_TESTS OFF)
 set(GLFW_BUILD_DOCS OFF)
 set(GLFW_INSTALL OFF)
-add_subdirectory(lib/glm/glm)
+set(GLFW_BUILD_X11 ON)
+set(GLFW_BUILD_WAYLAND OFF)
+
 
 set(SOURCE_FILES
         src/graphics/RenderWindow.cpp
@@ -59,7 +62,7 @@ set(SOURCE_FILES
 )
 add_library(Vizun ${SOURCE_FILES})
 
-target_link_libraries(Vizun PUBLIC glfw ${Vulkan_LIBRARIES} glm-header-only spdlog stdc++)
+target_link_libraries(Vizun PUBLIC glfw ${Vulkan_LIBRARIES} spdlog stdc++)
 
 add_custom_target(build_shaders ALL
         COMMAND "${PROJECT_SOURCE_DIR}/rsc/shaders/compile.sh"

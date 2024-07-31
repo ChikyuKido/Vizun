@@ -21,10 +21,20 @@ bool VulkanGraphicsPipeline::createDescriptorSetLayout(const VulkanBase& vulkanB
     uboLayoutBinding.descriptorCount = 1;
     uboLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eVertex;
 
+    vk::DescriptorSetLayoutBinding samplerLayoutBinding;
+    samplerLayoutBinding.binding = 1;
+    samplerLayoutBinding.descriptorCount = 1;
+    samplerLayoutBinding.descriptorType =vk::DescriptorType::eCombinedImageSampler;
+    samplerLayoutBinding.pImmutableSamplers = nullptr;
+    samplerLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
+
+    std::array<vk::DescriptorSetLayoutBinding, 2> bindings = {uboLayoutBinding, samplerLayoutBinding};
     vk::DescriptorSetLayoutCreateInfo layoutInfo;
-    layoutInfo.bindingCount = 1;
-    layoutInfo.pBindings = &uboLayoutBinding;
+    layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
+    layoutInfo.pBindings = bindings.data();
+
     VK_RESULT_ASSIGN(descriptorSetLayout,vulkanBase.device.createDescriptorSetLayout(layoutInfo))
+
     return true;
 }
 bool VulkanGraphicsPipeline::createGraphicsPipeline(const VulkanBase& vulkanBase,const VulkanSwapchain& vulkanSwapchain,const VulkanRenderPass& vulkanRenderPass) {

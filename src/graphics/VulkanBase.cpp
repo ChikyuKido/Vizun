@@ -88,6 +88,7 @@ bool VulkanBase::createLogicalDevice() {
     }
 
     vk::PhysicalDeviceFeatures deviceFeatures;
+    deviceFeatures.samplerAnisotropy = vk::True;
 
     vk::DeviceCreateInfo deviceCreateInfo;
     deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
@@ -135,7 +136,12 @@ bool VulkanBase::isDeviceSuitable(vk::PhysicalDevice device) const {
         VulkanSwapChainSupportDetails swapChainSupport = VulkanSwapchain::querySwapChainSupport(device,surface);
         swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
     }
-    return familyIndices.isComplete() && extensionsSupported && swapChainAdequate;
+    bool areFeaturesSupported = false;
+    vk::PhysicalDeviceFeatures features = device.getFeatures();
+    if(features.samplerAnisotropy == vk::True) {
+        areFeaturesSupported = true;
+    }
+    return familyIndices.isComplete() && extensionsSupported && swapChainAdequate && areFeaturesSupported;
 }
 bool VulkanBase::areDeviceExtensionsSupported(vk::PhysicalDevice device) const {
     std::vector<vk::ExtensionProperties> extensions = device.enumerateDeviceExtensionProperties().value;
@@ -161,7 +167,7 @@ QueueFamilyIndices VulkanBase::findQueueFamilies(const vk::PhysicalDevice device
         }
         i++;
     }
-
+    VZ_LOG_INFO("Used indices {}",indices.graphicsFamily.value());
     return indices;
 }
 } // namespace vz

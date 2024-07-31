@@ -68,10 +68,19 @@ VulkanBase* RenderWindow::getVulkanBase() {
 }
 
 bool RenderWindow::initGLFW() const {
-    if (!glfwInit()) {
-        return false;
+    if(glfwPlatformSupported(GLFW_PLATFORM_WIN32)) glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_WIN32);
+    else if(glfwPlatformSupported(GLFW_PLATFORM_COCOA)) glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_COCOA);
+    else if(glfwPlatformSupported(GLFW_PLATFORM_X11)) glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11);
+    else if(glfwPlatformSupported(GLFW_PLATFORM_WAYLAND)) glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_WAYLAND);
+    else {
+        VZ_LOG_CRITICAL("Error: could not find acceptable platform for GLFW\n");
     }
     VZ_LOG_INFO("GLFW Version: {}", glfwGetVersionString());
+    if (!glfwInit()) {
+        const char* error;
+        glfwGetError(&error);
+        VZ_LOG_CRITICAL("Could not initialize GLFW because: {}",error);
+    }
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     return true;
 }

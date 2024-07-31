@@ -39,9 +39,17 @@ bool VulkanImage::createImage(const VulkanBase& vulkanBase,
     VKF(vulkanBase.device.bindImageMemory(*m_image, *m_imageMemory, 0));
     m_height = height;
     m_width = width;
+    if(!createImageView(vulkanBase)) {
+        return false;
+    }
+    if(!createTextureSampler(vulkanBase)) {
+        return false;
+    }
     return true;
 }
 void VulkanImage::cleanup(const VulkanBase& vulkanBase) {
+    vulkanBase.device.destroySampler(*m_sampler);
+    vulkanBase.device.destroyImageView(*m_imageView);
     vulkanBase.device.destroyImage(*m_image);
     vulkanBase.device.freeMemory(*m_imageMemory);
 }
@@ -103,13 +111,40 @@ void VulkanImage::copyBufferToImage(const VulkanBase& vulkanBase) {
     region.imageSubresource.baseArrayLayer = 0;
     region.imageSubresource.layerCount = 1;
     region.imageOffset = vk::Offset3D{0, 0, 0};
-    region.imageExtent = vk::Extent3D{
-        m_width,
-        m_height,
-        1
-    };
-    commandBuffer.copyBufferToImage(m_stagingBuffer->getBuffer(),*m_image,vk::ImageLayout::eTransferDstOptimal,1,&region);
+    region.imageExtent = vk::Extent3D{m_width, m_height, 1};
+    commandBuffer.copyBufferToImage(m_stagingBuffer->getBuffer(), *m_image, vk::ImageLayout::eTransferDstOptimal, 1, &region);
     VulkanUtils::endSingleTimeCommands(vulkanBase, commandBuffer);
+}
+bool VulkanImage::createImageView(const VulkanBase& vulkanBase) {
+    vk::ImageViewCreateInfo createInfo;
+    createInfo.image = *m_image;
+    createInfo.viewType = vk::ImageViewType::e2D;
+    createInfo.format = vk::Format::eR8G8B8A8Srgb;
+    createInfo.subresourceRange = {vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1};
+    VK_RESULT_ASSIGN_SHARED(m_imageView, vulkanBase.device.createImageView(createInfo), vk::ImageView)
+    return true;
+}
+bool VulkanImage::createTextureSampler(const VulkanBase& vulkanBase) {
+    vk::PhysicalDeviceProperties properties = vulkanBase.physicalDevice.getProperties();
+    vk::SamplerCreateInfo samplerInfo;
+    samplerInfo.magFilter = vk::Filter::eLinear;
+    samplerInfo.minFilter = vk::Filter::eLinear;
+    samplerInfo.addressModeU = vk::SamplerAddressMode::eRepeat;
+    samplerInfo.addressModeV = vk::SamplerAddressMode::eRepeat;
+    samplerInfo.addressModeW = vk::SamplerAddressMode::eRepeat;
+    samplerInfo.anisotropyEnable = vk::True;
+    samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
+    samplerInfo.borderColor = vk::BorderColor::eIntOpaqueBlack;
+    samplerInfo.unnormalizedCoordinates = vk::False;
+    samplerInfo.compareEnable = vk::False;
+    samplerInfo.compareOp = vk::CompareOp::eAlways;
+    samplerInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
+    samplerInfo.mipLodBias = 0.0f;
+    samplerInfo.minLod = 0.0f;
+    samplerInfo.maxLod = 0.0f;
+
+    VK_RESULT_ASSIGN_SHARED(m_sampler,vulkanBase.device.createSampler(samplerInfo),vk::Sampler)
+    return true;
 }
 #pragma endregion
 #pragma region VulkanImageTexture

@@ -18,6 +18,7 @@ Renderer::Renderer(RenderWindow* window, const VulkanConfig& vulkanConfig)
     if (!m_vulkanSwapchain.createSwapchain(m_vulkanBase, m_window->getWindowHandle())) {
         VZ_LOG_CRITICAL("Failed to create swapchain");
     }
+    m_texture.loadImageTexture(m_vulkanBase,"rsc/texts/img.jpg");
     if (!m_vulkanSwapchain.createImageViews(m_vulkanBase)) {
         VZ_LOG_CRITICAL("Failed to create swapchain image views");
     }
@@ -50,7 +51,6 @@ Renderer::Renderer(RenderWindow* window, const VulkanConfig& vulkanConfig)
         VZ_LOG_CRITICAL("Failed to create descriptor sets");
     }
     viBuffer.createBuffer(m_vulkanBase,vertices,indices);
-    m_texture.loadImageTexture(m_vulkanBase,"rsc/texts/img.png");
     Events::resizeSignal.connect([this](int, int) {
         m_framebufferResized = true;
     });
@@ -117,7 +117,7 @@ void Renderer::updateUniformBufferTest() {
     auto currentTime = std::chrono::high_resolution_clock::now();
     float time = std::chrono::duration<float>(currentTime - startTime).count();
     UniformBufferObject ubo{};
-    ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(7200.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(210.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     ubo.proj = glm::perspective(glm::radians(45.0f),
         m_vulkanSwapchain.swapchainExtent.width  /static_cast<float>(m_vulkanSwapchain.swapchainExtent.height), 0.1f, 10.0f);
@@ -241,12 +241,16 @@ bool Renderer::createUniformBuffers() {
     return true;
 }
 bool Renderer::createDescriptorPool() {
-    vk::DescriptorPoolSize poolSize;
-    poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
+    std::array<vk::DescriptorPoolSize, 2> poolSizes{};
+    poolSizes[0].type = vk::DescriptorType::eUniformBuffer;
+    poolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+    poolSizes[1].type = vk::DescriptorType::eCombinedImageSampler;
+    poolSizes[1].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+
 
     vk::DescriptorPoolCreateInfo poolInfo;
-    poolInfo.poolSizeCount = 1;
-    poolInfo.pPoolSizes = &poolSize;
+    poolInfo.poolSizeCount = poolSizes.size();
+    poolInfo.pPoolSizes = poolSizes.data();
     poolInfo.maxSets = MAX_FRAMES_IN_FLIGHT;
 
     VK_RESULT_ASSIGN(m_descriptorPool,m_vulkanBase.device.createDescriptorPool(poolInfo));
@@ -261,22 +265,34 @@ bool Renderer::createDescriptorSets() {
 
     m_descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
     VK_RESULT_ASSIGN(m_descriptorSets,m_vulkanBase.device.allocateDescriptorSets(allocInfo))
-
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         vk::DescriptorBufferInfo bufferInfo;
         bufferInfo.buffer = m_uniformBuffers[i].getBuffer();
         bufferInfo.offset = 0;
         bufferInfo.range = m_uniformBuffers[i].getBufferSize();
 
-        vk::WriteDescriptorSet descriptorWrite{};
-        descriptorWrite.pBufferInfo = &bufferInfo;
-        descriptorWrite.dstSet = m_descriptorSets[i];
-        descriptorWrite.dstBinding = 0;
-        descriptorWrite.dstArrayElement = 0;
-        descriptorWrite.descriptorType = vk::DescriptorType::eUniformBuffer;
-        descriptorWrite.descriptorCount = 1;
+        vk::DescriptorImageInfo imageInfo;
+        imageInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+        imageInfo.imageView = *m_texture.getImageView();
+        imageInfo.sampler = *m_texture.getSampler();
 
-        m_vulkanBase.device.updateDescriptorSets(1,&descriptorWrite,0,nullptr);
+        std::array<vk::WriteDescriptorSet, 2> descriptorWrites{};
+
+        descriptorWrites[0].dstSet = m_descriptorSets[i];
+        descriptorWrites[0].dstBinding = 0;
+        descriptorWrites[0].dstArrayElement = 0;
+        descriptorWrites[0].descriptorType = vk::DescriptorType::eUniformBuffer;
+        descriptorWrites[0].descriptorCount = 1;
+        descriptorWrites[0].pBufferInfo = &bufferInfo;
+
+        descriptorWrites[1].dstSet = m_descriptorSets[i];
+        descriptorWrites[1].dstBinding = 1;
+        descriptorWrites[1].dstArrayElement = 0;
+        descriptorWrites[1].descriptorType = vk::DescriptorType::eCombinedImageSampler;
+        descriptorWrites[1].descriptorCount = 1;
+        descriptorWrites[1].pImageInfo = &imageInfo;
+
+        m_vulkanBase.device.updateDescriptorSets(descriptorWrites.size(),descriptorWrites.data(),0,nullptr);
     }
 
     return true;
