@@ -10,7 +10,37 @@
 namespace vz {
 VulkanBase::VulkanBase(const VulkanConfig* vulkanConfig) : m_vulkanConfig(vulkanConfig) {}
 VulkanBase::VulkanBase() = default;
+bool VulkanBase::createVulkanBase(GLFWwindow* window) {
+    this->window = window;
+    if (!createInstance()) {
+        VZ_LOG_ERROR("Could not create vulkan instance");
+        return false;
+    }
+    if (!createSurface(window)) {
+        VZ_LOG_ERROR("Could not create surface");
+        return false;
+    }
+    if (!pickPhyiscalDevice()) {
+        VZ_LOG_ERROR("Failed to find a suitable physical device");
+        return false;
+    }
+    if (!createLogicalDevice()) {
+        VZ_LOG_ERROR("Failed to create logical device");
+        return false;
+    }
+    if (!createNonRenderingPool()) {
+        VZ_LOG_ERROR("Failed to create non rendering pool");
+        return false;
+    }
+
+    if (!vulkanSwapchain.createSwapchain(this,window)) {
+        VZ_LOG_ERROR("Failed to create swapchain");
+        return false;
+    }
+    return true;
+}
 void VulkanBase::cleanup() const {
+    vulkanSwapchain.cleanup(this);
     device.destroyCommandPool(nonRenderingPool);
     device.destroy();
     instance.destroy();

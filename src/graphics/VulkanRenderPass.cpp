@@ -5,16 +5,19 @@ namespace vz {
 void VulkanRenderPass::cleanup(const VulkanBase& vulkanBase) {
     vulkanBase.device.destroyRenderPass(renderPass);
 }
-bool VulkanRenderPass::createRenderPass(const VulkanBase& vulkanBase,const VulkanSwapchain& vulkanSwapchain) {
+bool VulkanRenderPass::createRenderPass(const VulkanBase& vulkanBase, const VulkanSwapchain& vulkanSwapchain) {
+
+}
+bool VulkanRenderPass::createRenderPass(const VulkanBase& vulkanBase) {
     vk::AttachmentDescription attachmentDescription;
-    attachmentDescription.format = vulkanSwapchain.swapchainFormat;
+    attachmentDescription.format = vulkanBase.vulkanSwapchain.swapchainFormat;
     attachmentDescription.samples = vk::SampleCountFlagBits::e1;
     attachmentDescription.loadOp = vk::AttachmentLoadOp::eClear;
     attachmentDescription.storeOp = vk::AttachmentStoreOp::eStore;
     attachmentDescription.initialLayout = vk::ImageLayout::eUndefined;
     attachmentDescription.finalLayout = vk::ImageLayout::ePresentSrcKHR;
 
-    vk::AttachmentReference attachmentReference(0,vk::ImageLayout::eColorAttachmentOptimal);
+    vk::AttachmentReference attachmentReference(0, vk::ImageLayout::eColorAttachmentOptimal);
 
     vk::SubpassDescription subpass;
     subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
@@ -38,12 +41,9 @@ bool VulkanRenderPass::createRenderPass(const VulkanBase& vulkanBase,const Vulka
     createInfo.dependencyCount = 1;
     createInfo.pDependencies = &dependency;
 
-
     vk::ResultValue<vk::RenderPass> renderPassRes = vulkanBase.device.createRenderPass(createInfo);
-    if(renderPassRes.result != vk::Result::eSuccess) {
-        return false;
-    }
+    if (renderPassRes.result != vk::Result::eSuccess) { return false; }
     renderPass = renderPassRes.value;
     return true;
 }
-}
+} // namespace vz

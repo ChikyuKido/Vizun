@@ -6,7 +6,6 @@
 
 
 int main() {
-    setenv("WAYLAND_DISPLAY", "wayland-0", 1);
     vz::VulkanConfig vulkanConfig;
     vulkanConfig.instanceConfig.applicationName = "Example";
     vulkanConfig.instanceConfig.applicationVersion = VK_MAKE_VERSION(1,0,0);

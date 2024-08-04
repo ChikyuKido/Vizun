@@ -1,30 +1,34 @@
 #ifndef RENDERWINDOW_HPP
 #define RENDERWINDOW_HPP
 #define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
+
 #include "VulkanBase.hpp"
+#include "VulkanRenderer.hpp"
 #include "utils/VulkanConfig.hpp"
+
+#include <GLFW/glfw3.h>
+#include <memory>
 #include <string>
 
 namespace vz {
 class Renderer;
 class RenderWindow {
 public:
-    RenderWindow(const int width, const int height, std::string title);
-    RenderWindow(const int width, const int height, std::string title, const VulkanConfig& vulkanConfig);
+    RenderWindow(int width, int height, std::string title);
+    RenderWindow(int width, int height, std::string title, const VulkanConfig& vulkanConfig);
     ~RenderWindow();
 
     void draw();
     void setResizable(const bool resizable);
     bool isResizeable() const;
     bool shouldWindowClose() const;
-    GLFWwindow* getWindowHandle();
+    GLFWwindow* getWindowHandle() const;
     VulkanBase* getVulkanBase();
 
 private:
-    bool initGLFW() const;
-    bool createWindow();
-    bool initVulkan();
+    void initGLFW() const;
+    void createWindow();
+    void initVulkan();
     void destroyWindow();
     void recreateWindow();
 
@@ -36,7 +40,7 @@ private:
 
     VulkanConfig m_vulkanConfig;
     VulkanBase m_vulkanBase;
-    Renderer* m_renderer = nullptr;
+    std::shared_ptr<VulkanRenderer> m_renderer{nullptr};
 };
 
 

@@ -3,6 +3,7 @@
 
 #ifndef VULKAN_HPP_NO_EXCEPTIONS
 #define VULKAN_HPP_NO_EXCEPTIONS
+#include "VulkanSwapchain.hpp"
 #endif
 #ifndef VULKAN_HPP_NO_SMART_HANDLE
 #define VULKAN_HPP_NO_SMART_HANDLE
@@ -104,13 +105,12 @@ return false; \
 }
 
 inline std::string extractFunctionName(const std::string& functionCall) {
-    size_t pos = functionCall.find('(');
+    size_t const pos = functionCall.find('(');
     return (pos != std::string::npos) ? functionCall.substr(0, pos) : functionCall;
 }
 
 
 namespace vz {
-class VulkanSwapchain;
 struct VulkanQueue {
     uint32_t queueFamilyIndex;
     vk::Queue queue;
@@ -133,18 +133,21 @@ public:
     vk::SurfaceKHR surface;
     VulkanQueue graphicsQueue;
     VulkanQueue presentQueue;
+    VulkanSwapchain vulkanSwapchain;
     vk::CommandPool nonRenderingPool;
 
     void cleanup() const;
+    bool createVulkanBase(GLFWwindow* window);
+    void setVulkanConfig(const VulkanConfig* config);
+    const VulkanConfig* getVulkanConfig() const;
+private:
+    const VulkanConfig* m_vulkanConfig{nullptr};
+
     bool createInstance();
     bool pickPhyiscalDevice();
     bool createSurface(GLFWwindow* window);
     bool createLogicalDevice();
     bool createNonRenderingPool();
-    void setVulkanConfig(const VulkanConfig* config);
-    const VulkanConfig* getVulkanConfig() const;
-private:
-    const VulkanConfig* m_vulkanConfig{nullptr};
 
     int rateDeviceSuitability(vk::PhysicalDevice device) const;
     bool isDeviceSuitable(vk::PhysicalDevice device) const;

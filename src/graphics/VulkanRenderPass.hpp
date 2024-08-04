@@ -10,6 +10,7 @@ public:
 
     void cleanup(const VulkanBase& vulkanBase);
     bool createRenderPass(const VulkanBase& vulkanBase,const VulkanSwapchain& vulkanSwapchain);
+    bool createRenderPass(const VulkanBase& vulkanBase);
 private:
 };
 }

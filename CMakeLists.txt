@@ -59,6 +59,8 @@ set(SOURCE_FILES
         src/graphics/VulkanBuffer.hpp
         src/graphics/VulkanImage.cpp
         src/graphics/VulkanImage.hpp
+        src/graphics/VulkanRenderer.cpp
+        src/graphics/VulkanRenderer.hpp
 )
 add_library(Vizun ${SOURCE_FILES})
 
