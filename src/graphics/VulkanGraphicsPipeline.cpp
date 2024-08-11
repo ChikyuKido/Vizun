@@ -37,7 +37,7 @@ bool VulkanGraphicsPipeline::createDescriptorSetLayout(const VulkanBase& vulkanB
 
     return true;
 }
-bool VulkanGraphicsPipeline::createGraphicsPipeline(const VulkanBase& vulkanBase,const VulkanSwapchain& vulkanSwapchain,const VulkanRenderPass& vulkanRenderPass) {
+bool VulkanGraphicsPipeline::createGraphicsPipeline(const VulkanBase& vulkanBase,const VulkanRenderPass& vulkanRenderPass) {
     auto vertShaderCode = loadShaderContent("rsc/shaders/default_vert.spv");
     auto fragShaderCode = loadShaderContent("rsc/shaders/default_frag.spv");
     RETURN_FALSE_WITH_LOG(vertShaderCode.empty(),"Failed to read vertex shader module");
@@ -84,14 +84,14 @@ bool VulkanGraphicsPipeline::createGraphicsPipeline(const VulkanBase& vulkanBase
     vk::Viewport viewport;
     viewport.x = 0.0f;
     viewport.y = 0.0f;
-    viewport.width = static_cast<float>(vulkanSwapchain.swapchainExtent.width);
-    viewport.height = static_cast<float>(vulkanSwapchain.swapchainExtent.height);
+    viewport.width = static_cast<float>(vulkanBase.vulkanSwapchain.swapchainExtent.width);
+    viewport.height = static_cast<float>(vulkanBase.vulkanSwapchain.swapchainExtent.height);
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
 
     vk::Rect2D scissor;
     scissor.offset = vk::Offset2D{0,0};
-    scissor.extent = vulkanSwapchain.swapchainExtent;
+    scissor.extent = vulkanBase.vulkanSwapchain.swapchainExtent;
 
     vk::PipelineViewportStateCreateInfo viewportState;
     viewportState.viewportCount = 1;

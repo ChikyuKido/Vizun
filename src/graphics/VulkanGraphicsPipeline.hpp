@@ -12,7 +12,7 @@ public:
     vk::Pipeline pipeline;
     void cleanup(const VulkanBase& vulkanBase);
     bool createDescriptorSetLayout(const VulkanBase& vulkanBase);
-    bool createGraphicsPipeline(const VulkanBase& vulkanBase,const VulkanSwapchain& vulkanSwapchain,const VulkanRenderPass& vulkanRenderPass);
+    bool createGraphicsPipeline(const VulkanBase& vulkanBase,const VulkanRenderPass& vulkanRenderPass);
 
 private:
     std::vector<char> loadShaderContent(const std::string& path);

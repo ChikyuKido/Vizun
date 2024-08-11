@@ -1,14 +1,13 @@
 
 #include "VulkanRenderPass.hpp"
+
 #include "VulkanSwapchain.hpp"
+#include "utils/Logger.hpp"
 namespace vz {
 void VulkanRenderPass::cleanup(const VulkanBase& vulkanBase) {
     vulkanBase.device.destroyRenderPass(renderPass);
 }
-bool VulkanRenderPass::createRenderPass(const VulkanBase& vulkanBase, const VulkanSwapchain& vulkanSwapchain) {
-
-}
-bool VulkanRenderPass::createRenderPass(const VulkanBase& vulkanBase) {
+bool VulkanRenderPass::createRenderPass(const VulkanBase& vulkanBase, const VulkanRenderPassConfig& config) {
     vk::AttachmentDescription attachmentDescription;
     attachmentDescription.format = vulkanBase.vulkanSwapchain.swapchainFormat;
     attachmentDescription.samples = vk::SampleCountFlagBits::e1;
@@ -40,10 +39,8 @@ bool VulkanRenderPass::createRenderPass(const VulkanBase& vulkanBase) {
 
     createInfo.dependencyCount = 1;
     createInfo.pDependencies = &dependency;
-
-    vk::ResultValue<vk::RenderPass> renderPassRes = vulkanBase.device.createRenderPass(createInfo);
-    if (renderPassRes.result != vk::Result::eSuccess) { return false; }
-    renderPass = renderPassRes.value;
+    VK_RESULT_ASSIGN(renderPass,vulkanBase.device.createRenderPass(createInfo));
     return true;
 }
+
 } // namespace vz

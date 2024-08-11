@@ -17,30 +17,55 @@ VulkanRenderer::VulkanRenderer(const VulkanRendererConfig& config, const VulkanB
     if (!createSyncObjects()) {
         VZ_LOG_CRITICAL("Failed to create sync objects");
     }
-    if(config.renderPasses.size() != 0) {
-        m_renderPasses = config.renderPasses;
+    if(config.renderPass == nullptr) {
+        m_renderPass = std::make_shared<VulkanRenderPass>();
+        if(m_renderPass->createRenderPass(vulkanBase,VulkanRenderPassConfig())) {
+            VZ_LOG_CRITICAL("Could not create render pass");
+        }
     }else {
-        m_renderPasses.emplace_back();
-        m_renderPasses[0].createRenderPass(vulkanBase);
+        m_renderPass = std::make_shared<VulkanRenderPass>(*config.renderPass);
     }
-    m_defaultGraphicsPipeline = new VulkanGraphicsPipeline();
-    m_defaultGraphicsPipeline->createGraphicsPipeline()
-
+    if(config.graphicsPipeline == nullptr) {
+        m_defaultGraphicsPipeline = std::make_shared<VulkanGraphicsPipeline>();
+        if(m_defaultGraphicsPipeline->createGraphicsPipeline(vulkanBase,*m_renderPass)) {
+            VZ_LOG_CRITICAL("Could not create graphics pipeline");
+        }
+    }else {
+        m_defaultGraphicsPipeline = std::make_shared<VulkanGraphicsPipeline>(*config.graphicsPipeline);
+    }
 }
+
 void VulkanRenderer::begin() {
 
 }
 void VulkanRenderer::draw(const RenderTarget& renderTarget) {
     draw(renderTarget,m_defaultGraphicsPipeline);
 }
-void VulkanRenderer::draw(const RenderTarget& renderTarget, VulkanGraphicsPipeline* graphicsPipeline) {
+void VulkanRenderer::draw(const RenderTarget& renderTarget, const std::shared_ptr<VulkanGraphicsPipeline>& graphicsPipeline) {
+    if(graphicsPipeline != m_defaultGraphicsPipeline) {
+        bool found = false;
+        for (auto pipe : m_graphicPipelines) {
+            if(pipe == graphicsPipeline) {
+                found = true;
+            }
+        }
+        if(!found) {
+            VZ_LOG_ERROR("Tried to make a call with a graphicspipeline which was not created in this renderer");
+            return;
+        }
+    }
     if(!m_drawCalls.contains(graphicsPipeline)) {
         m_drawCalls[graphicsPipeline] = std::vector<RenderTarget>();
     }
     m_drawCalls[graphicsPipeline].push_back(renderTarget);
-
 }
 void VulkanRenderer::end() {
+}
+std::shared_ptr<VulkanGraphicsPipeline> VulkanRenderer::createGraphicsPipeline(const VulkanGraphicsPipelineConfig& config) {
+    auto pipeline = std::make_shared<VulkanGraphicsPipeline>();
+    pipeline->createGraphicsPipeline(m_vulkanBase,*m_renderPass);
+    m_graphicPipelines.push_back(pipeline);
+    return pipeline;
 }
 bool VulkanRenderer::createCommandPool() {
     vk::CommandPoolCreateInfo poolInfo;
