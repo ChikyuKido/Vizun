@@ -11,7 +11,6 @@ namespace vz {
 VulkanBase::VulkanBase(const VulkanConfig* vulkanConfig) : m_vulkanConfig(vulkanConfig) {}
 VulkanBase::VulkanBase() = default;
 bool VulkanBase::createVulkanBase(GLFWwindow* window) {
-    this->window = window;
     if (!createInstance()) {
         VZ_LOG_ERROR("Could not create vulkan instance");
         return false;
@@ -33,14 +32,14 @@ bool VulkanBase::createVulkanBase(GLFWwindow* window) {
         return false;
     }
 
-    if (!vulkanSwapchain.createSwapchain(this,window)) {
+    if (!vulkanSwapchain.createSwapchain(*this,window)) {
         VZ_LOG_ERROR("Failed to create swapchain");
         return false;
     }
     return true;
 }
 void VulkanBase::cleanup() const {
-    vulkanSwapchain.cleanup(this);
+    vulkanSwapchain.cleanup(*this);
     device.destroyCommandPool(nonRenderingPool);
     device.destroy();
     instance.destroy();

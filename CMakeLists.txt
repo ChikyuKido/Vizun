@@ -1,7 +1,12 @@
 cmake_minimum_required(VERSION 3.28)
 project(Vizun)
 
+
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_CXX_EXTENSIONS OFF)
+#set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
@@ -46,9 +51,6 @@ set(SOURCE_FILES
         src/graphics/VulkanGraphicsPipeline.hpp
         src/graphics/VulkanRenderPass.cpp
         src/graphics/VulkanRenderPass.hpp
-        src/graphics/Renderer.cpp
-        src/graphics/Renderer.hpp
-        src/graphics/RenderTarget.cpp
         src/graphics/RenderTarget.hpp
         src/utils/Events.cpp
         src/utils/Events.hpp
@@ -61,6 +63,8 @@ set(SOURCE_FILES
         src/graphics/VulkanImage.hpp
         src/graphics/VulkanRenderer.cpp
         src/graphics/VulkanRenderer.hpp
+        src/graphics/VulkanGraphicsPipelineDescriptor.cpp
+        src/graphics/VulkanGraphicsPipelineDescriptor.hpp
 )
 add_library(Vizun ${SOURCE_FILES})
 
@@ -70,6 +74,8 @@ add_custom_target(build_shaders ALL
         COMMAND "${PROJECT_SOURCE_DIR}/rsc/shaders/compile.sh"
         WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/rsc/shaders"
 )
+
+add_definitions(-DVULKAN_HPP_NO_EXCEPTIONS -DVULKAN_HPP_NO_SMART_HANDLE -DVULKAN_HPP_NO_SETTERS -DVULKAN_HPP_NO_SPACESHIP_OPERATOR -DVULKAN_HPP_NO_TO_STRING)
 
 add_dependencies(Vizun build_shaders)
 

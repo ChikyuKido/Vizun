@@ -13,14 +13,14 @@ RenderWindow::RenderWindow(const int width, const int height, std::string title)
 RenderWindow(width, height, std::move(title), VulkanConfig()) {
 }
 
-RenderWindow::RenderWindow(int width, int height, std::string title, const VulkanConfig& vulkanConfig)
+RenderWindow::RenderWindow(int width, int height, std::string title, VulkanConfig vulkanConfig)
     : m_width(width), m_height(height), m_title(std::move(title)), m_vulkanConfig(vulkanConfig) {
     m_vulkanBase.setVulkanConfig(&m_vulkanConfig);
     initGLFW();
     createWindow();
     glfwSetFramebufferSizeCallback(m_windowHandle,[](GLFWwindow*, int width, int height) {Events::resizeSignal.emit(width,height);});
     initVulkan();
-    m_renderer = std::make_shared<VulkanRenderer>(vulkanConfig.vulkanRenderConfig);
+    m_renderer = std::make_shared<VulkanRenderer>(vulkanConfig.vulkanRenderConfig,m_vulkanBase,m_windowHandle);
 }
 
 RenderWindow::~RenderWindow() {
@@ -28,13 +28,6 @@ RenderWindow::~RenderWindow() {
     glfwTerminate();
 }
 
-void RenderWindow::draw() {
-    if (m_renderer) {
-        m_renderer->begin();
-        m_renderer->draw(RenderTarget());
-        m_renderer->end();
-    }
-}
 
 void RenderWindow::setResizable(const bool resizable) {
     if (m_resizable != resizable) {
@@ -56,6 +49,10 @@ GLFWwindow* RenderWindow::getWindowHandle() const {
 VulkanBase* RenderWindow::getVulkanBase() {
     return &m_vulkanBase;
 }
+const std::shared_ptr<VulkanRenderer>& RenderWindow::getRenderer() {
+    return m_renderer;
+}
+
 
 void RenderWindow::initGLFW() const {
     if(glfwPlatformSupported(GLFW_PLATFORM_WIN32)) glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_WIN32);

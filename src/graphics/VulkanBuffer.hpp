@@ -1,10 +1,14 @@
 #ifndef VERTEXBUFFER_HPP
 #define VERTEXBUFFER_HPP
+#include "Vertex.hpp"
 
-#include "VulkanBase.hpp"
+#include <cstdint>
+#include <vulkan/vulkan.hpp>
+
 
 namespace vz {
 
+class VulkanBase;
 class VulkanBuffer {
 public:
     bool createBuffer(const VulkanBase& vulkanBase,uint64_t size,vk::BufferUsageFlags usageFlagBits,vk::MemoryPropertyFlags memoryPropertyBits);

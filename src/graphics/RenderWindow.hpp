@@ -1,7 +1,7 @@
 #ifndef RENDERWINDOW_HPP
 #define RENDERWINDOW_HPP
-#define GLFW_INCLUDE_VULKAN
 
+#define GLFW_INCLUDE_VULKAN
 #include "VulkanBase.hpp"
 #include "VulkanRenderer.hpp"
 #include "utils/VulkanConfig.hpp"
@@ -15,7 +15,7 @@ class Renderer;
 class RenderWindow {
 public:
     RenderWindow(int width, int height, std::string title);
-    RenderWindow(int width, int height, std::string title, const VulkanConfig& vulkanConfig);
+    RenderWindow(int width, int height, std::string title, VulkanConfig vulkanConfig);
     ~RenderWindow();
 
     void draw();
@@ -24,6 +24,7 @@ public:
     bool shouldWindowClose() const;
     GLFWwindow* getWindowHandle() const;
     VulkanBase* getVulkanBase();
+    const std::shared_ptr<VulkanRenderer>& getRenderer();
 
 private:
     void initGLFW() const;

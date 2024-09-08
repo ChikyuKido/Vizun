@@ -1,29 +1,15 @@
 #ifndef VULKANBASE_HPP
 #define VULKANBASE_HPP
 
-#ifndef VULKAN_HPP_NO_EXCEPTIONS
-#define VULKAN_HPP_NO_EXCEPTIONS
-#include "VulkanSwapchain.hpp"
-#endif
-#ifndef VULKAN_HPP_NO_SMART_HANDLE
-#define VULKAN_HPP_NO_SMART_HANDLE
-#endif
-#ifndef VULKAN_HPP_NO_SETTERS
-#define VULKAN_HPP_NO_SETTERS
-#endif
-#ifndef VULKAN_HPP_NO_SPACESHIP_OPERATOR
-#define VULKAN_HPP_NO_SPACESHIP_OPERATOR
-#endif
-#ifndef VULKAN_HPP_NO_TO_STRING
-#define VULKAN_HPP_NO_TO_STRING
-#endif
 
-#include "utils/VulkanConfig.hpp"
 #define GLFW_INCLUDE_VULKAN
+#include <vulkan/vulkan.hpp>
 #include <GLFW/glfw3.h>
 #include <optional>
-#include <vulkan/vulkan.hpp>
 #include "Vertex.hpp"
+#include "utils/VulkanConfig.hpp"
+#include "VulkanSwapchain.hpp"
+
 //TODO: remove test code
 const std::vector<Vertex> vertices = {
     {{-0.8f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},

@@ -163,8 +163,6 @@ void Renderer::end() {
 }
 
 
-
-
 void Renderer::draw(RenderTarget renderTarget) {
     //renderTarget.draw(m_commandBuffers[m_currentFrame]);
     //test

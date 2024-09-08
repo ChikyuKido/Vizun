@@ -3,11 +3,14 @@
 #define VULKANCONFIG_HPP
 
 
+#include "graphics/VulkanGraphicsPipelineDescriptor.hpp"
+
 #include <cstdint>
 #include <vector>
 #include <vulkan/vulkan.hpp>
 
 namespace vz {
+
 class VulkanGraphicsPipeline;
 class VulkanRenderPass;
 struct VulkanInstanceConfig {
@@ -20,16 +23,22 @@ struct VulkanDeviceConfig {
     std::vector<const char*> enableDeviceFeatures;
 };
 struct VulkanSwapchainConfig {
-    vk::PresentModeKHR presentMode = static_cast<vk::PresentModeKHR>(2); // FIFO
+    vk::PresentModeKHR presentMode = vk::PresentModeKHR::eFifo; // FIFO
     bool forcePresentMode = false;
 };
-struct VulkanRendererConfig {
-    VulkanRenderPass* renderPass;
-    VulkanGraphicsPipeline* graphicsPipeline;
-};
 struct VulkanGraphicsPipelineConfig {
-
+    std::string vertShaderPath;
+    std::string fragShaderPath;
+    std::vector<vk::DynamicState> dynamicStates;
+    vk::VertexInputBindingDescription vertexInputBindingDescription;
+    std::vector<vk::VertexInputAttributeDescription> vertexInputAttributes;
+    std::vector<VulkanGraphicsPipelineDescriptor*> descriptors;
 };
+struct VulkanRendererConfig {
+    VulkanRenderPass* renderPass = nullptr;
+    VulkanGraphicsPipelineConfig graphicsPipeline;
+};
+
 struct VulkanRenderPassConfig {
     struct AttachmentConfig {
         vk::Format format = vk::Format::eB8G8R8A8Unorm;

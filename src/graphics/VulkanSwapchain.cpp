@@ -1,20 +1,21 @@
 
 #include "VulkanSwapchain.hpp"
-
+#include "VulkanBase.hpp"
 #include "VulkanRenderPass.hpp"
 #include "utils/Logger.hpp"
+
 namespace vz {
 
 VulkanSwapChainSupportDetails VulkanSwapchain::querySwapChainSupport(const vk::PhysicalDevice& device,
                                                                      const vk::SurfaceKHR& surface) {
     VulkanSwapChainSupportDetails details;
-    const vk::ResultValue<vk::SurfaceCapabilitiesKHR> capabilitiesRes = device.getSurfaceCapabilitiesKHR(surface);
+    auto capabilitiesRes = device.getSurfaceCapabilitiesKHR(surface);
     if (capabilitiesRes.result != vk::Result::eSuccess) { return details; }
     details.capabilities = capabilitiesRes.value;
-    const vk::ResultValue<std::vector<vk::SurfaceFormatKHR>> formatsRes = device.getSurfaceFormatsKHR(surface);
+    vk::ResultValue<std::vector<vk::SurfaceFormatKHR>> formatsRes = device.getSurfaceFormatsKHR(surface);
     if (formatsRes.result != vk::Result::eSuccess) { return details; }
     details.formats = formatsRes.value;
-    const vk::ResultValue<std::vector<vk::PresentModeKHR>> presentModesRes = device.getSurfacePresentModesKHR(surface);
+    vk::ResultValue<std::vector<vk::PresentModeKHR>> presentModesRes = device.getSurfacePresentModesKHR(surface);
     if (presentModesRes.result != vk::Result::eSuccess) { return details; }
     details.presentModes = presentModesRes.value;
     return details;
@@ -68,6 +69,8 @@ bool VulkanSwapchain::createSwapchain(const VulkanBase& vulkanBase, GLFWwindow* 
     if (imagesRes.result != vk::Result::eSuccess) { return false; }
     swapchainImages = imagesRes.value;
 
+    createImageViews(vulkanBase);
+
     return true;
 }
 bool VulkanSwapchain::recreateSwapchain(const VulkanBase& vulkanBase,const VulkanRenderPass& renderPass, GLFWwindow* window) {
@@ -86,9 +89,6 @@ bool VulkanSwapchain::recreateSwapchain(const VulkanBase& vulkanBase,const Vulka
     }
     if(!createImageViews(vulkanBase)) {
         VZ_LOG_CRITICAL("Failed to create image views");
-    }
-    if(!createFramebuffers(vulkanBase,renderPass)) {
-        VZ_LOG_CRITICAL("Failed to create framebuffers");
     }
     return true;
 
@@ -111,8 +111,9 @@ bool VulkanSwapchain::createImageViews(const VulkanBase& vulkanBase) {
     }
     return true;
 }
-bool VulkanSwapchain::createFramebuffers(const VulkanBase& vulkanBase,const VulkanRenderPass& renderPass) {
-    swapchainFramebuffers.resize(swapchainImageViews.size());
+std::vector<vk::Framebuffer> VulkanSwapchain::createFramebuffers(const VulkanBase& vulkanBase,const VulkanRenderPass& renderPass) {
+    std::vector<vk::Framebuffer> framebuffers;
+    framebuffers.resize(swapchainImageViews.size());
     for (size_t i = 0; i < swapchainImageViews.size(); i++) {
         VkImageView attachments[] = {
             swapchainImageViews[i]
@@ -127,14 +128,15 @@ bool VulkanSwapchain::createFramebuffers(const VulkanBase& vulkanBase,const Vulk
         framebufferInfo.height = swapchainExtent.height;
         framebufferInfo.layers = 1;
 
-        VK_RESULT_ASSIGN(swapchainFramebuffers[i],vulkanBase.device.createFramebuffer(framebufferInfo))
+        const auto res = vulkanBase.device.createFramebuffer(framebufferInfo);
+        if(res.result != vk::Result::eSuccess) {
+            return {};
+        }
+        framebuffers[i] = res.value;
     }
-    return true;
+    return framebuffers;
 }
 void VulkanSwapchain::cleanup(const VulkanBase& vulkanBase) const {
-    for (auto framebuffer : swapchainFramebuffers) {
-        vulkanBase.device.destroyFramebuffer(framebuffer);
-    }
     for (auto imageView : swapchainImageViews) {
         vulkanBase.device.destroyImageView(imageView);
     }
