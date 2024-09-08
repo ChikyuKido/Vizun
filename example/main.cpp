@@ -14,12 +14,11 @@ vz::VertexIndexBuffer viBuffer;
 class TestRenderTarget : public vz::RenderTarget {
 public:
     void draw(vk::CommandBuffer commandBuffer) const override {
-        // vk::Buffer vertexBuffers[] = {viBuffer.getBuffer()};
-        // vk::DeviceSize offsets[] = {0};
-        // commandBuffer.bindVertexBuffers(0,1,vertexBuffers,offsets);
-        // commandBuffer.bindIndexBuffer(viBuffer.getBuffer(),viBuffer.getIndicesOffsetSize(),viBuffer.getIndexType());
-        // commandBuffer.drawIndexed(viBuffer.getIndicesCount(),1,0,0,0);
-        vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+        vk::Buffer vertexBuffers[] = {viBuffer.getBuffer()};
+        vk::DeviceSize offsets[] = {0};
+        commandBuffer.bindVertexBuffers(0,1,vertexBuffers,offsets);
+        commandBuffer.bindIndexBuffer(viBuffer.getBuffer(),viBuffer.getIndicesOffsetSize(),viBuffer.getIndexType());
+        commandBuffer.drawIndexed(viBuffer.getIndicesCount(),1,0,0,0);
     };
 };
 
@@ -35,11 +34,11 @@ void updateUniformBufferTest(vz::UniformBuffer& ub) {
     auto currentTime = std::chrono::high_resolution_clock::now();
     float time = std::chrono::duration<float>(currentTime - startTime).count();
     UniformBufferObject ubo{};
-    ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(210.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    ubo.proj = glm::perspective(glm::radians(45.0f),
-        800.0f/600.0f, 0.1f, 10.0f);
+    ubo.proj = glm::perspective(glm::radians(45.0f), 800.0f/600.0f, 0.1f, 10.0f);
     ubo.proj[1][1] *= -1;
+
     ub.uploadData(&ubo);
 }
 
@@ -67,11 +66,10 @@ int main() {
     for (int i = 0; i < 2; ++i) {
         uniformBuffers.emplace_back();
         uniformBuffers.back().createBuffer(*renderWindow.getVulkanBase(),sizeof(UniformBufferObject));
-        updateUniformBufferTest(uniformBuffers.back());
     }
-    img.loadImageTexture(*renderWindow.getVulkanBase(),"rsc/texts/img.jpg");
-    // uniformDesc.updateUniformBuffer(uniformBuffers);
-    // imageDesc.updateImage(img,2);
+    VZ_LOG_INFO(img.loadImageTexture(*renderWindow.getVulkanBase(),"rsc/texts/img.jpg"));
+    uniformDesc.updateUniformBuffer(uniformBuffers);
+    imageDesc.updateImage(img,2);
     viBuffer.createBuffer(*renderWindow.getVulkanBase(),vertices,indices);
     TestRenderTarget testRenderTarget;
     //renderWindow.setResizable(true);
@@ -79,6 +77,7 @@ int main() {
     auto next_time_point = std::chrono::steady_clock::now() + std::chrono::seconds(1);
     while(!renderWindow.shouldWindowClose()) {
         glfwPollEvents();
+        updateUniformBufferTest(uniformBuffers[renderWindow.getRenderer()->getCurrentFrame()]);
         renderWindow.getRenderer()->begin();
         renderWindow.getRenderer()->draw(testRenderTarget);
         renderWindow.getRenderer()->end();

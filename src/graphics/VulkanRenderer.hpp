@@ -18,7 +18,9 @@ public:
     void draw(const RenderTarget& renderTarget);
     void draw(const RenderTarget& renderTarget, const std::shared_ptr<VulkanGraphicsPipeline>& graphicsPipeline);
     void end();
-
+    uint32_t getCurrentFrame() {
+        return m_currentFrame;
+    }
     std::shared_ptr<VulkanGraphicsPipeline> createGraphicsPipeline(VulkanGraphicsPipelineConfig& config);
 private:
     int m_framesInFlight{2};

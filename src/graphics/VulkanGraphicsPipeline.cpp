@@ -18,7 +18,7 @@ bool VulkanGraphicsPipeline::createGraphicsPipeline(const VulkanBase& vulkanBase
                                                     const VulkanRenderPass& vulkanRenderPass,
                                                     VulkanGraphicsPipelineConfig& pipelineConfig) {
     m_vulkanBase = &vulkanBase;
-    // RETURN_FALSE_WITH_LOG(!createDescriptors(vulkanBase,pipelineConfig),"Failed to create Descriptors")
+    RETURN_FALSE_WITH_LOG(!createDescriptors(vulkanBase,pipelineConfig),"Failed to create Descriptors")
     auto vertShaderCode = loadShaderContent(pipelineConfig.vertShaderPath);
     auto fragShaderCode = loadShaderContent(pipelineConfig.fragShaderPath);
     RETURN_FALSE_WITH_LOG(vertShaderCode.empty(), "Failed to read vertex shader module");
@@ -47,16 +47,11 @@ bool VulkanGraphicsPipeline::createGraphicsPipeline(const VulkanBase& vulkanBase
     auto bindingDescription = pipelineConfig.vertexInputBindingDescription;
     auto attributeDescriptions = pipelineConfig.vertexInputAttributes;
 
-    // vk::PipelineVertexInputStateCreateInfo vertexInputInfo;
-    // vertexInputInfo.vertexBindingDescriptionCount = 1;
-    // vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
-    // vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
-    // vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
     vk::PipelineVertexInputStateCreateInfo vertexInputInfo;
-    vertexInputInfo.vertexBindingDescriptionCount = 0;
-    vertexInputInfo.vertexAttributeDescriptionCount = 0;
-    vertexInputInfo.pVertexBindingDescriptions = nullptr;
-    vertexInputInfo.pVertexAttributeDescriptions = nullptr;
+    vertexInputInfo.vertexBindingDescriptionCount = 1;
+    vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
+    vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
+    vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
     vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
     inputAssembly.topology = vk::PrimitiveTopology::eTriangleList;
@@ -76,7 +71,7 @@ bool VulkanGraphicsPipeline::createGraphicsPipeline(const VulkanBase& vulkanBase
     rasterizer.polygonMode = vk::PolygonMode::eFill;
     rasterizer.lineWidth = 1.0f;
     rasterizer.cullMode = vk::CullModeFlagBits::eBack;
-    rasterizer.frontFace = vk::FrontFace::eCounterClockwise;
+    rasterizer.frontFace = vk::FrontFace::eClockwise;
     rasterizer.depthBiasEnable = vk::False;
 
     //TODO: add this to the config too
@@ -110,14 +105,10 @@ bool VulkanGraphicsPipeline::createGraphicsPipeline(const VulkanBase& vulkanBase
 
     //TODO: add this to the config too
     vk::PipelineLayoutCreateInfo pipelineLayoutInfo;
-    // pipelineLayoutInfo.setLayoutCount = 1;
-    // pipelineLayoutInfo.pSetLayouts = &m_descriptorSetLayout;
-    // pipelineLayoutInfo.pushConstantRangeCount = 0;
-    // pipelineLayoutInfo.pPushConstantRanges = nullptr;
-    pipelineLayoutInfo.setLayoutCount = 0; // Optional
-    pipelineLayoutInfo.pSetLayouts = nullptr; // Optional
-    pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
-    pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
+    pipelineLayoutInfo.setLayoutCount = 1;
+    pipelineLayoutInfo.pSetLayouts = &m_descriptorSetLayout;
+    pipelineLayoutInfo.pushConstantRangeCount = 0;
+    pipelineLayoutInfo.pPushConstantRanges = nullptr;
 
 
     VK_RESULT_ASSIGN(pipelineLayout, vulkanBase.device.createPipelineLayout(pipelineLayoutInfo))
@@ -153,8 +144,8 @@ void VulkanGraphicsPipeline::updateDescriptor(std::vector<vk::WriteDescriptorSet
 }
 void VulkanGraphicsPipeline::bindPipeline(const vk::CommandBuffer& commandBuffer,uint32_t currentFrame) const {
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
-    // commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout,
-    //             0, 1, &m_descriptorSets[currentFrame], 0, nullptr);
+    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout,
+                0, 1, &m_descriptorSets[currentFrame], 0, nullptr);
 }
 bool VulkanGraphicsPipeline::createDescriptors(const VulkanBase& vulkanBase, VulkanGraphicsPipelineConfig& pipelineConfig) {
     std::vector<vk::DescriptorSetLayoutBinding> descriptorSetLayoutBindings;
