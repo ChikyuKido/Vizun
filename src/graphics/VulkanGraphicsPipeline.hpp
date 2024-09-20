@@ -16,6 +16,7 @@ public:
     // bool createDescriptorSetLayout(const VulkanBase& vulkanBase);
     bool createGraphicsPipeline(const VulkanBase& vulkanBase,const VulkanRenderPass& vulkanRenderPass, VulkanGraphicsPipelineConfig& pipelineConfig);
     void updateDescriptor(std::vector<vk::WriteDescriptorSet>& writeDescSet) const;
+    void bindDescriptorSet(const vk::CommandBuffer& commandBuffer,uint32_t currentFrame) const;
     void bindPipeline(const vk::CommandBuffer& commandBuffer,uint32_t currentFrame) const;
 private:
     bool createDescriptors(const VulkanBase& vulkanBase, VulkanGraphicsPipelineConfig& pipelineConfig);

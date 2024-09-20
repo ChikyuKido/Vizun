@@ -177,7 +177,7 @@ bool VertexIndexBuffer::createBuffer(const VulkanBase& vulkanBase,
                                      size_t indicesSize,
                                      const void* indicesData,
                                      vk::IndexType type) {
-    size_t verticesSize = sizeof(vertices[0]) * indices.size();
+    size_t verticesSize = sizeof(vertices[0]) * indicesSize;
     size_t bufferSize = verticesSize + indicesSize;
     VulkanBuffer stagingBuffer;
     if (!stagingBuffer.createBuffer(vulkanBase,

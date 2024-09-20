@@ -71,7 +71,7 @@ bool VulkanGraphicsPipeline::createGraphicsPipeline(const VulkanBase& vulkanBase
     rasterizer.polygonMode = vk::PolygonMode::eFill;
     rasterizer.lineWidth = 1.0f;
     rasterizer.cullMode = vk::CullModeFlagBits::eBack;
-    rasterizer.frontFace = vk::FrontFace::eClockwise;
+    rasterizer.frontFace = vk::FrontFace::eCounterClockwise;
     rasterizer.depthBiasEnable = vk::False;
 
     //TODO: add this to the config too
@@ -142,10 +142,12 @@ void VulkanGraphicsPipeline::updateDescriptor(std::vector<vk::WriteDescriptorSet
     }
     m_vulkanBase->device.updateDescriptorSets(writeDescSets.size(), writeDescSets.data(), 0, nullptr);
 }
+void VulkanGraphicsPipeline::bindDescriptorSet(const vk::CommandBuffer& commandBuffer, uint32_t currentFrame) const {
+    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout,
+            0, 1, &m_descriptorSets[currentFrame], 0, nullptr);
+}
 void VulkanGraphicsPipeline::bindPipeline(const vk::CommandBuffer& commandBuffer,uint32_t currentFrame) const {
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
-    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout,
-                0, 1, &m_descriptorSets[currentFrame], 0, nullptr);
 }
 bool VulkanGraphicsPipeline::createDescriptors(const VulkanBase& vulkanBase, VulkanGraphicsPipelineConfig& pipelineConfig) {
     std::vector<vk::DescriptorSetLayoutBinding> descriptorSetLayoutBindings;

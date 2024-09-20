@@ -82,6 +82,7 @@ void VulkanRenderer::begin() {
     scissor.offset = vk::Offset2D{ 0, 0 };
     scissor.extent = m_vulkanBase.vulkanSwapchain.swapchainExtent;
     m_commandBuffers[m_currentFrame].setScissor(0, 1, &scissor);
+    m_defaultGraphicsPipeline->bindPipeline(m_commandBuffers[m_currentFrame],m_currentFrame);
 
 }
 void VulkanRenderer::draw(const RenderTarget& renderTarget) {
@@ -109,7 +110,7 @@ void VulkanRenderer::end() {
     for (auto& [pipeline,calls] : m_drawCalls) {
         pipeline->bindPipeline(m_commandBuffers[m_currentFrame],m_currentFrame);
         for (const auto* call : calls) {
-            call->draw(m_commandBuffers[m_currentFrame]);
+            call->draw(m_commandBuffers[m_currentFrame], *pipeline,m_currentFrame);
         }
         calls.clear();
     }
