@@ -6,6 +6,7 @@
 #include "utils/VulkanUtils.hpp"
 
 #include <stb_image.h>
+#include "config/VizunConfig.hpp"
 
 namespace vz {
 

@@ -29,6 +29,8 @@ struct VulkanSwapchainConfig {
 struct VulkanGraphicsPipelineConfig {
     std::string vertShaderPath;
     std::string fragShaderPath;
+    std::string vertShaderContent;
+    std::string fragShaderContent;
     std::vector<vk::DynamicState> dynamicStates;
     vk::VertexInputBindingDescription vertexInputBindingDescription;
     std::vector<vk::VertexInputAttributeDescription> vertexInputAttributes;
@@ -36,7 +38,6 @@ struct VulkanGraphicsPipelineConfig {
 };
 struct VulkanRendererConfig {
     VulkanRenderPass* renderPass = nullptr;
-    VulkanGraphicsPipelineConfig graphicsPipeline;
 };
 
 struct VulkanRenderPassConfig {

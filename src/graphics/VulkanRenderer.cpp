@@ -3,6 +3,7 @@
 
 #include "RenderTarget.hpp"
 #include "VulkanBase.hpp"
+#include "config/VizunConfig.hpp"
 #include "utils/Logger.hpp"
 
 #include <iostream>
@@ -32,8 +33,27 @@ VulkanRenderer::VulkanRenderer(VulkanRendererConfig& config, VulkanBase& vulkanB
     if(!createFrameBuffers()) {
         VZ_LOG_CRITICAL("Failed to create framebuffers for renderer");
     }
+
+    for (int i = 0; i < m_uniformBuffers.size(); ++i) {
+        m_uniformBuffers[i].createBuffer(vulkanBase,sizeof(UniformBufferObject));
+    }
+    m_ubDesc.updateUniformBuffer(m_uniformBuffers);
     m_defaultGraphicsPipeline = std::make_shared<VulkanGraphicsPipeline>();
-    m_defaultGraphicsPipeline->createGraphicsPipeline(vulkanBase,*m_renderPass,config.graphicsPipeline);
+
+    VulkanGraphicsPipelineConfig defaultConf;
+    defaultConf.vertexInputAttributes = Vertex::getAttributeDescriptions();
+    defaultConf.vertexInputBindingDescription = Vertex::getBindingDescritption();
+    defaultConf.dynamicStates = {vk::DynamicState::eScissor,vk::DynamicState::eViewport};
+    defaultConf.vertexInputAttributes = Vertex::getAttributeDescriptions();
+    defaultConf.vertexInputBindingDescription = Vertex::getBindingDescritption();
+    defaultConf.descriptors = {
+        &m_ubDesc,&m_imageDesc
+    };
+    defaultConf.fragShaderPath = "rsc/shaders/default_frag.spv";
+    defaultConf.vertShaderPath = "rsc/shaders/default_vert.spv";
+
+
+    m_defaultGraphicsPipeline->createGraphicsPipeline(vulkanBase,*m_renderPass,defaultConf);
 }
 
 void VulkanRenderer::begin() {
@@ -149,7 +169,7 @@ void VulkanRenderer::end() {
         VZ_LOG_CRITICAL("Failed to present swap chain image!");
     }
 
-    m_currentFrame = (m_currentFrame + 1) % m_framesInFlight;
+    m_currentFrame = (m_currentFrame + 1) % FRAMES_IN_FLIGHT;
 }
 std::shared_ptr<VulkanGraphicsPipeline> VulkanRenderer::createGraphicsPipeline(VulkanGraphicsPipelineConfig& config) {
     auto pipeline = std::make_shared<VulkanGraphicsPipeline>();
@@ -165,23 +185,22 @@ bool VulkanRenderer::createCommandPool() {
     return true;
 }
 bool VulkanRenderer::createCommandBuffer() {
-    m_commandBuffers.resize(m_framesInFlight);
     vk::CommandBufferAllocateInfo allocInfo;
     allocInfo.commandPool = m_commandPool;
     allocInfo.level = vk::CommandBufferLevel::ePrimary;
     allocInfo.commandBufferCount = m_commandBuffers.size();
-
-    VK_RESULT_ASSIGN(m_commandBuffers, m_vulkanBase.device.allocateCommandBuffers(allocInfo));
+    std::vector<vk::CommandBuffer> buffers;
+    VK_RESULT_ASSIGN(buffers, m_vulkanBase.device.allocateCommandBuffers(allocInfo));
+    for (int i = 0; i < buffers.size(); ++i) {
+        m_commandBuffers[i] = buffers[i];
+    }
     return true;
 }
 bool VulkanRenderer::createSyncObjects() {
-    m_imageAvailableSemaphores.resize(m_framesInFlight);
-    m_renderFinishedSemaphores.resize(m_framesInFlight);
-    m_inFlightFences.resize(m_framesInFlight);
     vk::SemaphoreCreateInfo semaphoreInfo;
     vk::FenceCreateInfo fenceInfo;
     fenceInfo.flags = vk::FenceCreateFlagBits::eSignaled;
-    for (size_t i = 0; i < m_framesInFlight; i++) {
+    for (size_t i = 0; i < FRAMES_IN_FLIGHT; i++) {
         VK_RESULT_ASSIGN(m_renderFinishedSemaphores[i], m_vulkanBase.device.createSemaphore(semaphoreInfo));
         VK_RESULT_ASSIGN(m_imageAvailableSemaphores[i], m_vulkanBase.device.createSemaphore(semaphoreInfo));
         VK_RESULT_ASSIGN(m_inFlightFences[i], m_vulkanBase.device.createFence(fenceInfo));
@@ -190,7 +209,6 @@ bool VulkanRenderer::createSyncObjects() {
 }
 bool VulkanRenderer::createFrameBuffers() {
     m_framebuffers = m_vulkanBase.vulkanSwapchain.createFramebuffers(m_vulkanBase,*m_renderPass);
-
     return !m_framebuffers.empty();
 }
 } // vz

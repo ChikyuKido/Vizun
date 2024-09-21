@@ -3,6 +3,7 @@
 #define VULAKNGRAPHICSPIPELINEDESCRIPTOR_HPP
 
 #include "VulkanBuffer.hpp"
+#include "config/VizunConfig.hpp"
 #include "utils/Logger.hpp"
 
 
@@ -37,20 +38,16 @@ protected:
 
 class VulkanGraphicsPipelineUniformBufferDescriptor : public VulkanGraphicsPipelineDescriptor {
 public:
-    VulkanGraphicsPipelineUniformBufferDescriptor(int binding,
-                                 vk::DescriptorType descriptorType,
-                                 const vk::ShaderStageFlags& stageFlag);
-    void updateUniformBuffer(const std::vector<UniformBuffer>& uniformBuffer);
+    VulkanGraphicsPipelineUniformBufferDescriptor(int binding);
+    void updateUniformBuffer(const std::array<UniformBuffer,FRAMES_IN_FLIGHT>& uniformBuffer);
 };
 class VulkanGraphicsPipelineImageDescriptor : public VulkanGraphicsPipelineDescriptor {
 public:
-    VulkanGraphicsPipelineImageDescriptor(int binding,
-                                 vk::DescriptorType descriptorType,
-                                 const vk::ShaderStageFlags& stageFlag);
-    void updateImage(const VulkanImage& img,int count);
+    VulkanGraphicsPipelineImageDescriptor(int binding);
+    void updateImage(const VulkanImage& img);
 };
 
 }
 
 
-#endif //VULAKNGRAPHICSPIPELINEDESCRIPTOR_HPP
+#endif

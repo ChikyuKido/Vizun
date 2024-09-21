@@ -6,6 +6,7 @@
 
 #include "VulkanGraphicsPipeline.hpp"
 #include "VulkanImage.hpp"
+#include "config/VizunConfig.hpp"
 #include "utils/Logger.hpp"
 
 namespace vz {
@@ -20,9 +21,9 @@ m_graphicsPipeline(nullptr) {
 }
 #pragma endregion
 #pragma region UniformDescriptor
-VulkanGraphicsPipelineUniformBufferDescriptor::VulkanGraphicsPipelineUniformBufferDescriptor(int binding,vk::DescriptorType descriptorType,const vk::ShaderStageFlags& stageFlag)
-    : VulkanGraphicsPipelineDescriptor(binding,descriptorType,stageFlag) {}
-void VulkanGraphicsPipelineUniformBufferDescriptor::updateUniformBuffer(const std::vector<UniformBuffer>& uniformBuffer) {
+VulkanGraphicsPipelineUniformBufferDescriptor::VulkanGraphicsPipelineUniformBufferDescriptor(int binding)
+    : VulkanGraphicsPipelineDescriptor(binding,vk::DescriptorType::eUniformBuffer,vk::ShaderStageFlagBits::eVertex) {}
+void VulkanGraphicsPipelineUniformBufferDescriptor::updateUniformBuffer(const std::array<UniformBuffer,FRAMES_IN_FLIGHT>& uniformBuffer) {
     if(m_graphicsPipeline == nullptr) {
         VZ_LOG_CRITICAL("Uniform descriptor was not assigned to a graphics pipeline!");
     }
@@ -47,16 +48,14 @@ void VulkanGraphicsPipelineUniformBufferDescriptor::updateUniformBuffer(const st
 #pragma endregion
 #pragma region ImageDescriptor
 VulkanGraphicsPipelineImageDescriptor::VulkanGraphicsPipelineImageDescriptor(
-    int binding,
-    vk::DescriptorType descriptorType,
-    const vk::ShaderStageFlags& stageFlag) : VulkanGraphicsPipelineDescriptor(binding,descriptorType,stageFlag) {}
-void VulkanGraphicsPipelineImageDescriptor::updateImage(const VulkanImage& img,int count) {
+    int binding) : VulkanGraphicsPipelineDescriptor(binding,vk::DescriptorType::eCombinedImageSampler,vk::ShaderStageFlagBits::eFragment) {}
+void VulkanGraphicsPipelineImageDescriptor::updateImage(const VulkanImage& img) {
     if(m_graphicsPipeline == nullptr) {
         VZ_LOG_CRITICAL("Image descriptor was not assigned to a graphics pipeline!");
     }
 
     std::vector<vk::WriteDescriptorSet> descriptors;
-    for (int i = 0;i<count;i++) {
+    for (int i = 0;i<FRAMES_IN_FLIGHT;i++) {
         vk::DescriptorImageInfo imageInfo;
         imageInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
         imageInfo.imageView = *img.getImageView();

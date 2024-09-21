@@ -8,8 +8,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 
-auto uniformDesc = vz::VulkanGraphicsPipelineUniformBufferDescriptor(0,vk::DescriptorType::eUniformBuffer,vk::ShaderStageFlagBits::eVertex);
-auto imageDesc = vz::VulkanGraphicsPipelineImageDescriptor(1,vk::DescriptorType::eCombinedImageSampler,vk::ShaderStageFlagBits::eFragment);
 //TODO: remove test code
 const std::vector<Vertex> vertices1 = {
     {{-0.7f+1.2f, -0.8f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
@@ -41,8 +39,7 @@ public:
     }
     void draw(const vk::CommandBuffer& commandBuffer,const vz::VulkanGraphicsPipeline& pipeline,uint32_t currentFrame) const override {
         vk::Buffer vertexBuffers[] = {viBuffer.getBuffer()};
-        vk::DeviceSize offsets[] = {0};
-        imageDesc.updateImage(img,2);
+        vk::DeviceSize offsets[] = {};
         pipeline.bindDescriptorSet(commandBuffer,currentFrame);
         commandBuffer.bindVertexBuffers(0,1,vertexBuffers,offsets);
         commandBuffer.bindIndexBuffer(viBuffer.getBuffer(),viBuffer.getIndicesOffsetSize(),viBuffer.getIndexType());
@@ -52,11 +49,6 @@ public:
     vz::VulkanImageTexture img;
 };
 
-struct UniformBufferObject {
-    glm::mat4 model;
-    glm::mat4 view;
-    glm::mat4 proj;
-};
 
 void updateUniformBufferTest(vz::UniformBuffer& ub) {
     static auto startTime = std::chrono::high_resolution_clock::now();
@@ -77,25 +69,8 @@ int main() {
     vulkanConfig.instanceConfig.applicationName = "Example";
     vulkanConfig.instanceConfig.applicationVersion = VK_MAKE_VERSION(1,0,0);
     vulkanConfig.vulkanSwapchainConfig.presentMode = vk::PresentModeKHR::eFifo;
-    vz::VulkanGraphicsPipelineConfig graphicsPipelineConfig;
-    graphicsPipelineConfig.fragShaderPath = "rsc/shaders/default_frag.spv";
-    graphicsPipelineConfig.vertShaderPath = "rsc/shaders/default_vert.spv";
-    graphicsPipelineConfig.dynamicStates = {vk::DynamicState::eScissor,vk::DynamicState::eViewport};
-    graphicsPipelineConfig.vertexInputAttributes = Vertex::getAttributeDescriptions();
-    graphicsPipelineConfig.vertexInputBindingDescription = Vertex::getBindingDescritption();
-    graphicsPipelineConfig.descriptors = {
-        &uniformDesc,&imageDesc
-    };
-
-    vulkanConfig.vulkanRenderConfig.graphicsPipeline = graphicsPipelineConfig;
 
     vz::RenderWindow renderWindow(800,600,"Vizun",vulkanConfig);
-    std::vector<vz::UniformBuffer> uniformBuffers;
-    for (int i = 0; i < 2; ++i) {
-        uniformBuffers.emplace_back();
-        uniformBuffers.back().createBuffer(*renderWindow.getVulkanBase(),sizeof(UniformBufferObject));
-    }
-    uniformDesc.updateUniformBuffer(uniformBuffers);
     TestRenderTarget testRenderTarget1(*renderWindow.getVulkanBase(),vertices1,indices1,"rsc/texts/img.jpg");
     TestRenderTarget testRenderTarget2(*renderWindow.getVulkanBase(),vertices2,indices2,"rsc/texts/img2.jpg");
     //renderWindow.setResizable(true);

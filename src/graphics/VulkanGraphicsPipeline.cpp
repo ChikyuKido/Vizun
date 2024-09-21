@@ -19,8 +19,14 @@ bool VulkanGraphicsPipeline::createGraphicsPipeline(const VulkanBase& vulkanBase
                                                     VulkanGraphicsPipelineConfig& pipelineConfig) {
     m_vulkanBase = &vulkanBase;
     RETURN_FALSE_WITH_LOG(!createDescriptors(vulkanBase,pipelineConfig),"Failed to create Descriptors")
-    auto vertShaderCode = loadShaderContent(pipelineConfig.vertShaderPath);
-    auto fragShaderCode = loadShaderContent(pipelineConfig.fragShaderPath);
+    std::vector<char> vertShaderCode =  std::vector(pipelineConfig.vertShaderContent.begin(), pipelineConfig.vertShaderContent.end());
+    std::vector<char> fragShaderCode =  std::vector(pipelineConfig.fragShaderContent.begin(), pipelineConfig.fragShaderContent.end());
+    if(vertShaderCode.empty()) {
+        vertShaderCode = loadShaderContent(pipelineConfig.vertShaderPath);
+    }
+    if(fragShaderCode.empty()) {
+        fragShaderCode = loadShaderContent(pipelineConfig.fragShaderPath);
+    }
     RETURN_FALSE_WITH_LOG(vertShaderCode.empty(), "Failed to read vertex shader module");
     RETURN_FALSE_WITH_LOG(fragShaderCode.empty(), "Failed to read fragment shader module");
 
