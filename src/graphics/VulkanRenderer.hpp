@@ -23,11 +23,23 @@ public:
     VulkanRenderer(VulkanRendererConfig& config,VulkanBase& vulkanBase,GLFWwindow* window);
 
     void begin();
-    void draw(const RenderTarget& renderTarget);
-    void draw(const RenderTarget& renderTarget, const std::shared_ptr<VulkanGraphicsPipeline>& graphicsPipeline);
+    void draw(RenderTarget& renderTarget);
+    void draw(RenderTarget& renderTarget, const std::shared_ptr<VulkanGraphicsPipeline>& graphicsPipeline);
     void end();
     uint32_t getCurrentFrame() const {
         return m_currentFrame;
+    }
+    VulkanGraphicsPipelineUniformBufferDescriptor& getUbDesc() {
+        return m_ubDesc;
+    }
+    VulkanGraphicsPipelineImageDescriptor& getImgDesc() {
+        return m_imageDesc;
+    }
+    vk::CommandBuffer& getCurrentCmdBuffer() {
+        return m_commandBuffers[m_currentFrame];
+    }
+    FRAMES(vk::CommandBuffer)& getCmdBuffers() {
+        return m_commandBuffers;
     }
     std::shared_ptr<VulkanGraphicsPipeline> createGraphicsPipeline(VulkanGraphicsPipelineConfig& config);
 private:
@@ -39,7 +51,7 @@ private:
     VulkanGraphicsPipelineImageDescriptor m_imageDesc = VulkanGraphicsPipelineImageDescriptor(1);
     std::shared_ptr<VulkanGraphicsPipeline> m_defaultGraphicsPipeline;
     std::shared_ptr<VulkanRenderPass> m_renderPass;
-    std::unordered_map<std::shared_ptr<VulkanGraphicsPipeline>,std::vector<const RenderTarget*>> m_drawCalls;
+    std::unordered_map<std::shared_ptr<VulkanGraphicsPipeline>,std::vector<RenderTarget*>> m_drawCalls;
     std::vector<std::shared_ptr<VulkanGraphicsPipeline>> m_graphicPipelines;
     vk::CommandPool m_commandPool;
     FRAMES(vk::CommandBuffer) m_commandBuffers;

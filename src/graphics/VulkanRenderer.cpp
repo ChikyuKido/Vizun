@@ -5,8 +5,9 @@
 #include "VulkanBase.hpp"
 #include "config/VizunConfig.hpp"
 #include "utils/Logger.hpp"
-
+#include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
+#include <map>
 
 namespace vz {
 
@@ -37,26 +38,38 @@ VulkanRenderer::VulkanRenderer(VulkanRendererConfig& config, VulkanBase& vulkanB
     for (int i = 0; i < m_uniformBuffers.size(); ++i) {
         m_uniformBuffers[i].createBuffer(vulkanBase,sizeof(UniformBufferObject));
     }
-    m_ubDesc.updateUniformBuffer(m_uniformBuffers);
     m_defaultGraphicsPipeline = std::make_shared<VulkanGraphicsPipeline>();
 
     VulkanGraphicsPipelineConfig defaultConf;
     defaultConf.vertexInputAttributes = Vertex::getAttributeDescriptions();
     defaultConf.vertexInputBindingDescription = Vertex::getBindingDescritption();
     defaultConf.dynamicStates = {vk::DynamicState::eScissor,vk::DynamicState::eViewport};
-    defaultConf.vertexInputAttributes = Vertex::getAttributeDescriptions();
-    defaultConf.vertexInputBindingDescription = Vertex::getBindingDescritption();
     defaultConf.descriptors = {
         &m_ubDesc,&m_imageDesc
     };
     defaultConf.fragShaderPath = "rsc/shaders/default_frag.spv";
     defaultConf.vertShaderPath = "rsc/shaders/default_vert.spv";
 
-
-    m_defaultGraphicsPipeline->createGraphicsPipeline(vulkanBase,*m_renderPass,defaultConf);
+    if(!m_defaultGraphicsPipeline->createGraphicsPipeline(vulkanBase,*m_renderPass,defaultConf)) {
+        VZ_LOG_CRITICAL("Could not create graphics pipeline");
+    }
+    m_ubDesc.updateUniformBuffer(m_uniformBuffers);
 }
+void updateUniformBufferTest(vz::UniformBuffer& ub) {
+    static auto startTime = std::chrono::high_resolution_clock::now();
 
+    auto currentTime = std::chrono::high_resolution_clock::now();
+    float time = std::chrono::duration<float>(currentTime - startTime).count();
+    UniformBufferObject ubo{};
+    ubo.model = glm::rotate(glm::mat4(1.0f), /*time * glm::radians(90.0f)*/ glm::radians(-45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    ubo.proj = glm::perspective(glm::radians(45.0f), 800.0f/600.0f, 0.1f, 10.0f);
+    ubo.proj[1][1] *= -1;
+
+    ub.uploadData(&ubo);
+}
 void VulkanRenderer::begin() {
+    updateUniformBufferTest(m_uniformBuffers[m_currentFrame]);
     VKF(m_vulkanBase.device.waitForFences(1, &m_inFlightFences[m_currentFrame], vk::True, UINT64_MAX));
 
     const vk::ResultValue<uint32_t> imageIndexResult = m_vulkanBase.device.acquireNextImageKHR(m_vulkanBase.vulkanSwapchain.swapchain,
@@ -105,10 +118,10 @@ void VulkanRenderer::begin() {
     m_defaultGraphicsPipeline->bindPipeline(m_commandBuffers[m_currentFrame],m_currentFrame);
 
 }
-void VulkanRenderer::draw(const RenderTarget& renderTarget) {
+void VulkanRenderer::draw(RenderTarget& renderTarget) {
     draw(renderTarget,m_defaultGraphicsPipeline);
 }
-void VulkanRenderer::draw(const RenderTarget& renderTarget, const std::shared_ptr<VulkanGraphicsPipeline>& graphicsPipeline) {
+void VulkanRenderer::draw(RenderTarget& renderTarget, const std::shared_ptr<VulkanGraphicsPipeline>& graphicsPipeline) {
     if(graphicsPipeline != m_defaultGraphicsPipeline) {
         bool found = false;
         for (const auto& pipe : m_graphicPipelines) {
@@ -122,15 +135,28 @@ void VulkanRenderer::draw(const RenderTarget& renderTarget, const std::shared_pt
         }
     }
     if(!m_drawCalls.contains(graphicsPipeline)) {
-        m_drawCalls[graphicsPipeline] = std::vector<const RenderTarget*>();
+        m_drawCalls[graphicsPipeline] = std::vector<RenderTarget*>();
     }
     m_drawCalls[graphicsPipeline].push_back(&renderTarget);
 }
 void VulkanRenderer::end() {
     for (auto& [pipeline,calls] : m_drawCalls) {
         pipeline->bindPipeline(m_commandBuffers[m_currentFrame],m_currentFrame);
-        for (const auto* call : calls) {
-            call->draw(m_commandBuffers[m_currentFrame], *pipeline,m_currentFrame);
+        std::map<int,std::vector<RenderTarget*>> renderTargetsPerCommoner;
+        std::vector<RenderTarget*> renderTargetsUniqueCommoner;
+        for (auto* call : calls) {
+            if(!renderTargetsPerCommoner.contains(call->getCommoner())) {
+                renderTargetsPerCommoner[call->getCommoner()] = std::vector<RenderTarget*>();
+                renderTargetsUniqueCommoner.push_back(call);
+            }
+            renderTargetsPerCommoner[call->getCommoner()].push_back(call);
+        }
+        renderTargetsUniqueCommoner[0]->prepareCommoner(*this,renderTargetsUniqueCommoner,*pipeline);
+        for (auto [commoner,calls] : renderTargetsPerCommoner) {
+            calls[0]->useCommoner(*this,*pipeline);
+            for (auto call : calls) {
+                call->draw(getCurrentCmdBuffer(),*pipeline,m_currentFrame);
+            }
         }
         calls.clear();
     }

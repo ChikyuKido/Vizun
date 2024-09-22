@@ -66,6 +66,9 @@ set(SOURCE_FILES
         src/graphics/VulkanGraphicsPipelineDescriptor.cpp
         src/graphics/VulkanGraphicsPipelineDescriptor.hpp
         src/config/VizunConfig.hpp
+        src/graphics/Image.cpp
+        src/graphics/Image.cpp
+        src/graphics/Image.hpp
 )
 add_library(Vizun ${SOURCE_FILES})
 

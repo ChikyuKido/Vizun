@@ -1,4 +1,5 @@
 
+#include "graphics/Image.hpp"
 #include "graphics/RenderTarget.hpp"
 #include "graphics/RenderWindow.hpp"
 #include "graphics/VulkanGraphicsPipelineDescriptor.hpp"
@@ -8,61 +9,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 
-//TODO: remove test code
-const std::vector<Vertex> vertices1 = {
-    {{-0.7f+1.2f, -0.8f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
-    {{0.7f+1.2f, -0.8f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
-    {{0.7f+1.2f, 0.8f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
-    {{-0.7f+1.2f, 0.8f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
-};
 
-const std::vector<uint16_t> indices1 = {
-    0, 1, 2, 2, 3, 0
-};
-
-const std::vector<Vertex> vertices2 = {
-    {{-0.7f-0.5f, -0.8f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
-    {{0.7f-0.5f, -0.8f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
-    {{0.7f-0.5f, 0.8f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
-    {{-0.7f-0.5f, 0.8f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
-};
-
-const std::vector<uint16_t> indices2 = {
-    0, 1, 2, 2, 3, 0
-};
-class TestRenderTarget : public vz::RenderTarget {
-public:
-    TestRenderTarget(const vz::VulkanBase& base, std::vector<Vertex> vertices,std::vector<uint16_t> indices,std::string imagePath) {
-        img.loadImageTexture(base, imagePath);
-        viBuffer.createBuffer(base,vertices,indices);
-
-    }
-    void draw(const vk::CommandBuffer& commandBuffer,const vz::VulkanGraphicsPipeline& pipeline,uint32_t currentFrame) const override {
-        vk::Buffer vertexBuffers[] = {viBuffer.getBuffer()};
-        vk::DeviceSize offsets[] = {};
-        pipeline.bindDescriptorSet(commandBuffer,currentFrame);
-        commandBuffer.bindVertexBuffers(0,1,vertexBuffers,offsets);
-        commandBuffer.bindIndexBuffer(viBuffer.getBuffer(),viBuffer.getIndicesOffsetSize(),viBuffer.getIndexType());
-        commandBuffer.drawIndexed(viBuffer.getIndicesCount(),1,0,0,0);
-    };
-    vz::VertexIndexBuffer viBuffer;
-    vz::VulkanImageTexture img;
-};
-
-
-void updateUniformBufferTest(vz::UniformBuffer& ub) {
-    static auto startTime = std::chrono::high_resolution_clock::now();
-
-    auto currentTime = std::chrono::high_resolution_clock::now();
-    float time = std::chrono::duration<float>(currentTime - startTime).count();
-    UniformBufferObject ubo{};
-    ubo.model = glm::rotate(glm::mat4(1.0f), /*time * glm::radians(90.0f)*/ glm::radians(-45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    ubo.proj = glm::perspective(glm::radians(45.0f), 800.0f/600.0f, 0.1f, 10.0f);
-    ubo.proj[1][1] *= -1;
-
-    ub.uploadData(&ubo);
-}
 
 int main() {
     vz::VulkanConfig vulkanConfig;
@@ -71,17 +18,19 @@ int main() {
     vulkanConfig.vulkanSwapchainConfig.presentMode = vk::PresentModeKHR::eFifo;
 
     vz::RenderWindow renderWindow(800,600,"Vizun",vulkanConfig);
-    TestRenderTarget testRenderTarget1(*renderWindow.getVulkanBase(),vertices1,indices1,"rsc/texts/img.jpg");
-    TestRenderTarget testRenderTarget2(*renderWindow.getVulkanBase(),vertices2,indices2,"rsc/texts/img2.jpg");
-    //renderWindow.setResizable(true);
+    vz::VulkanImageTexture vkImg1;
+    vz::VulkanImageTexture vkImg2;
+    vkImg1.loadImageTexture(*renderWindow.getVulkanBase(),"rsc/texts/img.jpg");
+    vkImg2.loadImageTexture(*renderWindow.getVulkanBase(),"rsc/texts/img2.jpg");
+    vz::Image img(*renderWindow.getVulkanBase(),&vkImg1,-0.7f);
+    vz::Image img2(*renderWindow.getVulkanBase(),&vkImg2,+1.2f);
     uint32_t frames = 0;
     auto next_time_point = std::chrono::steady_clock::now() + std::chrono::seconds(1);
     while(!renderWindow.shouldWindowClose()) {
         glfwPollEvents();
-        updateUniformBufferTest(uniformBuffers[renderWindow.getRenderer()->getCurrentFrame()]);
         renderWindow.getRenderer()->begin();
-        renderWindow.getRenderer()->draw(testRenderTarget1);
-        renderWindow.getRenderer()->draw(testRenderTarget2);
+        renderWindow.getRenderer()->draw(img);
+        renderWindow.getRenderer()->draw(img2);
         renderWindow.getRenderer()->end();
         frames++;
         if (std::chrono::steady_clock::now() >= next_time_point) {

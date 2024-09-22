@@ -14,6 +14,7 @@ class VulkanGraphicsPipelineDescriptor {
 public:
     virtual ~VulkanGraphicsPipelineDescriptor() = default;
     VulkanGraphicsPipelineDescriptor(int binding,
+                                     int count,
                                      vk::DescriptorType descriptorType,
                                      const vk::ShaderStageFlags& stageFlag);
     void setGraphicsPipeline(VulkanGraphicsPipeline* graphicsPipeline) {
@@ -21,6 +22,9 @@ public:
     }
     [[nodiscard]] int getBinding() const {
         return m_binding;
+    }
+    [[nodiscard]] int getCount() const {
+        return m_count;
     }
     [[nodiscard]] vk::DescriptorType getDescriptorType() const {
         return m_descriptorType;
@@ -31,6 +35,7 @@ public:
 
 protected:
     int m_binding;
+    int m_count;
     vk::DescriptorType m_descriptorType;
     vk::ShaderStageFlags m_stageFlag;
     VulkanGraphicsPipeline* m_graphicsPipeline;
@@ -44,7 +49,7 @@ public:
 class VulkanGraphicsPipelineImageDescriptor : public VulkanGraphicsPipelineDescriptor {
 public:
     VulkanGraphicsPipelineImageDescriptor(int binding);
-    void updateImage(const VulkanImage& img);
+    void updateImage(const std::vector<VulkanImage*>& images);
 };
 
 }

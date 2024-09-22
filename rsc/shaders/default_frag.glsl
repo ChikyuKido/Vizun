@@ -12,6 +12,6 @@ layout(push_constant) uniform PushConstants {
 
 void main() {
 //    outColor = texture(texSampler, fragTexCoord);
-    outcolor = texture(spriteTextures[pushConstants.textureIndex], fragTexCoord);
+    outColor = texture(texSampler[pushConstants.textureIndex], fragTexCoord);
 
 }

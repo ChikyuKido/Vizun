@@ -108,13 +108,17 @@ bool VulkanGraphicsPipeline::createGraphicsPipeline(const VulkanBase& vulkanBase
     colorBlendState.attachmentCount = 1;
     colorBlendState.pAttachments = &colorBlendAttachment;
 
+    vk::PushConstantRange pushConstantRange{};
+    pushConstantRange.stageFlags = vk::ShaderStageFlagBits::eFragment;
+    pushConstantRange.offset = 0;
+    pushConstantRange.size = 4;
 
     //TODO: add this to the config too
     vk::PipelineLayoutCreateInfo pipelineLayoutInfo;
     pipelineLayoutInfo.setLayoutCount = 1;
     pipelineLayoutInfo.pSetLayouts = &m_descriptorSetLayout;
-    pipelineLayoutInfo.pushConstantRangeCount = 0;
-    pipelineLayoutInfo.pPushConstantRanges = nullptr;
+    pipelineLayoutInfo.pushConstantRangeCount = 1;
+    pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
 
 
     VK_RESULT_ASSIGN(pipelineLayout, vulkanBase.device.createPipelineLayout(pipelineLayoutInfo))
@@ -154,6 +158,7 @@ void VulkanGraphicsPipeline::bindDescriptorSet(const vk::CommandBuffer& commandB
 }
 void VulkanGraphicsPipeline::bindPipeline(const vk::CommandBuffer& commandBuffer,uint32_t currentFrame) const {
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
+    bindDescriptorSet(commandBuffer, currentFrame);
 }
 bool VulkanGraphicsPipeline::createDescriptors(const VulkanBase& vulkanBase, VulkanGraphicsPipelineConfig& pipelineConfig) {
     std::vector<vk::DescriptorSetLayoutBinding> descriptorSetLayoutBindings;
@@ -161,7 +166,7 @@ bool VulkanGraphicsPipeline::createDescriptors(const VulkanBase& vulkanBase, Vul
         vk::DescriptorSetLayoutBinding binding;
         binding.binding = descriptor->getBinding();
         binding.descriptorType = descriptor->getDescriptorType();
-        binding.descriptorCount = 1;
+        binding.descriptorCount = descriptor->getCount();
         binding.stageFlags = descriptor->getStageFlag();
         descriptor->setGraphicsPipeline(this);
         descriptorSetLayoutBindings.push_back(binding);
@@ -172,7 +177,7 @@ bool VulkanGraphicsPipeline::createDescriptors(const VulkanBase& vulkanBase, Vul
     VK_RESULT_ASSIGN(m_descriptorSetLayout, vulkanBase.device.createDescriptorSetLayout(layoutInfo))
 
     int MAX_FRAMES_IN_FLIGHT = 2; //TODO: change later to a global thing
-    std::array<vk::DescriptorPoolSize, 2> poolSizes{};
+    std::array<vk::DescriptorPoolSize, 2> poolSizes{}; //TODO: change to the descriptor class
     poolSizes[0].type = vk::DescriptorType::eUniformBuffer;
     poolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
     poolSizes[1].type = vk::DescriptorType::eCombinedImageSampler;
