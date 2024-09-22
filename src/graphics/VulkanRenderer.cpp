@@ -35,9 +35,6 @@ VulkanRenderer::VulkanRenderer(VulkanRendererConfig& config, VulkanBase& vulkanB
         VZ_LOG_CRITICAL("Failed to create framebuffers for renderer");
     }
 
-    for (int i = 0; i < m_uniformBuffers.size(); ++i) {
-        m_uniformBuffers[i].createBuffer(vulkanBase,sizeof(UniformBufferObject));
-    }
     m_defaultGraphicsPipeline = std::make_shared<VulkanGraphicsPipeline>();
 
     VulkanGraphicsPipelineConfig defaultConf;
@@ -53,6 +50,9 @@ VulkanRenderer::VulkanRenderer(VulkanRendererConfig& config, VulkanBase& vulkanB
     if(!m_defaultGraphicsPipeline->createGraphicsPipeline(vulkanBase,*m_renderPass,defaultConf)) {
         VZ_LOG_CRITICAL("Could not create graphics pipeline");
     }
+    for (int i = 0; i < m_uniformBuffers.size(); ++i) {
+        m_uniformBuffers[i].createBuffer(vulkanBase,sizeof(UniformBufferObject));
+    }
     m_ubDesc.updateUniformBuffer(m_uniformBuffers);
 }
 void updateUniformBufferTest(vz::UniformBuffer& ub) {
@@ -61,7 +61,7 @@ void updateUniformBufferTest(vz::UniformBuffer& ub) {
     auto currentTime = std::chrono::high_resolution_clock::now();
     float time = std::chrono::duration<float>(currentTime - startTime).count();
     UniformBufferObject ubo{};
-    ubo.model = glm::rotate(glm::mat4(1.0f), /*time * glm::radians(90.0f)*/ glm::radians(-45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f) /*glm::radians(-45.0f)*/, glm::vec3(0.0f, 0.0f, 1.0f));
     ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     ubo.proj = glm::perspective(glm::radians(45.0f), 800.0f/600.0f, 0.1f, 10.0f);
     ubo.proj[1][1] *= -1;
@@ -141,7 +141,6 @@ void VulkanRenderer::draw(RenderTarget& renderTarget, const std::shared_ptr<Vulk
 }
 void VulkanRenderer::end() {
     for (auto& [pipeline,calls] : m_drawCalls) {
-        pipeline->bindPipeline(m_commandBuffers[m_currentFrame],m_currentFrame);
         std::map<int,std::vector<RenderTarget*>> renderTargetsPerCommoner;
         std::vector<RenderTarget*> renderTargetsUniqueCommoner;
         for (auto* call : calls) {
@@ -152,10 +151,11 @@ void VulkanRenderer::end() {
             renderTargetsPerCommoner[call->getCommoner()].push_back(call);
         }
         renderTargetsUniqueCommoner[0]->prepareCommoner(*this,renderTargetsUniqueCommoner,*pipeline);
+        pipeline->bindPipeline(m_commandBuffers[m_currentFrame],m_currentFrame);
         for (auto [commoner,calls] : renderTargetsPerCommoner) {
             calls[0]->useCommoner(*this,*pipeline);
-            for (auto call : calls) {
-                call->draw(getCurrentCmdBuffer(),*pipeline,m_currentFrame);
+            for (auto *call : calls) {
+                call->draw(m_commandBuffers[m_currentFrame],*pipeline,m_currentFrame);
             }
         }
         calls.clear();
