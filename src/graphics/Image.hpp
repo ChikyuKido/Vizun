@@ -3,17 +3,16 @@
 #define IMAGE_HPP
 #include "RenderTarget.hpp"
 #include "VulkanBuffer.hpp"
+#include "VulkanImage.hpp"
 
 #include <memory>
 
-namespace vz {
-class VulkanImage;
-}
+
 namespace vz {
 
 class Image : public RenderTarget{
 public:
-    explicit Image(const VulkanBase& vulkanBase, VulkanImage* vulkanImage,float xDiff);
+    explicit Image(const VulkanBase& vulkanBase,std::string imagePath,float xDiff);
     void draw(const vk::CommandBuffer& commandBuffer,
               const VulkanGraphicsPipeline& pipeline,
               uint32_t currentFrame) const override;
@@ -22,7 +21,7 @@ public:
     void useCommoner(VulkanRenderer& renderer,VulkanGraphicsPipeline& pipeline) override;
 
 private:
-    VulkanImage* m_vulkanImage;
+    VulkanImageTexture m_vulkanImage;
     VertexIndexBuffer m_viBuffer;
     int m_commonerUseId;
 };

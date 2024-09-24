@@ -4,6 +4,7 @@
 
 #include "Image.hpp"
 
+#include "VulkanImage.hpp"
 #include "VulkanRenderer.hpp"
 const std::vector<Vertex> baseVert = {
     {{-0.7f, -0.8f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
@@ -16,7 +17,10 @@ const std::vector<uint16_t> indices1 = {
     0, 1, 2, 2, 3, 0
 };
 namespace vz {
-Image::Image(const VulkanBase& vulkanBase, VulkanImage* vulkanImage,float xDiff) : m_vulkanImage(vulkanImage) {
+Image::Image(const VulkanBase& vulkanBase, std::string rscPath,float xDiff) {
+    if(!m_vulkanImage.loadImageTexture(vulkanBase, rscPath)) {
+        VZ_LOG_CRITICAL("Could not load image texture");
+    }
     std::vector<Vertex> vertices;
     for (auto vertex : baseVert) {
         vertex.pos.x += xDiff;
@@ -35,14 +39,14 @@ void Image::prepareCommoner(VulkanRenderer& renderer,const std::vector<RenderTar
     std::vector<VulkanImage*> images;
     int id = 0;
     for (RenderTarget* rt : targets) {
-        auto imgRenderTarget = static_cast<Image*>(rt);
-        images.push_back(imgRenderTarget->m_vulkanImage);
+        auto *imgRenderTarget = static_cast<Image*>(rt);
+        images.push_back(&imgRenderTarget->m_vulkanImage);
         imgRenderTarget->m_commonerUseId = id++;
     }
     renderer.getImgDesc().updateImage(images);
 }
 int Image::getCommoner() {
-    return reinterpret_cast<int64_t>(m_vulkanImage); // TODO: better way for a commoner for images
+    return reinterpret_cast<int64_t>(&m_vulkanImage); // TODO: better way for a commoner for images
 }
 void Image::useCommoner(VulkanRenderer& renderer,VulkanGraphicsPipeline& pipeline) {
     renderer.getCurrentCmdBuffer().pushConstants(pipeline.pipelineLayout,vk::ShaderStageFlagBits::eFragment,0,sizeof(m_commonerUseId),&m_commonerUseId);

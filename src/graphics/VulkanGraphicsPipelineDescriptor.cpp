@@ -60,7 +60,7 @@ void VulkanGraphicsPipelineImageDescriptor::updateImage(const std::vector<Vulkan
     for (int i = 0;i<FRAMES_IN_FLIGHT;i++) {
         std::vector<vk::DescriptorImageInfo> imageInfos(images.size());
         for (size_t j = 0; j < images.size(); j++) {
-            auto img = images[j];
+            auto *img = images[j];
             imageInfos[j].imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
             imageInfos[j].imageView = *img->getImageView();
             imageInfos[j].sampler = *img->getSampler();
@@ -69,9 +69,9 @@ void VulkanGraphicsPipelineImageDescriptor::updateImage(const std::vector<Vulkan
         descriptorWrite.dstBinding = m_binding;
         descriptorWrite.dstArrayElement = 0;
         descriptorWrite.descriptorType = vk::DescriptorType::eCombinedImageSampler;
-        descriptorWrite.descriptorCount = static_cast<uint32_t>(images.size());
+        descriptorWrite.descriptorCount = static_cast<uint32_t>(imageInfos.size());
         descriptorWrite.pImageInfo = imageInfos.data();
-
+        descriptors.push_back(descriptorWrite);
     }
     m_graphicsPipeline->updateDescriptor(descriptors);
 }
