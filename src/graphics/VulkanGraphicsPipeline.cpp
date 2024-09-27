@@ -5,8 +5,10 @@
 #include "Vertex.hpp"
 #include "VulkanGraphicsPipelineDescriptor.hpp"
 #include "utils/Logger.hpp"
+#include "config/VizunConfig.hpp"
 
 #include <fstream>
+#include <iostream>
 
 namespace vz {
 void VulkanGraphicsPipeline::cleanup(const VulkanBase& vulkanBase) {
@@ -175,29 +177,27 @@ bool VulkanGraphicsPipeline::createDescriptors(const VulkanBase& vulkanBase, Vul
     layoutInfo.bindingCount = static_cast<uint32_t>(descriptorSetLayoutBindings.size());
     layoutInfo.pBindings = descriptorSetLayoutBindings.data();
     VK_RESULT_ASSIGN(m_descriptorSetLayout, vulkanBase.device.createDescriptorSetLayout(layoutInfo))
-
-    int MAX_FRAMES_IN_FLIGHT = 2; //TODO: change later to a global thing
+    
     std::array<vk::DescriptorPoolSize, 2> poolSizes{}; //TODO: change to the descriptor class
     poolSizes[0].type = vk::DescriptorType::eUniformBuffer;
-    poolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+    poolSizes[0].descriptorCount = static_cast<uint32_t>(FRAMES_IN_FLIGHT);
     poolSizes[1].type = vk::DescriptorType::eCombinedImageSampler;
-    poolSizes[1].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+    poolSizes[1].descriptorCount = static_cast<uint32_t>(FRAMES_IN_FLIGHT);
 
 
     vk::DescriptorPoolCreateInfo poolInfo;
     poolInfo.poolSizeCount = poolSizes.size();
     poolInfo.pPoolSizes = poolSizes.data();
-    poolInfo.maxSets = MAX_FRAMES_IN_FLIGHT;
+    poolInfo.maxSets = FRAMES_IN_FLIGHT * poolSizes.size()*2+1;
 
     VK_RESULT_ASSIGN(m_descriptorPool,vulkanBase.device.createDescriptorPool(poolInfo));
 
-    std::vector layouts(MAX_FRAMES_IN_FLIGHT,m_descriptorSetLayout);
+    std::vector layouts(FRAMES_IN_FLIGHT,m_descriptorSetLayout);
     vk::DescriptorSetAllocateInfo allocInfo;
     allocInfo.descriptorPool = m_descriptorPool;
-    allocInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+    allocInfo.descriptorSetCount = static_cast<uint32_t>(FRAMES_IN_FLIGHT);
     allocInfo.pSetLayouts = layouts.data();
-
-    m_descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
+    m_descriptorSets.resize(FRAMES_IN_FLIGHT);
     VK_RESULT_ASSIGN(m_descriptorSets,vulkanBase.device.allocateDescriptorSets(allocInfo))
     return true;
 }

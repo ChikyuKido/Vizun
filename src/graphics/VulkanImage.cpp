@@ -37,6 +37,7 @@ bool VulkanImage::createImage(const VulkanBase& vulkanBase,
     allocInfo.memoryTypeIndex = VulkanUtils::findMemoryType(vulkanBase, memRequirements.memoryTypeBits, properties);
     VK_RESULT_ASSIGN_SHARED(m_imageMemory, vulkanBase.device.allocateMemory(allocInfo), vk::DeviceMemory);
     VKF(vulkanBase.device.bindImageMemory(*m_image, *m_imageMemory, 0));
+    assert(m_image);
     m_height = height;
     m_width = width;
     if(!createImageView(vulkanBase)) {
@@ -122,6 +123,7 @@ bool VulkanImage::createImageView(const VulkanBase& vulkanBase) {
     createInfo.format = vk::Format::eR8G8B8A8Srgb;
     createInfo.subresourceRange = {vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1};
     VK_RESULT_ASSIGN_SHARED(m_imageView, vulkanBase.device.createImageView(createInfo), vk::ImageView)
+    assert(m_imageView);
     return true;
 }
 bool VulkanImage::createTextureSampler(const VulkanBase& vulkanBase) {
