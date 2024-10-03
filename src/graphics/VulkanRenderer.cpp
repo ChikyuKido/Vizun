@@ -35,6 +35,8 @@ VulkanRenderer::VulkanRenderer(VulkanRendererConfig& config, VulkanBase& vulkanB
         VZ_LOG_CRITICAL("Failed to create framebuffers for renderer");
     }
 
+    m_ubDesc = VulkanGraphicsPipelineUniformBufferDescriptor(0,&vulkanBase);
+    m_imageDesc = VulkanGraphicsPipelineImageDescriptor(1,&vulkanBase);
     m_defaultGraphicsPipeline = std::make_shared<VulkanGraphicsPipeline>();
 
     VulkanGraphicsPipelineConfig defaultConf;
