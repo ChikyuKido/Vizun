@@ -35,15 +35,20 @@ void Image::draw(const vk::CommandBuffer& commandBuffer, const VulkanGraphicsPip
     commandBuffer.bindIndexBuffer(m_viBuffer.getBuffer(),m_viBuffer.getIndicesOffsetSize(),m_viBuffer.getIndexType());
     commandBuffer.drawIndexed(m_viBuffer.getIndicesCount(),1,0,0,0);
 }
-void Image::prepareCommoner(VulkanRenderer& renderer,const std::vector<RenderTarget*>& targets,VulkanGraphicsPipeline& pipeline) {
+void Image::prepareCommoner(VulkanRenderer& renderer,
+                            const std::vector<RenderTarget*>& targets,
+                            VulkanGraphicsPipeline& pipeline) {
     std::vector<VulkanImage*> images;
     int id = 0;
     for (RenderTarget* rt : targets) {
-        auto *imgRenderTarget = static_cast<Image*>(rt);
+        auto* imgRenderTarget = static_cast<Image*>(rt);
         images.push_back(&imgRenderTarget->m_vulkanImage);
         imgRenderTarget->m_commonerUseId = id++;
     }
     renderer.getImgDesc().updateImage(images);
+}
+int Image::getMaxCommoners() {
+    return MAX_IMAGES_IN_SHADER;
 }
 int Image::getCommoner() {
     return reinterpret_cast<int64_t>(&m_vulkanImage); // TODO: better way for a commoner for images

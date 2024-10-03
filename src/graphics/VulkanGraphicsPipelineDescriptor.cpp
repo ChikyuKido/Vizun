@@ -54,36 +54,36 @@ void VulkanGraphicsPipelineUniformBufferDescriptor::updateUniformBuffer(const st
 #pragma region ImageDescriptor
 VulkanGraphicsPipelineImageDescriptor::VulkanGraphicsPipelineImageDescriptor(
     int binding,
-    const vz::VulkanBase* vulkanBase) : VulkanGraphicsPipelineDescriptor(binding,16,vk::DescriptorType::eCombinedImageSampler,vk::ShaderStageFlagBits::eFragment,vulkanBase) {}
+    const vz::VulkanBase* vulkanBase) : VulkanGraphicsPipelineDescriptor(binding,MAX_IMAGES_IN_SHADER,vk::DescriptorType::eCombinedImageSampler,vk::ShaderStageFlagBits::eFragment,vulkanBase) {}
 void VulkanGraphicsPipelineImageDescriptor::updateImage(const std::vector<VulkanImage*>& images) {
+    assert(MAX_IMAGES_IN_SHADER>images.size());
     if(m_graphicsPipeline == nullptr) {
         VZ_LOG_CRITICAL("Image descriptor was not assigned to a graphics pipeline!");
     }
 
     std::vector<vk::WriteDescriptorSet> descriptors;
-    for (int i = 0;i<FRAMES_IN_FLIGHT;i++) {
-        vk::DescriptorImageInfo* imageInfos = new vk::DescriptorImageInfo[16]{};
-        for (size_t j = 0; j < 16; j++) {
-            if(j < images.size()) {
-                auto* img = images[j];
-                imageInfos[j].imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-                imageInfos[j].imageView = *img->getImageView();
-                imageInfos[j].sampler = *img->getSampler();
-            }else {
-                auto* img = getEmptyImage();
-                imageInfos[j].imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-                imageInfos[j].imageView = *img->getImageView();
-                imageInfos[j].sampler = *img->getSampler();
-            }
+    std::array<vk::DescriptorImageInfo,MAX_IMAGES_IN_SHADER> imageInfos;
+    for (size_t j = 0; j < MAX_IMAGES_IN_SHADER; j++) {
+        if(j < images.size()) {
+            auto* img = images[j];
+            imageInfos[j].imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+            imageInfos[j].imageView = *img->getImageView();
+            imageInfos[j].sampler = *img->getSampler();
+        }else {
+            auto* img = getEmptyImage();
+            imageInfos[j].imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+            imageInfos[j].imageView = *img->getImageView();
+            imageInfos[j].sampler = *img->getSampler();
         }
-        vk::WriteDescriptorSet descriptorWrite;
-        descriptorWrite.dstBinding = m_binding;
-        descriptorWrite.dstArrayElement = 0;
-        descriptorWrite.descriptorType = vk::DescriptorType::eCombinedImageSampler;
-        descriptorWrite.descriptorCount = 16;
-        descriptorWrite.pImageInfo = imageInfos;
-        descriptors.push_back(descriptorWrite);
     }
+    vk::WriteDescriptorSet descriptorWrite;
+    descriptorWrite.dstBinding = m_binding;
+    descriptorWrite.dstArrayElement = 0;
+    descriptorWrite.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+    descriptorWrite.descriptorCount = 16;
+    descriptorWrite.pImageInfo = imageInfos.data();
+    descriptors.push_back(descriptorWrite);
+
     m_graphicsPipeline->updateDescriptor(descriptors);
 }
 #pragma endregion

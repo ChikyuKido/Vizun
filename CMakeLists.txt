@@ -13,7 +13,7 @@ option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 option(VIZUN_BUILD_EXAMPLES "Build the Vizun example programs" ON)
 option(VIZUN_ENABLE_VALIDATION_LAYER "Enables the validation layer for vulkan" ON)
 set(VIZUN_BUILD_EXAMPLES ON)
-set(VIZUN_ENABLE_VALIDATION_LAYER ON)
+set(VIZUN_ENABLE_VALIDATION_LAYER OFF)
 
 set(SPDLOG_FMT_EXTERNAL ON)
 find_package(Vulkan REQUIRED)
@@ -69,6 +69,8 @@ set(SOURCE_FILES
         src/graphics/Image.cpp
         src/graphics/Image.cpp
         src/graphics/Image.hpp
+        src/VizunEngine.cpp
+        src/VizunEngine.hpp
 )
 add_library(Vizun ${SOURCE_FILES})
 

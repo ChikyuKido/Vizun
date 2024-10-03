@@ -142,25 +142,25 @@ void VulkanRenderer::draw(RenderTarget& renderTarget, const std::shared_ptr<Vulk
     m_drawCalls[graphicsPipeline].push_back(&renderTarget);
 }
 void VulkanRenderer::end() {
-    for (auto& [pipeline,calls] : m_drawCalls) {
+    for (auto& [pipeline,allCalls] : m_drawCalls) {
         std::map<int,std::vector<RenderTarget*>> renderTargetsPerCommoner;
         std::vector<RenderTarget*> renderTargetsUniqueCommoner;
-        for (auto* call : calls) {
+        for (auto* call : allCalls) {
             if(!renderTargetsPerCommoner.contains(call->getCommoner())) {
                 renderTargetsPerCommoner[call->getCommoner()] = std::vector<RenderTarget*>();
                 renderTargetsUniqueCommoner.push_back(call);
             }
             renderTargetsPerCommoner[call->getCommoner()].push_back(call);
         }
-        renderTargetsUniqueCommoner[0]->prepareCommoner(*this,renderTargetsUniqueCommoner,*pipeline);
         pipeline->bindPipeline(m_commandBuffers[m_currentFrame],m_currentFrame);
+        renderTargetsUniqueCommoner[0]->prepareCommoner(*this,renderTargetsUniqueCommoner,*pipeline);
         for (auto [commoner,calls] : renderTargetsPerCommoner) {
             calls[0]->useCommoner(*this,*pipeline);
             for (auto *call : calls) {
                 call->draw(m_commandBuffers[m_currentFrame],*pipeline,m_currentFrame);
             }
         }
-        calls.clear();
+        allCalls.clear();
     }
 
     m_commandBuffers[m_currentFrame].endRenderPass();

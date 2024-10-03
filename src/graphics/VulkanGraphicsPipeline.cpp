@@ -176,6 +176,7 @@ bool VulkanGraphicsPipeline::createDescriptors(const VulkanBase& vulkanBase, Vul
     vk::DescriptorSetLayoutCreateInfo layoutInfo;
     layoutInfo.bindingCount = static_cast<uint32_t>(descriptorSetLayoutBindings.size());
     layoutInfo.pBindings = descriptorSetLayoutBindings.data();
+    layoutInfo.flags = vk::DescriptorSetLayoutCreateFlagBits::eUpdateAfterBindPool;
     VK_RESULT_ASSIGN(m_descriptorSetLayout, vulkanBase.device.createDescriptorSetLayout(layoutInfo))
     
     std::array<vk::DescriptorPoolSize, 2> poolSizes{}; //TODO: change to the descriptor class
