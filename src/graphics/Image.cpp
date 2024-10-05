@@ -17,8 +17,8 @@ const std::vector<uint16_t> indices1 = {
     0, 1, 2, 2, 3, 0
 };
 namespace vz {
-Image::Image(const VulkanBase& vulkanBase, std::string rscPath,float xDiff) {
-    if(!m_vulkanImage.loadImageTexture(vulkanBase, rscPath)) {
+Image::Image(std::string rscPath,float xDiff) {
+    if(!m_vulkanImage.loadImageTexture(rscPath)) {
         VZ_LOG_CRITICAL("Could not load image texture");
     }
     std::vector<Vertex> vertices;
@@ -26,7 +26,7 @@ Image::Image(const VulkanBase& vulkanBase, std::string rscPath,float xDiff) {
         vertex.pos.x += xDiff;
         vertices.push_back(vertex);
     }
-    m_viBuffer.createBuffer(vulkanBase,vertices,indices1);
+    m_viBuffer.createBuffer(vertices,indices1);
 }
 void Image::draw(const vk::CommandBuffer& commandBuffer, const VulkanGraphicsPipeline& pipeline, uint32_t currentFrame) const {
     vk::Buffer vertexBuffers[] = {m_viBuffer.getBuffer()};

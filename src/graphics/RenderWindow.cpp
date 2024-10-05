@@ -3,33 +3,45 @@
 #include "utils/Events.hpp"
 #include "utils/Logger.hpp"
 #define STB_IMAGE_IMPLEMENTATION
+#include "VizunEngine.hpp"
+#include "VulkanSwapchain.hpp"
 #include "utils/VulkanUtils.hpp"
 
 #include <stb_image.h>
-#include "config/VizunConfig.hpp"
 
 namespace vz {
 
 RenderWindow::RenderWindow(const int width, const int height, std::string title) :
-RenderWindow(width, height, std::move(title), VulkanConfig()) {
-}
+RenderWindow(width, height, std::move(title), VulkanRenderWindowConfig()) {}
 
-RenderWindow::RenderWindow(int width, int height, std::string title, VulkanConfig vulkanConfig)
+RenderWindow::RenderWindow(int width, int height, std::string title, VulkanRenderWindowConfig vulkanConfig)
     : m_width(width), m_height(height), m_title(std::move(title)), m_vulkanConfig(vulkanConfig) {
-    m_vulkanBase.setVulkanConfig(&m_vulkanConfig);
-    initGLFW();
     createWindow();
     glfwSetFramebufferSizeCallback(m_windowHandle,[](GLFWwindow*, int width, int height) {Events::resizeSignal.emit(width,height);});
+    m_vulkanSwapchain = std::make_unique<VulkanSwapchain>();
     initVulkan();
-    m_renderer = std::make_shared<VulkanRenderer>(vulkanConfig.vulkanRenderConfig,m_vulkanBase,m_windowHandle);
+    m_renderer = std::make_unique<VulkanRenderer>(vulkanConfig.vulkanRenderConfig,this);
 }
 
 RenderWindow::~RenderWindow() {
     destroyWindow();
     glfwTerminate();
+    m_vulkanSwapchain->cleanup();
+}
+void RenderWindow::begin() const {
+    m_renderer->begin();
+}
+void RenderWindow::draw(RenderTarget& renderTarget) const {
+    m_renderer->draw(renderTarget);
 }
 
 
+void RenderWindow::draw(RenderTarget& renderTarget, const std::shared_ptr<VulkanGraphicsPipeline>& graphicsPipeline) const {
+    m_renderer->draw(renderTarget, graphicsPipeline);
+}
+void RenderWindow::end() const {
+    m_renderer->end();
+}
 void RenderWindow::setResizable(const bool resizable) {
     if (m_resizable != resizable) {
         m_resizable = resizable;
@@ -47,29 +59,17 @@ bool RenderWindow::shouldWindowClose() const {
 GLFWwindow* RenderWindow::getWindowHandle() const {
     return m_windowHandle;
 }
-VulkanBase* RenderWindow::getVulkanBase() {
-    return &m_vulkanBase;
+VulkanSwapchain& RenderWindow::getSwapchain() const {
+    return *m_vulkanSwapchain;
 }
-const std::shared_ptr<VulkanRenderer>& RenderWindow::getRenderer() {
-    return m_renderer;
+const VulkanRenderer& RenderWindow::getRenderer() const {
+    return *m_renderer;
 }
-
-
-void RenderWindow::initGLFW() const {
-    if(glfwPlatformSupported(GLFW_PLATFORM_WIN32)) glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_WIN32);
-    else if(glfwPlatformSupported(GLFW_PLATFORM_COCOA)) glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_COCOA);
-    else if(glfwPlatformSupported(GLFW_PLATFORM_X11)) glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11);
-    else if(glfwPlatformSupported(GLFW_PLATFORM_WAYLAND)) glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_WAYLAND);
-    else {
-        VZ_LOG_CRITICAL("Error: could not find acceptable platform for GLFW\n");
-    }
-    VZ_LOG_INFO("GLFW Version: {}", glfwGetVersionString());
-    if (!glfwInit()) {
-        const char* error;
-        glfwGetError(&error);
-        VZ_LOG_CRITICAL("Could not initialize GLFW because: {}",error);
-    }
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+const VulkanRenderWindowConfig* RenderWindow::getConfig() const {
+    return &m_vulkanConfig;
+}
+const vk::SurfaceKHR& RenderWindow::getSurface() const {
+    return m_surface;
 }
 
 void RenderWindow::createWindow() {
@@ -82,31 +82,18 @@ void RenderWindow::createWindow() {
 }
 
 void RenderWindow::initVulkan() {
-    uint32_t glfwExtensionCount;
-    const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-    for (uint32_t i = 0; i < glfwExtensionCount; i++) {
-        m_vulkanConfig.instanceConfig.enableExtensionNames.push_back(glfwExtensions[i]);
-        VZ_LOG_INFO("Enable GLFW Extension: {}", glfwExtensions[i]);
+    static VulkanBase& vb = VizunEngine::getVulkanBase();
+    if(!createSurface()) {
+        VZ_LOG_CRITICAL("Could not create window surface");
     }
-    m_vulkanConfig.deviceConfig.enableDeviceFeatures.push_back(vk::KHRSwapchainExtensionName);
-    VZ_LOG_INFO("Added swapchain device extension");
+    if(!vb.createLateVulkanBase(m_surface)) {
+        VZ_LOG_CRITICAL("Could not create late vulkan base");
+    }
+    if(!m_vulkanSwapchain->createSwapchain(this)) {
+        VZ_LOG_CRITICAL("Could not create swapchain");
+    }
+    VZ_LOG_INFO("Successfully initialized vulkan");
 
-#ifdef VIZUN_ENABLE_VALIDATION_LAYER
-    if (std::ranges::find(m_vulkanConfig.instanceConfig.enableLayerNames, "VK_LAYER_KHRONOS_validation") ==
-    m_vulkanConfig.instanceConfig.enableLayerNames.end()) {
-    if (!VulkanUtils::isLayerSupported("VK_LAYER_KHRONOS_validation")) {
-        VZ_LOG_ERROR("Cannot activate validation layer because it is not supported");
-    } else {
-        m_vulkanConfig.instanceConfig.enableLayerNames.push_back("VK_LAYER_KHRONOS_validation");
-        VZ_LOG_INFO("Validation layer enabled");
-    }
-    }
-#endif
-
-    if (!m_vulkanBase.createVulkanBase(m_windowHandle)) {
-        VZ_LOG_CRITICAL("Could not create vulkan base");
-    }
-    VZ_LOG_INFO("Sucessfully initialized vulkan");
 }
 void RenderWindow::destroyWindow() {
     if (m_windowHandle) {
@@ -119,5 +106,16 @@ void RenderWindow::recreateWindow() {
     destroyWindow();
     createWindow();
 }
-
+bool RenderWindow::createSurface() {
+    static VulkanBase& vb = VizunEngine::getVulkanBase();
+    VkSurfaceKHR tempSurface;
+    const VkResult res = glfwCreateWindowSurface(vb.instance,m_windowHandle,nullptr,&tempSurface);
+    VZ_LOG_INFO(static_cast<int>(res));
+    if(res != VK_SUCCESS) {
+        return false;
+    }
+    m_surface = tempSurface;
+    return true;
 }
+
+} // namespace vz

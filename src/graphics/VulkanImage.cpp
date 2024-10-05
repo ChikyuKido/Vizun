@@ -1,6 +1,8 @@
+#include "VulkanImage.hpp"
+
+#include "VizunEngine.hpp"
 #include "VulkanBase.hpp"
 #include "VulkanBuffer.hpp"
-#include "VulkanImage.hpp"
 #include "utils/Logger.hpp"
 #include "utils/VulkanUtils.hpp"
 
@@ -8,13 +10,13 @@
 
 namespace vz {
 #pragma region VulkanImage
-bool VulkanImage::createImage(const VulkanBase& vulkanBase,
-                              uint32_t width,
+bool VulkanImage::createImage(uint32_t width,
                               uint32_t height,
                               vk::Format format,
                               vk::ImageTiling tiling,
                               vk::ImageUsageFlags usage,
                               vk::MemoryPropertyFlags properties) {
+    static VulkanBase& vb = VizunEngine::getVulkanBase();
     vk::ImageCreateInfo imageInfo;
     imageInfo.imageType = vk::ImageType::e2D;
     imageInfo.extent.width = width;
@@ -29,36 +31,36 @@ bool VulkanImage::createImage(const VulkanBase& vulkanBase,
     imageInfo.sharingMode = vk::SharingMode::eExclusive;
     imageInfo.samples = vk::SampleCountFlagBits::e1;
 
-    VK_RESULT_ASSIGN_SHARED(m_image, vulkanBase.device.createImage(imageInfo), vk::Image);
+    VK_RESULT_ASSIGN_SHARED(m_image, vb.device.createImage(imageInfo), vk::Image);
 
-    vk::MemoryRequirements memRequirements = vulkanBase.device.getImageMemoryRequirements(*m_image.get());
+    vk::MemoryRequirements memRequirements = vb.device.getImageMemoryRequirements(*m_image.get());
     vk::MemoryAllocateInfo allocInfo;
     allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = VulkanUtils::findMemoryType(vulkanBase, memRequirements.memoryTypeBits, properties);
-    VK_RESULT_ASSIGN_SHARED(m_imageMemory, vulkanBase.device.allocateMemory(allocInfo), vk::DeviceMemory);
-    VKF(vulkanBase.device.bindImageMemory(*m_image, *m_imageMemory, 0));
+    allocInfo.memoryTypeIndex = VulkanUtils::findMemoryType(memRequirements.memoryTypeBits, properties);
+    VK_RESULT_ASSIGN_SHARED(m_imageMemory, vb.device.allocateMemory(allocInfo), vk::DeviceMemory);
+    VKF(vb.device.bindImageMemory(*m_image, *m_imageMemory, 0));
     assert(m_image);
     m_height = height;
     m_width = width;
-    if(!createImageView(vulkanBase)) {
+    if(!createImageView()) {
         return false;
     }
-    if(!createTextureSampler(vulkanBase)) {
+    if(!createTextureSampler()) {
         return false;
     }
     return true;
 }
-void VulkanImage::cleanup(const VulkanBase& vulkanBase) {
-    vulkanBase.device.destroySampler(*m_sampler);
-    vulkanBase.device.destroyImageView(*m_imageView);
-    vulkanBase.device.destroyImage(*m_image);
-    vulkanBase.device.freeMemory(*m_imageMemory);
+void VulkanImage::cleanup() {
+    static VulkanBase& vb = VizunEngine::getVulkanBase();
+    vb.device.destroySampler(*m_sampler);
+    vb.device.destroyImageView(*m_imageView);
+    vb.device.destroyImage(*m_image);
+    vb.device.freeMemory(*m_imageMemory);
 }
-void VulkanImage::transitionImageLayout(const VulkanBase& vulkanBase,
-                                        vk::Format format,
+void VulkanImage::transitionImageLayout(vk::Format format,
                                         vk::ImageLayout oldLayout,
                                         vk::ImageLayout newLayout) {
-    vk::CommandBuffer commandBuffer = VulkanUtils::beginSingleTimeCommands(vulkanBase);
+    vk::CommandBuffer commandBuffer = VulkanUtils::beginSingleTimeCommands();
 
     vk::ImageMemoryBarrier barrier;
     barrier.oldLayout = oldLayout;
@@ -99,10 +101,10 @@ void VulkanImage::transitionImageLayout(const VulkanBase& vulkanBase,
                                   &barrier);
 
 
-    VulkanUtils::endSingleTimeCommands(vulkanBase, commandBuffer);
+    VulkanUtils::endSingleTimeCommands(commandBuffer);
 }
-void VulkanImage::copyBufferToImage(const VulkanBase& vulkanBase) {
-    vk::CommandBuffer commandBuffer = VulkanUtils::beginSingleTimeCommands(vulkanBase);
+void VulkanImage::copyBufferToImage() {
+    vk::CommandBuffer commandBuffer = VulkanUtils::beginSingleTimeCommands();
     vk::BufferImageCopy region;
     region.bufferOffset = 0;
     region.bufferRowLength = 0;
@@ -114,20 +116,22 @@ void VulkanImage::copyBufferToImage(const VulkanBase& vulkanBase) {
     region.imageOffset = vk::Offset3D{0, 0, 0};
     region.imageExtent = vk::Extent3D{m_width, m_height, 1};
     commandBuffer.copyBufferToImage(m_stagingBuffer->getBuffer(), *m_image, vk::ImageLayout::eTransferDstOptimal, 1, &region);
-    VulkanUtils::endSingleTimeCommands(vulkanBase, commandBuffer);
+    VulkanUtils::endSingleTimeCommands(commandBuffer);
 }
-bool VulkanImage::createImageView(const VulkanBase& vulkanBase) {
+bool VulkanImage::createImageView() {
+    static VulkanBase& vb = VizunEngine::getVulkanBase();
     vk::ImageViewCreateInfo createInfo;
     createInfo.image = *m_image;
     createInfo.viewType = vk::ImageViewType::e2D;
     createInfo.format = vk::Format::eR8G8B8A8Srgb;
     createInfo.subresourceRange = {vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1};
-    VK_RESULT_ASSIGN_SHARED(m_imageView, vulkanBase.device.createImageView(createInfo), vk::ImageView)
+    VK_RESULT_ASSIGN_SHARED(m_imageView, vb.device.createImageView(createInfo), vk::ImageView)
     assert(m_imageView);
     return true;
 }
-bool VulkanImage::createTextureSampler(const VulkanBase& vulkanBase) {
-    vk::PhysicalDeviceProperties properties = vulkanBase.physicalDevice.getProperties();
+bool VulkanImage::createTextureSampler() {
+    static VulkanBase& vb = VizunEngine::getVulkanBase();
+    vk::PhysicalDeviceProperties properties = vb.physicalDevice.getProperties();
     vk::SamplerCreateInfo samplerInfo;
     samplerInfo.magFilter = vk::Filter::eLinear;
     samplerInfo.minFilter = vk::Filter::eLinear;
@@ -145,12 +149,13 @@ bool VulkanImage::createTextureSampler(const VulkanBase& vulkanBase) {
     samplerInfo.minLod = 0.0f;
     samplerInfo.maxLod = 0.0f;
 
-    VK_RESULT_ASSIGN_SHARED(m_sampler,vulkanBase.device.createSampler(samplerInfo),vk::Sampler)
+    VK_RESULT_ASSIGN_SHARED(m_sampler,vb.device.createSampler(samplerInfo),vk::Sampler)
     return true;
 }
 #pragma endregion
 #pragma region VulkanImageTexture
-bool VulkanImageTexture::loadImageTexture(const VulkanBase& vulkanBase, const std::string& path) {
+bool VulkanImageTexture::loadImageTexture(const std::string& path) {
+    static VulkanBase& vb = VizunEngine::getVulkanBase();
     int texWidth, texHeight, texChannels;
     stbi_uc* pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
     const vk::DeviceSize imageSize = texWidth * texHeight * 4;
@@ -159,20 +164,19 @@ bool VulkanImageTexture::loadImageTexture(const VulkanBase& vulkanBase, const st
         return false;
     }
     m_stagingBuffer = std::make_shared<VulkanBuffer>();
-    m_stagingBuffer->createBuffer(vulkanBase,
-                                  imageSize,
+    m_stagingBuffer->createBuffer(imageSize,
                                   vk::BufferUsageFlagBits::eTransferSrc,
                                   vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
-    m_stagingBuffer->uploadDataInstant(vulkanBase, pixels);
+    m_stagingBuffer->uploadDataInstant(pixels);
     stbi_image_free(pixels);
-    if(!createImage(vulkanBase,texWidth,texHeight,vk::Format::eR8G8B8A8Srgb,vk::ImageTiling::eOptimal,
+    if(!createImage(texWidth,texHeight,vk::Format::eR8G8B8A8Srgb,vk::ImageTiling::eOptimal,
         vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled, vk::MemoryPropertyFlagBits::eDeviceLocal)) {
         return false;
     }
-    transitionImageLayout(vulkanBase,vk::Format::eR8G8B8A8Srgb,vk::ImageLayout::eUndefined,vk::ImageLayout::eTransferDstOptimal);
-    copyBufferToImage(vulkanBase);
-    transitionImageLayout(vulkanBase, vk::Format::eR8G8B8A8Srgb, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
-    m_stagingBuffer->cleanup(vulkanBase);
+    transitionImageLayout(vk::Format::eR8G8B8A8Srgb,vk::ImageLayout::eUndefined,vk::ImageLayout::eTransferDstOptimal);
+    copyBufferToImage();
+    transitionImageLayout(vk::Format::eR8G8B8A8Srgb, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
+    m_stagingBuffer->cleanup();
     return true;
 }
 #pragma endregion

@@ -3,12 +3,10 @@
 
 
 #define GLFW_INCLUDE_VULKAN
-#include <vulkan/vulkan.hpp>
+
 #include <GLFW/glfw3.h>
 #include <optional>
-#include "Vertex.hpp"
-#include "utils/VulkanConfig.hpp"
-#include "VulkanSwapchain.hpp"
+#include <vulkan/vulkan.hpp>
 
 
 #define VKF(call) \
@@ -86,6 +84,7 @@ inline std::string extractFunctionName(const std::string& functionCall) {
 
 
 namespace vz {
+struct VulkanEngineConfig;
 struct VulkanQueue {
     uint32_t queueFamilyIndex;
     vk::Queue queue;
@@ -100,37 +99,32 @@ struct QueueFamilyIndices {
 
 class VulkanBase {
 public:
-    VulkanBase(const VulkanConfig* vulkanConfig);
-    VulkanBase();
+    VulkanBase(const VulkanEngineConfig* vulkanConfig);
     vk::Instance instance;
     vk::Device device = nullptr;
     vk::PhysicalDevice physicalDevice = nullptr;
-    vk::SurfaceKHR surface;
     VulkanQueue graphicsQueue;
     VulkanQueue presentQueue;
-    VulkanSwapchain vulkanSwapchain;
     vk::CommandPool nonRenderingPool;
-
     void cleanup() const;
-    bool createVulkanBase(GLFWwindow* window);
-    void setVulkanConfig(const VulkanConfig* config);
-    const VulkanConfig* getVulkanConfig() const;
+    bool createVulkanBase();
+    bool createLateVulkanBase(vk::SurfaceKHR& surface);
 private:
-    const VulkanConfig* m_vulkanConfig{nullptr};
+    const VulkanEngineConfig* m_vulkanConfig{nullptr};
+    bool m_wasLateInitialized = false;
 
     bool createInstance();
-    bool pickPhyiscalDevice();
-    bool createSurface(GLFWwindow* window);
-    bool createLogicalDevice();
+    bool pickPhysicalDevice(vk::SurfaceKHR& surface);
+    bool createLogicalDevice(vk::SurfaceKHR& surface);
     bool createNonRenderingPool();
 
     int rateDeviceSuitability(vk::PhysicalDevice device) const;
-    bool isDeviceSuitable(vk::PhysicalDevice device) const;
+    bool isDeviceSuitable(vk::PhysicalDevice device,vk::SurfaceKHR& surface) const;
     bool areDeviceExtensionsSupported(vk::PhysicalDevice device) const;
-    QueueFamilyIndices findQueueFamilies(vk::PhysicalDevice device) const;
+    QueueFamilyIndices findQueueFamilies(vk::PhysicalDevice device, const vk::SurfaceKHR& surface) const;
 };
 }
 
 
 
-#endif //VULKANBASE_HPP
+#endif

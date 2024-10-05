@@ -1,5 +1,8 @@
 
 #include "VulkanSwapchain.hpp"
+
+#include "RenderWindow.hpp"
+#include "VizunEngine.hpp"
 #include "VulkanBase.hpp"
 #include "VulkanRenderPass.hpp"
 #include "utils/Logger.hpp"
@@ -20,12 +23,13 @@ VulkanSwapChainSupportDetails VulkanSwapchain::querySwapChainSupport(const vk::P
     details.presentModes = presentModesRes.value;
     return details;
 }
-bool VulkanSwapchain::createSwapchain(const VulkanBase& vulkanBase, GLFWwindow* window) {
-    const VulkanSwapChainSupportDetails swapChainSupport = querySwapChainSupport(vulkanBase.physicalDevice, vulkanBase.surface);
+bool VulkanSwapchain::createSwapchain(RenderWindow* window) {
+    static VulkanBase& vb = VizunEngine::getVulkanBase();
+    const VulkanSwapChainSupportDetails swapChainSupport = querySwapChainSupport(vb.physicalDevice, window->getSurface());
 
     const vk::SurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
-    const vk::PresentModeKHR presentMode = chooseSwapPresentMode(vulkanBase.getVulkanConfig(), swapChainSupport.presentModes);
-    const vk::Extent2D extent = chooseSwapExent(swapChainSupport.capabilities, window);
+    const vk::PresentModeKHR presentMode = chooseSwapPresentMode(window->getConfig(), swapChainSupport.presentModes);
+    const vk::Extent2D extent = chooseSwapExtent(swapChainSupport.capabilities, window->getWindowHandle());
 
     uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
     if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount) {
@@ -33,7 +37,7 @@ bool VulkanSwapchain::createSwapchain(const VulkanBase& vulkanBase, GLFWwindow* 
     }
 
     vk::SwapchainCreateInfoKHR createInfo;
-    createInfo.surface = vulkanBase.surface;
+    createInfo.surface = window->getSurface();
     createInfo.minImageCount = imageCount;
     createInfo.imageFormat = surfaceFormat.format;
     createInfo.imageColorSpace = surfaceFormat.colorSpace;
@@ -41,7 +45,7 @@ bool VulkanSwapchain::createSwapchain(const VulkanBase& vulkanBase, GLFWwindow* 
     createInfo.imageArrayLayers = 1;
     createInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
 
-    uint32_t queueFamilyIndices[] = {vulkanBase.graphicsQueue.queueFamilyIndex, vulkanBase.presentQueue.queueFamilyIndex};
+    uint32_t queueFamilyIndices[] = {vb.graphicsQueue.queueFamilyIndex, vb.presentQueue.queueFamilyIndex};
 
     //they are most likely the same
     if (queueFamilyIndices[0] != queueFamilyIndices[1]) {
@@ -61,39 +65,41 @@ bool VulkanSwapchain::createSwapchain(const VulkanBase& vulkanBase, GLFWwindow* 
     swapchainExtent = extent;
     swapchainFormat = surfaceFormat.format;
 
-    const vk::ResultValue<vk::SwapchainKHR> swapchainRes = vulkanBase.device.createSwapchainKHR(createInfo);
+    const vk::ResultValue<vk::SwapchainKHR> swapchainRes = vb.device.createSwapchainKHR(createInfo);
     if (swapchainRes.result != vk::Result::eSuccess) { return false; }
     swapchain = swapchainRes.value;
 
-    const vk::ResultValue<std::vector<vk::Image>> imagesRes = vulkanBase.device.getSwapchainImagesKHR(swapchain);
+    const vk::ResultValue<std::vector<vk::Image>> imagesRes = vb.device.getSwapchainImagesKHR(swapchain);
     if (imagesRes.result != vk::Result::eSuccess) { return false; }
     swapchainImages = imagesRes.value;
 
-    createImageViews(vulkanBase);
+    createImageViews();
 
     return true;
 }
-bool VulkanSwapchain::recreateSwapchain(const VulkanBase& vulkanBase,const VulkanRenderPass& renderPass, GLFWwindow* window) {
+bool VulkanSwapchain::recreateSwapchain(RenderWindow* window) {
+    static VulkanBase& vb = VizunEngine::getVulkanBase();
     int width = 0;
     int height = 0;
-    glfwGetFramebufferSize(window, &width, &height);
+    glfwGetFramebufferSize(window->getWindowHandle(), &width, &height);
     while (width == 0 || height == 0) {
-        glfwGetFramebufferSize(window, &width, &height);
+        glfwGetFramebufferSize(window->getWindowHandle(), &width, &height);
         glfwWaitEvents();
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
-    VKA(vulkanBase.device.waitIdle());
-    cleanup(vulkanBase);
-    if(!createSwapchain(vulkanBase,window)) {
+    VKA(vb.device.waitIdle());
+    cleanup();
+    if(!createSwapchain(window)) {
         VZ_LOG_CRITICAL("Failed to create swapchain. ");
     }
-    if(!createImageViews(vulkanBase)) {
+    if(!createImageViews()) {
         VZ_LOG_CRITICAL("Failed to create image views");
     }
     return true;
 
 }
-bool VulkanSwapchain::createImageViews(const VulkanBase& vulkanBase) {
+bool VulkanSwapchain::createImageViews() {
+    static VulkanBase& vb = VizunEngine::getVulkanBase();
     swapchainImageViews.resize(swapchainImages.size());
     for (size_t i = 0; i < swapchainImages.size(); i++) {
         vk::ImageViewCreateInfo createInfo;
@@ -105,13 +111,14 @@ bool VulkanSwapchain::createImageViews(const VulkanBase& vulkanBase) {
                                  vk::ComponentSwizzle::eIdentity,
                                  vk::ComponentSwizzle::eIdentity};
         createInfo.subresourceRange = {vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1};
-        const vk::ResultValue<vk::ImageView> imageViewRes = vulkanBase.device.createImageView(createInfo);
+        const vk::ResultValue<vk::ImageView> imageViewRes = vb.device.createImageView(createInfo);
         if (imageViewRes.result != vk::Result::eSuccess) { return false; }
         swapchainImageViews[i] = imageViewRes.value;
     }
     return true;
 }
-std::vector<vk::Framebuffer> VulkanSwapchain::createFramebuffers(const VulkanBase& vulkanBase,const VulkanRenderPass& renderPass) {
+std::vector<vk::Framebuffer> VulkanSwapchain::createFramebuffers(const VulkanRenderPass& renderPass) {
+    static VulkanBase& vb = VizunEngine::getVulkanBase();
     std::vector<vk::Framebuffer> framebuffers;
     framebuffers.resize(swapchainImageViews.size());
     for (size_t i = 0; i < swapchainImageViews.size(); i++) {
@@ -128,7 +135,7 @@ std::vector<vk::Framebuffer> VulkanSwapchain::createFramebuffers(const VulkanBas
         framebufferInfo.height = swapchainExtent.height;
         framebufferInfo.layers = 1;
 
-        const auto res = vulkanBase.device.createFramebuffer(framebufferInfo);
+        const auto res = vb.device.createFramebuffer(framebufferInfo);
         if(res.result != vk::Result::eSuccess) {
             return {};
         }
@@ -136,11 +143,12 @@ std::vector<vk::Framebuffer> VulkanSwapchain::createFramebuffers(const VulkanBas
     }
     return framebuffers;
 }
-void VulkanSwapchain::cleanup(const VulkanBase& vulkanBase) const {
+void VulkanSwapchain::cleanup() const {
+    static VulkanBase& vb = VizunEngine::getVulkanBase();
     for (auto imageView : swapchainImageViews) {
-        vulkanBase.device.destroyImageView(imageView);
+        vb.device.destroyImageView(imageView);
     }
-    vulkanBase.device.destroySwapchainKHR(swapchain);
+    vb.device.destroySwapchainKHR(swapchain);
 }
 vk::SurfaceFormatKHR VulkanSwapchain::chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats) const {
     for (auto availableFormat : availableFormats) {
@@ -152,7 +160,7 @@ vk::SurfaceFormatKHR VulkanSwapchain::chooseSwapSurfaceFormat(const std::vector<
     VZ_LOG_WARNING("No suitable format found returning the first one");
     return availableFormats[0];
 }
-vk::PresentModeKHR VulkanSwapchain::chooseSwapPresentMode(const VulkanConfig* vulkanConfig,
+vk::PresentModeKHR VulkanSwapchain::chooseSwapPresentMode(const VulkanRenderWindowConfig* vulkanConfig,
                                                           const std::vector<vk::PresentModeKHR>& availablePresentModes) const {
     if(vulkanConfig->vulkanSwapchainConfig.forcePresentMode) {
         VZ_LOG_INFO("Present mode was forced. This is not recommended and can lead to unexptected behaviour");
@@ -164,7 +172,7 @@ vk::PresentModeKHR VulkanSwapchain::chooseSwapPresentMode(const VulkanConfig* vu
     VZ_LOG_WARNING("No suitable present mode found returning fifo present mode");
     return vk::PresentModeKHR::eFifo;
 }
-vk::Extent2D VulkanSwapchain::chooseSwapExent(const vk::SurfaceCapabilitiesKHR& capabilities,
+vk::Extent2D VulkanSwapchain::chooseSwapExtent(const vk::SurfaceCapabilitiesKHR& capabilities,
                                                GLFWwindow* window) const {
     if(capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
         return capabilities.currentExtent;

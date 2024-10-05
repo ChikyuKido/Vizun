@@ -2,9 +2,10 @@
 #ifndef VULAKNGRAPHICSPIPELINEDESCRIPTOR_HPP
 #define VULAKNGRAPHICSPIPELINEDESCRIPTOR_HPP
 
+#include "VizunEngine.hpp"
 #include "VulkanBuffer.hpp"
-#include "config/VizunConfig.hpp"
 #include "VulkanImage.hpp"
+#include "config/VizunConfig.hpp"
 #include "utils/Logger.hpp"
 
 
@@ -17,8 +18,7 @@ public:
     VulkanGraphicsPipelineDescriptor(int binding,
                                      int count,
                                      vk::DescriptorType descriptorType,
-                                     const vk::ShaderStageFlags& stageFlag,
-                                     const VulkanBase* vulkanBase);
+                                     const vk::ShaderStageFlags& stageFlag);
     void setGraphicsPipeline(VulkanGraphicsPipeline* graphicsPipeline) {
         m_graphicsPipeline = graphicsPipeline;
     }
@@ -38,7 +38,6 @@ public:
 protected:
     int m_binding;
     int m_count;
-    const VulkanBase* m_vulkanBase;
     vk::DescriptorType m_descriptorType;
     vk::ShaderStageFlags m_stageFlag;
     VulkanGraphicsPipeline* m_graphicsPipeline;
@@ -46,20 +45,18 @@ protected:
 
 class VulkanGraphicsPipelineUniformBufferDescriptor : public VulkanGraphicsPipelineDescriptor {
 public:
-    VulkanGraphicsPipelineUniformBufferDescriptor(int binding,
-                                                  const vz::VulkanBase* vulkanBase);
+    VulkanGraphicsPipelineUniformBufferDescriptor(int binding);
     void updateUniformBuffer(const std::array<UniformBuffer,FRAMES_IN_FLIGHT>& uniformBuffer);
 };
 class VulkanGraphicsPipelineImageDescriptor : public VulkanGraphicsPipelineDescriptor {
 public:
-    VulkanGraphicsPipelineImageDescriptor(int binding,
-                                          const vz::VulkanBase* vulkanBase);
+    VulkanGraphicsPipelineImageDescriptor(int binding);
     void updateImage(const std::vector<VulkanImage*>& images);
 
     vz::VulkanImage* getEmptyImage() {
-        static vz::VulkanImageTexture vulkanImageTexture;
+        static VulkanImageTexture vulkanImageTexture;
         if(vulkanImageTexture.getImage() == nullptr) {
-            VZ_LOG_INFO(vulkanImageTexture.loadImageTexture(*m_vulkanBase,"rsc/texts/1x1.png"));
+            VZ_LOG_INFO(vulkanImageTexture.loadImageTexture("rsc/texts/1x1.png"));
         }
         return &vulkanImageTexture;
     }

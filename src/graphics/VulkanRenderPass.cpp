@@ -1,15 +1,19 @@
 
 #include "VulkanRenderPass.hpp"
 
+#include "RenderWindow.hpp"
 #include "VulkanSwapchain.hpp"
 #include "utils/Logger.hpp"
+
 namespace vz {
-void VulkanRenderPass::cleanup(const VulkanBase& vulkanBase) {
-    vulkanBase.device.destroyRenderPass(renderPass);
+void VulkanRenderPass::cleanup() {
+    static VulkanBase& vb = VizunEngine::getVulkanBase();
+    vb.device.destroyRenderPass(renderPass);
 }
-bool VulkanRenderPass::createRenderPass(const VulkanBase& vulkanBase, const VulkanRenderPassConfig& config) {
+bool VulkanRenderPass::createRenderPass(const VulkanRenderPassConfig& config, const RenderWindow* window) {
+    static VulkanBase& vb = VizunEngine::getVulkanBase();
     vk::AttachmentDescription attachmentDescription;
-    attachmentDescription.format = vulkanBase.vulkanSwapchain.swapchainFormat;
+    attachmentDescription.format = window->getSwapchain().swapchainFormat;
     attachmentDescription.samples = vk::SampleCountFlagBits::e1;
     attachmentDescription.loadOp = vk::AttachmentLoadOp::eClear;
     attachmentDescription.storeOp = vk::AttachmentStoreOp::eStore;
@@ -39,7 +43,7 @@ bool VulkanRenderPass::createRenderPass(const VulkanBase& vulkanBase, const Vulk
 
     createInfo.dependencyCount = 1;
     createInfo.pDependencies = &dependency;
-    VK_RESULT_ASSIGN(renderPass,vulkanBase.device.createRenderPass(createInfo));
+    VK_RESULT_ASSIGN(renderPass,vb.device.createRenderPass(createInfo));
     return true;
 }
 

@@ -1,29 +1,32 @@
 #include "VulkanBase.hpp"
 
 #include "VulkanSwapchain.hpp"
+#include "config/VulkanRenderWindowConfig.hpp"
 #include "utils/Logger.hpp"
-#include "utils/VulkanConfig.hpp"
 
 #include <map>
 #include <set>
 
 namespace vz {
-VulkanBase::VulkanBase(const VulkanConfig* vulkanConfig) : m_vulkanConfig(vulkanConfig) {}
-VulkanBase::VulkanBase() = default;
-bool VulkanBase::createVulkanBase(GLFWwindow* window) {
+VulkanBase::VulkanBase(const VulkanEngineConfig* vulkanConfig) : m_vulkanConfig(vulkanConfig) {}
+bool VulkanBase::createVulkanBase() {
     if (!createInstance()) {
         VZ_LOG_ERROR("Could not create vulkan instance");
         return false;
     }
-    if (!createSurface(window)) {
-        VZ_LOG_ERROR("Could not create surface");
-        return false;
+    return true;
+}
+bool VulkanBase::createLateVulkanBase(vk::SurfaceKHR& surface) {
+    if(m_wasLateInitialized) {
+        VZ_LOG_INFO("VulkanBase has already been late initialized");
+        return true;
     }
-    if (!pickPhyiscalDevice()) {
+
+    if (!pickPhysicalDevice(surface)) {
         VZ_LOG_ERROR("Failed to find a suitable physical device");
         return false;
     }
-    if (!createLogicalDevice()) {
+    if (!createLogicalDevice(surface)) {
         VZ_LOG_ERROR("Failed to create logical device");
         return false;
     }
@@ -32,14 +35,10 @@ bool VulkanBase::createVulkanBase(GLFWwindow* window) {
         return false;
     }
 
-    if (!vulkanSwapchain.createSwapchain(*this,window)) {
-        VZ_LOG_ERROR("Failed to create swapchain");
-        return false;
-    }
+    m_wasLateInitialized = true;
     return true;
 }
 void VulkanBase::cleanup() const {
-    vulkanSwapchain.cleanup(*this);
     device.destroyCommandPool(nonRenderingPool);
     device.destroy();
     instance.destroy();
@@ -61,7 +60,7 @@ bool VulkanBase::createInstance() {
 
     return vk::createInstance(&instanceInfo, nullptr, &instance) == vk::Result::eSuccess;
 }
-bool VulkanBase::pickPhyiscalDevice() {
+bool VulkanBase::pickPhysicalDevice(vk::SurfaceKHR& surface) {
     auto deviceResult = instance.enumeratePhysicalDevices();
     if (deviceResult.result != vk::Result::eSuccess) {
         VZ_LOG_ERROR("Failed to find physical devices");
@@ -74,7 +73,7 @@ bool VulkanBase::pickPhyiscalDevice() {
     }
     std::multimap<int, vk::PhysicalDevice> candidates;
     for (auto device : devices) {
-        if (!isDeviceSuitable(device)) {
+        if (!isDeviceSuitable(device,surface)) {
             VZ_LOG_INFO("GPU {} is not compatible", static_cast<char*>(device.getProperties().deviceName));
             continue;
         }
@@ -92,17 +91,8 @@ bool VulkanBase::pickPhyiscalDevice() {
     }
     return true;
 }
-bool VulkanBase::createSurface(GLFWwindow* window) {
-    VkSurfaceKHR tempSurface;
-    const VkResult res = glfwCreateWindowSurface(instance,window,nullptr,&tempSurface);
-    if(res != VK_SUCCESS) {
-        return false;
-    }
-    surface = tempSurface;
-    return true;
-}
-bool VulkanBase::createLogicalDevice() {
-    QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
+bool VulkanBase::createLogicalDevice(vk::SurfaceKHR& surface) {
+    QueueFamilyIndices indices = findQueueFamilies(physicalDevice,surface);
 
     std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
     std::set uniqueQueueFamilies = {indices.graphicsFamily.value(), indices.presentFamily.value()};
@@ -144,12 +134,6 @@ bool VulkanBase::createNonRenderingPool() {
     return true;
 }
 
-void VulkanBase::setVulkanConfig(const VulkanConfig* config) {
-    m_vulkanConfig = config;
-}
-const VulkanConfig* VulkanBase::getVulkanConfig() const {
-    return m_vulkanConfig;
-}
 int VulkanBase::rateDeviceSuitability(const vk::PhysicalDevice device) const {
     int score = 0;
     if (device.getProperties().deviceType == vk::PhysicalDeviceType::eDiscreteGpu) { score += 10000; }
@@ -157,8 +141,8 @@ int VulkanBase::rateDeviceSuitability(const vk::PhysicalDevice device) const {
     if (!device.getFeatures().geometryShader) { return 0; }
     return score;
 }
-bool VulkanBase::isDeviceSuitable(vk::PhysicalDevice device) const {
-    const QueueFamilyIndices familyIndices = findQueueFamilies(device);
+bool VulkanBase::isDeviceSuitable(vk::PhysicalDevice device,vk::SurfaceKHR& surface) const {
+    const QueueFamilyIndices familyIndices = findQueueFamilies(device,surface);
     const bool extensionsSupported = areDeviceExtensionsSupported(device);
     bool swapChainAdequate = false;
     if(extensionsSupported) {
@@ -174,6 +158,7 @@ bool VulkanBase::isDeviceSuitable(vk::PhysicalDevice device) const {
 }
 bool VulkanBase::areDeviceExtensionsSupported(vk::PhysicalDevice device) const {
     std::vector<vk::ExtensionProperties> extensions = device.enumerateDeviceExtensionProperties().value;
+
     std::set<std::string> requiredExtensions(m_vulkanConfig->deviceConfig.enableDeviceFeatures.begin(), m_vulkanConfig->deviceConfig.enableDeviceFeatures.end());
     for (const auto& extension : extensions) {
         requiredExtensions.erase(extension.extensionName);
@@ -181,7 +166,7 @@ bool VulkanBase::areDeviceExtensionsSupported(vk::PhysicalDevice device) const {
 
     return requiredExtensions.empty();
 }
-QueueFamilyIndices VulkanBase::findQueueFamilies(const vk::PhysicalDevice device) const {
+QueueFamilyIndices VulkanBase::findQueueFamilies(const vk::PhysicalDevice device, const vk::SurfaceKHR& surface) const {
     QueueFamilyIndices indices;
     int i = 0;
     for (const auto& queueFamily : device.getQueueFamilyProperties()) {
@@ -196,7 +181,6 @@ QueueFamilyIndices VulkanBase::findQueueFamilies(const vk::PhysicalDevice device
         }
         i++;
     }
-    VZ_LOG_INFO("Used indices {}",indices.graphicsFamily.value());
     return indices;
 }
 } // namespace vz

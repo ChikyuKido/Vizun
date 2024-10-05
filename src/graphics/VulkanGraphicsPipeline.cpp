@@ -3,24 +3,26 @@
 #include "VulkanGraphicsPipeline.hpp"
 
 #include "Vertex.hpp"
+#include "VizunEngine.hpp"
+#include "VulkanBase.hpp"
 #include "VulkanGraphicsPipelineDescriptor.hpp"
-#include "utils/Logger.hpp"
 #include "config/VizunConfig.hpp"
+#include "utils/Logger.hpp"
 
 #include <fstream>
 #include <iostream>
 
 namespace vz {
-void VulkanGraphicsPipeline::cleanup(const VulkanBase& vulkanBase) {
-    vulkanBase.device.destroyPipeline(pipeline);
-    vulkanBase.device.destroyPipelineLayout(pipelineLayout);
-    vulkanBase.device.destroyDescriptorSetLayout(m_descriptorSetLayout);
+void VulkanGraphicsPipeline::cleanup() {
+    static VulkanBase& vb = VizunEngine::getVulkanBase();
+    vb.device.destroyPipeline(pipeline);
+    vb.device.destroyPipelineLayout(pipelineLayout);
+    vb.device.destroyDescriptorSetLayout(m_descriptorSetLayout);
 }
-bool VulkanGraphicsPipeline::createGraphicsPipeline(const VulkanBase& vulkanBase,
-                                                    const VulkanRenderPass& vulkanRenderPass,
+bool VulkanGraphicsPipeline::createGraphicsPipeline(const VulkanRenderPass& vulkanRenderPass,
                                                     VulkanGraphicsPipelineConfig& pipelineConfig) {
-    m_vulkanBase = &vulkanBase;
-    RETURN_FALSE_WITH_LOG(!createDescriptors(vulkanBase,pipelineConfig),"Failed to create Descriptors")
+    static VulkanBase& vb = VizunEngine::getVulkanBase();
+    RETURN_FALSE_WITH_LOG(!createDescriptors(pipelineConfig),"Failed to create Descriptors")
     std::vector<char> vertShaderCode =  std::vector(pipelineConfig.vertShaderContent.begin(), pipelineConfig.vertShaderContent.end());
     std::vector<char> fragShaderCode =  std::vector(pipelineConfig.fragShaderContent.begin(), pipelineConfig.fragShaderContent.end());
     if(vertShaderCode.empty()) {
@@ -32,8 +34,8 @@ bool VulkanGraphicsPipeline::createGraphicsPipeline(const VulkanBase& vulkanBase
     RETURN_FALSE_WITH_LOG(vertShaderCode.empty(), "Failed to read vertex shader module");
     RETURN_FALSE_WITH_LOG(fragShaderCode.empty(), "Failed to read fragment shader module");
 
-    auto [vertShaderModule, success] = createShaderModule(vulkanBase, vertShaderCode);
-    auto [fragShaderModule, success2] = createShaderModule(vulkanBase, fragShaderCode);
+    auto [vertShaderModule, success] = createShaderModule(vertShaderCode);
+    auto [fragShaderModule, success2] = createShaderModule(fragShaderCode);
     RETURN_FALSE_WITH_LOG(!success, "Failed to create vertex shader module");
     RETURN_FALSE_WITH_LOG(!success2, "Failed to create fragment shader module");
 
@@ -123,7 +125,7 @@ bool VulkanGraphicsPipeline::createGraphicsPipeline(const VulkanBase& vulkanBase
     pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
 
 
-    VK_RESULT_ASSIGN(pipelineLayout, vulkanBase.device.createPipelineLayout(pipelineLayoutInfo))
+    VK_RESULT_ASSIGN(pipelineLayout, vb.device.createPipelineLayout(pipelineLayoutInfo))
 
     vk::GraphicsPipelineCreateInfo pipelineInfo;
     pipelineInfo.stageCount = 2;
@@ -141,18 +143,19 @@ bool VulkanGraphicsPipeline::createGraphicsPipeline(const VulkanBase& vulkanBase
     pipelineInfo.renderPass = vulkanRenderPass.renderPass;
     pipelineInfo.subpass = 0; //TODO: check the vulkanRenderPass for the amount of subpasses
 
-    VK_RESULT_ASSIGN(pipeline, vulkanBase.device.createGraphicsPipeline(nullptr, pipelineInfo))
+    VK_RESULT_ASSIGN(pipeline, vb.device.createGraphicsPipeline(nullptr, pipelineInfo))
 
-    vulkanBase.device.destroyShaderModule(vertShaderModule);
-    vulkanBase.device.destroyShaderModule(fragShaderModule);
+    vb.device.destroyShaderModule(vertShaderModule);
+    vb.device.destroyShaderModule(fragShaderModule);
     return true;
 }
 
 void VulkanGraphicsPipeline::updateDescriptor(std::vector<vk::WriteDescriptorSet>& writeDescSets) const {
+    static VulkanBase& vb = VizunEngine::getVulkanBase();
     for (int i = 0; i < writeDescSets.size(); ++i) {
         writeDescSets[i].dstSet = m_descriptorSets[i];
     }
-    m_vulkanBase->device.updateDescriptorSets(writeDescSets.size(), writeDescSets.data(), 0, nullptr);
+    vb.device.updateDescriptorSets(writeDescSets.size(), writeDescSets.data(), 0, nullptr);
 }
 void VulkanGraphicsPipeline::bindDescriptorSet(const vk::CommandBuffer& commandBuffer, uint32_t currentFrame) const {
     commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout,
@@ -162,7 +165,8 @@ void VulkanGraphicsPipeline::bindPipeline(const vk::CommandBuffer& commandBuffer
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
     bindDescriptorSet(commandBuffer, currentFrame);
 }
-bool VulkanGraphicsPipeline::createDescriptors(const VulkanBase& vulkanBase, VulkanGraphicsPipelineConfig& pipelineConfig) {
+bool VulkanGraphicsPipeline::createDescriptors(VulkanGraphicsPipelineConfig& pipelineConfig) {
+    static VulkanBase& vb = VizunEngine::getVulkanBase();
     std::vector<vk::DescriptorSetLayoutBinding> descriptorSetLayoutBindings;
     for (auto& descriptor : pipelineConfig.descriptors) {
         vk::DescriptorSetLayoutBinding binding;
@@ -177,7 +181,7 @@ bool VulkanGraphicsPipeline::createDescriptors(const VulkanBase& vulkanBase, Vul
     layoutInfo.bindingCount = static_cast<uint32_t>(descriptorSetLayoutBindings.size());
     layoutInfo.pBindings = descriptorSetLayoutBindings.data();
     layoutInfo.flags = vk::DescriptorSetLayoutCreateFlagBits::eUpdateAfterBindPool;
-    VK_RESULT_ASSIGN(m_descriptorSetLayout, vulkanBase.device.createDescriptorSetLayout(layoutInfo))
+    VK_RESULT_ASSIGN(m_descriptorSetLayout, vb.device.createDescriptorSetLayout(layoutInfo))
     
     std::array<vk::DescriptorPoolSize, 2> poolSizes{}; //TODO: change to the descriptor class
     poolSizes[0].type = vk::DescriptorType::eUniformBuffer;
@@ -191,15 +195,14 @@ bool VulkanGraphicsPipeline::createDescriptors(const VulkanBase& vulkanBase, Vul
     poolInfo.pPoolSizes = poolSizes.data();
     poolInfo.maxSets = FRAMES_IN_FLIGHT * poolSizes.size()*2+1;
 
-    VK_RESULT_ASSIGN(m_descriptorPool,vulkanBase.device.createDescriptorPool(poolInfo));
-
+    VK_RESULT_ASSIGN(m_descriptorPool,vb.device.createDescriptorPool(poolInfo));
     std::vector layouts(FRAMES_IN_FLIGHT,m_descriptorSetLayout);
     vk::DescriptorSetAllocateInfo allocInfo;
     allocInfo.descriptorPool = m_descriptorPool;
     allocInfo.descriptorSetCount = static_cast<uint32_t>(FRAMES_IN_FLIGHT);
     allocInfo.pSetLayouts = layouts.data();
     m_descriptorSets.resize(FRAMES_IN_FLIGHT);
-    VK_RESULT_ASSIGN(m_descriptorSets,vulkanBase.device.allocateDescriptorSets(allocInfo))
+    VK_RESULT_ASSIGN(m_descriptorSets,vb.device.allocateDescriptorSets(allocInfo))
     return true;
 }
 
@@ -216,11 +219,12 @@ std::vector<char> VulkanGraphicsPipeline::loadShaderContent(const std::string& p
 
     return buffer;
 }
-std::pair<vk::ShaderModule,bool> VulkanGraphicsPipeline::createShaderModule(const VulkanBase& vulkanBase, const std::vector<char>& buffer) const {
+std::pair<vk::ShaderModule,bool> VulkanGraphicsPipeline::createShaderModule(const std::vector<char>& buffer) const {
+    static VulkanBase& vb = VizunEngine::getVulkanBase();
     vk::ShaderModuleCreateInfo createInfo;
     createInfo.codeSize = buffer.size();
     createInfo.pCode = reinterpret_cast<const uint32_t*>(buffer.data());
-    vk::ResultValue<vk::ShaderModule> shaderModuleRes = vulkanBase.device.createShaderModule(createInfo);
+    vk::ResultValue<vk::ShaderModule> shaderModuleRes = vb.device.createShaderModule(createInfo);
     if(shaderModuleRes.result != vk::Result::eSuccess) {
         VZ_LOG_ERROR("Failed to create shader module. Error code: {}",static_cast<int>(shaderModuleRes.result));
         return {vk::ShaderModule(),false};

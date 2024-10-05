@@ -12,6 +12,15 @@
 #define FRAMES(type) \
     std::array<type,FRAMES_IN_FLIGHT>
 
+#ifndef VIZUN_ENABLE_ASSERT
+    #define VZ_ASSERT(condition, message) ((void)0)
+#else
+    #define VZ_ASSERT(condition, message) \
+    if (!(condition)) { \
+    const std::string errorMsg = std::string(__FILE__) + ":" + std::to_string(__LINE__) + " - " + message; \
+    VZ_LOG_CRITICAL(errorMsg);\
+    } \
 
+#endif
 
 #endif

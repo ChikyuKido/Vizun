@@ -1,7 +1,8 @@
 
 #include "VulkanUtils.hpp"
-#include "graphics/VulkanBase.hpp"
 #include "Logger.hpp"
+#include "VizunEngine.hpp"
+#include "graphics/VulkanBase.hpp"
 
 #include <cstring>
 
@@ -13,8 +14,9 @@ bool VulkanUtils::isLayerSupported(const char* layer) {
     }
     return false;
 }
-uint32_t VulkanUtils::findMemoryType(const VulkanBase& vulkanBase, uint32_t typeFilter, vk::MemoryPropertyFlags properties) {
-    vk::PhysicalDeviceMemoryProperties memProperties = vulkanBase.physicalDevice.getMemoryProperties();
+uint32_t VulkanUtils::findMemoryType( uint32_t typeFilter, vk::MemoryPropertyFlags properties) {
+    static VulkanBase& vb = VizunEngine::getVulkanBase();
+    vk::PhysicalDeviceMemoryProperties memProperties = vb.physicalDevice.getMemoryProperties();
     for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
         if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
             return i;
@@ -23,13 +25,14 @@ uint32_t VulkanUtils::findMemoryType(const VulkanBase& vulkanBase, uint32_t type
 
     VZ_LOG_CRITICAL("Failed to find suitable memory type!");
 }
-vk::CommandBuffer VulkanUtils::beginSingleTimeCommands(const VulkanBase& vulkanBase) {
+vk::CommandBuffer VulkanUtils::beginSingleTimeCommands() {
+    static VulkanBase& vb = VizunEngine::getVulkanBase();
     vk::CommandBufferAllocateInfo allocInfo;
     allocInfo.level = vk::CommandBufferLevel::ePrimary;
-    allocInfo.commandPool = vulkanBase.nonRenderingPool;
+    allocInfo.commandPool = vb.nonRenderingPool;
     allocInfo.commandBufferCount = 1;
 
-    auto valueRes = vulkanBase.device.allocateCommandBuffers(allocInfo);
+    auto valueRes = vb.device.allocateCommandBuffers(allocInfo);
     VKF(valueRes.result);
     vk::CommandBuffer commandBuffer = valueRes.value[0];
 
@@ -38,17 +41,18 @@ vk::CommandBuffer VulkanUtils::beginSingleTimeCommands(const VulkanBase& vulkanB
     VKF(commandBuffer.begin(beginInfo));
     return commandBuffer;
 }
-void VulkanUtils::endSingleTimeCommands(const VulkanBase& vulkanBase, const vk::CommandBuffer& commandBuffer) {
+void VulkanUtils::endSingleTimeCommands(const vk::CommandBuffer& commandBuffer) {
+    static VulkanBase& vb = VizunEngine::getVulkanBase();
     VKF(commandBuffer.end());
 
     vk::SubmitInfo submitInfo;
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &commandBuffer;
 
-    VKF(vulkanBase.graphicsQueue.queue.submit(1,&submitInfo,nullptr));
-    VKF(vulkanBase.graphicsQueue.queue.waitIdle());
+    VKF(vb.graphicsQueue.queue.submit(1,&submitInfo,nullptr));
+    VKF(vb.graphicsQueue.queue.waitIdle());
 
-    vulkanBase.device.freeCommandBuffers(vulkanBase.nonRenderingPool,1,&commandBuffer);
+    vb.device.freeCommandBuffers(vb.nonRenderingPool,1,&commandBuffer);
 }
 
 } // namespace vz

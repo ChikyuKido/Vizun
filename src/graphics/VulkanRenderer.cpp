@@ -2,17 +2,21 @@
 #include "VulkanRenderer.hpp"
 
 #include "RenderTarget.hpp"
+#include "RenderWindow.hpp"
+#include "VizunEngine.hpp"
 #include "VulkanBase.hpp"
+#include "VulkanSwapchain.hpp"
 #include "config/VizunConfig.hpp"
 #include "utils/Logger.hpp"
+
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 #include <map>
 
 namespace vz {
 
-VulkanRenderer::VulkanRenderer(VulkanRendererConfig& config, VulkanBase& vulkanBase, GLFWwindow* window)
-    : m_vulkanBase(vulkanBase),
+
+VulkanRenderer::VulkanRenderer(VulkanRendererConfig& config, RenderWindow* window) :
     m_window(window) {
     if (!createCommandPool()) {
         VZ_LOG_CRITICAL("Failed to create commandPool");
@@ -25,7 +29,7 @@ VulkanRenderer::VulkanRenderer(VulkanRendererConfig& config, VulkanBase& vulkanB
     }
     if(config.renderPass == nullptr) {
         m_renderPass = std::make_shared<VulkanRenderPass>();
-        if(!m_renderPass->createRenderPass(vulkanBase,VulkanRenderPassConfig())) {
+        if(!m_renderPass->createRenderPass(VulkanRenderPassConfig(),window)) {
             VZ_LOG_CRITICAL("Could not create render pass");
         }
     }else {
@@ -35,8 +39,6 @@ VulkanRenderer::VulkanRenderer(VulkanRendererConfig& config, VulkanBase& vulkanB
         VZ_LOG_CRITICAL("Failed to create framebuffers for renderer");
     }
 
-    m_ubDesc = VulkanGraphicsPipelineUniformBufferDescriptor(0,&vulkanBase);
-    m_imageDesc = VulkanGraphicsPipelineImageDescriptor(1,&vulkanBase);
     m_defaultGraphicsPipeline = std::make_shared<VulkanGraphicsPipeline>();
 
     VulkanGraphicsPipelineConfig defaultConf;
@@ -49,11 +51,11 @@ VulkanRenderer::VulkanRenderer(VulkanRendererConfig& config, VulkanBase& vulkanB
     defaultConf.fragShaderPath = "rsc/shaders/default_frag.spv";
     defaultConf.vertShaderPath = "rsc/shaders/default_vert.spv";
 
-    if(!m_defaultGraphicsPipeline->createGraphicsPipeline(vulkanBase,*m_renderPass,defaultConf)) {
+    if(!m_defaultGraphicsPipeline->createGraphicsPipeline(*m_renderPass,defaultConf)) {
         VZ_LOG_CRITICAL("Could not create graphics pipeline");
     }
-    for (int i = 0; i < m_uniformBuffers.size(); ++i) {
-        m_uniformBuffers[i].createBuffer(vulkanBase,sizeof(UniformBufferObject));
+    for (auto & m_uniformBuffer : m_uniformBuffers) {
+        m_uniformBuffer.createBuffer(sizeof(UniformBufferObject));
     }
     m_ubDesc.updateUniformBuffer(m_uniformBuffers);
 }
@@ -71,15 +73,16 @@ void updateUniformBufferTest(vz::UniformBuffer& ub) {
     ub.uploadData(&ubo);
 }
 void VulkanRenderer::begin() {
+    static VulkanBase& vb = VizunEngine::getVulkanBase();
     updateUniformBufferTest(m_uniformBuffers[m_currentFrame]);
-    VKF(m_vulkanBase.device.waitForFences(1, &m_inFlightFences[m_currentFrame], vk::True, UINT64_MAX));
+    VKF(vb.device.waitForFences(1, &m_inFlightFences[m_currentFrame], vk::True, UINT64_MAX));
 
-    const vk::ResultValue<uint32_t> imageIndexResult = m_vulkanBase.device.acquireNextImageKHR(m_vulkanBase.vulkanSwapchain.swapchain,
+    const vk::ResultValue<uint32_t> imageIndexResult = vb.device.acquireNextImageKHR(m_window->getSwapchain().swapchain,
                                             UINT64_MAX,
                                             m_imageAvailableSemaphores[m_currentFrame],
                                             nullptr);
     if(imageIndexResult.result == vk::Result::eErrorOutOfDateKHR) {
-        m_vulkanBase.vulkanSwapchain.recreateSwapchain(m_vulkanBase,*m_renderPass,m_window);
+        m_window->getSwapchain().recreateSwapchain(m_window);
         begin(); // call it again so that the begin is in a valid state.
         return;
     }
@@ -87,7 +90,7 @@ void VulkanRenderer::begin() {
         VZ_LOG_CRITICAL("Failed to acquire swap chain image!");
     }
     m_imageIndex = imageIndexResult.value;
-    VKF(m_vulkanBase.device.resetFences(1, &m_inFlightFences[m_currentFrame]));
+    VKF(vb.device.resetFences(1, &m_inFlightFences[m_currentFrame]));
     VKF(m_commandBuffers[m_currentFrame].reset());
     vk::CommandBufferBeginInfo beginInfo;
     VKF(m_commandBuffers[m_currentFrame].begin(beginInfo));
@@ -96,7 +99,7 @@ void VulkanRenderer::begin() {
     renderPassInfo.renderPass = m_renderPass->renderPass;
     renderPassInfo.framebuffer = m_framebuffers[m_imageIndex];
     renderPassInfo.renderArea.offset = vk::Offset2D{ 0, 0 };
-    renderPassInfo.renderArea.extent = m_vulkanBase.vulkanSwapchain.swapchainExtent;
+    renderPassInfo.renderArea.extent = m_window->getSwapchain().swapchainExtent;
     vk::ClearValue clearColor;
     clearColor.color = { 0.0f, 0.0f, 0.0f, 1.0f };
     renderPassInfo.clearValueCount = 1;
@@ -107,15 +110,15 @@ void VulkanRenderer::begin() {
     vk::Viewport viewport;
     viewport.x = 0.0f;
     viewport.y = 0.0f;
-    viewport.width = static_cast<float>(m_vulkanBase.vulkanSwapchain.swapchainExtent.width);
-    viewport.height = static_cast<float>(m_vulkanBase.vulkanSwapchain.swapchainExtent.height);
+    viewport.width = static_cast<float>(m_window->getSwapchain().swapchainExtent.width);
+    viewport.height = static_cast<float>(m_window->getSwapchain().swapchainExtent.height);
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
     m_commandBuffers[m_currentFrame].setViewport(0, 1, &viewport);
 
     vk::Rect2D scissor{};
     scissor.offset = vk::Offset2D{ 0, 0 };
-    scissor.extent = m_vulkanBase.vulkanSwapchain.swapchainExtent;
+    scissor.extent = m_window->getSwapchain().swapchainExtent;
     m_commandBuffers[m_currentFrame].setScissor(0, 1, &scissor);
     m_defaultGraphicsPipeline->bindPipeline(m_commandBuffers[m_currentFrame],m_currentFrame);
 
@@ -142,6 +145,7 @@ void VulkanRenderer::draw(RenderTarget& renderTarget, const std::shared_ptr<Vulk
     m_drawCalls[graphicsPipeline].push_back(&renderTarget);
 }
 void VulkanRenderer::end() {
+    static VulkanBase& vb = VizunEngine::getVulkanBase();
     for (auto& [pipeline,allCalls] : m_drawCalls) {
         std::map<int,std::vector<RenderTarget*>> renderTargetsPerCommoner;
         std::vector<RenderTarget*> renderTargetsUniqueCommoner;
@@ -177,20 +181,20 @@ void VulkanRenderer::end() {
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
 
-    VKF(m_vulkanBase.graphicsQueue.queue.submit(1, &submitInfo, m_inFlightFences[m_currentFrame]));
+    VKF(vb.graphicsQueue.queue.submit(1, &submitInfo, m_inFlightFences[m_currentFrame]));
 
     vk::PresentInfoKHR presentInfo;
     presentInfo.waitSemaphoreCount = 1;
     presentInfo.pWaitSemaphores = signalSemaphores;
-    vk::SwapchainKHR swapchains[] = { m_vulkanBase.vulkanSwapchain.swapchain };
+    vk::SwapchainKHR swapchains[] = { m_window->getSwapchain().swapchain };
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = swapchains;
     presentInfo.pImageIndices = &m_imageIndex;
 
-    vk::Result result = m_vulkanBase.presentQueue.queue.presentKHR(&presentInfo);
+    vk::Result result = vb.presentQueue.queue.presentKHR(&presentInfo);
     if(result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || m_framebufferResized) {
         m_framebufferResized = false;
-        m_vulkanBase.vulkanSwapchain.recreateSwapchain(m_vulkanBase,*m_renderPass,m_window);
+        m_window->getSwapchain().recreateSwapchain(m_window);
         return;
     }
     if(result != vk::Result::eSuccess) {
@@ -201,42 +205,45 @@ void VulkanRenderer::end() {
 }
 std::shared_ptr<VulkanGraphicsPipeline> VulkanRenderer::createGraphicsPipeline(VulkanGraphicsPipelineConfig& config) {
     auto pipeline = std::make_shared<VulkanGraphicsPipeline>();
-    pipeline->createGraphicsPipeline(m_vulkanBase,*m_renderPass,config);
+    pipeline->createGraphicsPipeline(*m_renderPass,config);
     m_graphicPipelines.push_back(pipeline);
     return pipeline;
 }
 bool VulkanRenderer::createCommandPool() {
+    static VulkanBase& vb = VizunEngine::getVulkanBase();
     vk::CommandPoolCreateInfo poolInfo;
     poolInfo.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
-    poolInfo.queueFamilyIndex = m_vulkanBase.graphicsQueue.queueFamilyIndex;
-    VK_RESULT_ASSIGN(m_commandPool, m_vulkanBase.device.createCommandPool(poolInfo));
+    poolInfo.queueFamilyIndex = vb.graphicsQueue.queueFamilyIndex;
+    VK_RESULT_ASSIGN(m_commandPool, vb.device.createCommandPool(poolInfo));
     return true;
 }
 bool VulkanRenderer::createCommandBuffer() {
+    static VulkanBase& vb = VizunEngine::getVulkanBase();
     vk::CommandBufferAllocateInfo allocInfo;
     allocInfo.commandPool = m_commandPool;
     allocInfo.level = vk::CommandBufferLevel::ePrimary;
     allocInfo.commandBufferCount = m_commandBuffers.size();
     std::vector<vk::CommandBuffer> buffers;
-    VK_RESULT_ASSIGN(buffers, m_vulkanBase.device.allocateCommandBuffers(allocInfo));
+    VK_RESULT_ASSIGN(buffers, vb.device.allocateCommandBuffers(allocInfo));
     for (int i = 0; i < buffers.size(); ++i) {
         m_commandBuffers[i] = buffers[i];
     }
     return true;
 }
 bool VulkanRenderer::createSyncObjects() {
+    static VulkanBase& vb = VizunEngine::getVulkanBase();
     vk::SemaphoreCreateInfo semaphoreInfo;
     vk::FenceCreateInfo fenceInfo;
     fenceInfo.flags = vk::FenceCreateFlagBits::eSignaled;
     for (size_t i = 0; i < FRAMES_IN_FLIGHT; i++) {
-        VK_RESULT_ASSIGN(m_renderFinishedSemaphores[i], m_vulkanBase.device.createSemaphore(semaphoreInfo));
-        VK_RESULT_ASSIGN(m_imageAvailableSemaphores[i], m_vulkanBase.device.createSemaphore(semaphoreInfo));
-        VK_RESULT_ASSIGN(m_inFlightFences[i], m_vulkanBase.device.createFence(fenceInfo));
+        VK_RESULT_ASSIGN(m_renderFinishedSemaphores[i], vb.device.createSemaphore(semaphoreInfo));
+        VK_RESULT_ASSIGN(m_imageAvailableSemaphores[i], vb.device.createSemaphore(semaphoreInfo));
+        VK_RESULT_ASSIGN(m_inFlightFences[i], vb.device.createFence(fenceInfo));
     }
     return true;
 }
 bool VulkanRenderer::createFrameBuffers() {
-    m_framebuffers = m_vulkanBase.vulkanSwapchain.createFramebuffers(m_vulkanBase,*m_renderPass);
+    m_framebuffers = m_window->getSwapchain().createFramebuffers(*m_renderPass);
     return !m_framebuffers.empty();
 }
 } // vz

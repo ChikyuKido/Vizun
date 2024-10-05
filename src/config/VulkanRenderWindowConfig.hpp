@@ -1,16 +1,12 @@
-
 #ifndef VULKANCONFIG_HPP
 #define VULKANCONFIG_HPP
-
-
-#include "graphics/VulkanGraphicsPipelineDescriptor.hpp"
 
 #include <cstdint>
 #include <vector>
 #include <vulkan/vulkan.hpp>
 
 namespace vz {
-
+class VulkanGraphicsPipelineDescriptor;
 class VulkanGraphicsPipeline;
 class VulkanRenderPass;
 struct VulkanInstanceConfig {
@@ -55,9 +51,11 @@ struct VulkanRenderPassConfig {
     std::vector<vk::AttachmentReference> colorAttachmentRefs;
     std::vector<vk::SubpassDependency> dependencies;
 };
-struct VulkanConfig {
+struct VulkanEngineConfig {
     VulkanInstanceConfig instanceConfig;
     VulkanDeviceConfig deviceConfig;
+};
+struct VulkanRenderWindowConfig {
     VulkanSwapchainConfig vulkanSwapchainConfig;
     VulkanRendererConfig vulkanRenderConfig;
 };

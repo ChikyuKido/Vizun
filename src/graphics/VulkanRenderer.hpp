@@ -1,8 +1,10 @@
 #ifndef VULKANRENDERER_HPP
 #define VULKANRENDERER_HPP
 
+#include "VizunEngine.hpp"
 #include "VulkanBase.hpp"
 #include "VulkanGraphicsPipeline.hpp"
+#include "VulkanGraphicsPipelineDescriptor.hpp"
 #include "config/VizunConfig.hpp"
 
 #include <memory>
@@ -11,6 +13,7 @@ namespace vz {
 class VulkanBase;
 struct VulkanRendererConfig;
 class RenderTarget;
+class RenderWindow;
 
 struct UniformBufferObject {
     glm::mat4 model;
@@ -20,7 +23,7 @@ struct UniformBufferObject {
 
 class VulkanRenderer {
 public:
-    VulkanRenderer(VulkanRendererConfig& config,VulkanBase& vulkanBase,GLFWwindow* window);
+    VulkanRenderer(VulkanRendererConfig& config,RenderWindow* window);
 
     void begin();
     void draw(RenderTarget& renderTarget);
@@ -43,12 +46,11 @@ public:
     }
     std::shared_ptr<VulkanGraphicsPipeline> createGraphicsPipeline(VulkanGraphicsPipelineConfig& config);
 private:
-    VulkanBase& m_vulkanBase;
-    GLFWwindow* m_window;
+    RenderWindow* m_window;
     std::vector<vk::Framebuffer> m_framebuffers;
     FRAMES(UniformBuffer) m_uniformBuffers;
-    VulkanGraphicsPipelineUniformBufferDescriptor m_ubDesc =VulkanGraphicsPipelineUniformBufferDescriptor(0, nullptr);
-    VulkanGraphicsPipelineImageDescriptor m_imageDesc = VulkanGraphicsPipelineImageDescriptor(1, nullptr);
+    VulkanGraphicsPipelineUniformBufferDescriptor m_ubDesc =VulkanGraphicsPipelineUniformBufferDescriptor(0);
+    VulkanGraphicsPipelineImageDescriptor m_imageDesc = VulkanGraphicsPipelineImageDescriptor(1);
     std::shared_ptr<VulkanGraphicsPipeline> m_defaultGraphicsPipeline;
     std::shared_ptr<VulkanRenderPass> m_renderPass;
     std::unordered_map<std::shared_ptr<VulkanGraphicsPipeline>,std::vector<RenderTarget*>> m_drawCalls;

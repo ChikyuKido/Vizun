@@ -12,7 +12,7 @@ namespace vz {
 
 class Image : public RenderTarget{
 public:
-    explicit Image(const VulkanBase& vulkanBase,std::string imagePath,float xDiff);
+    explicit Image(std::string imagePath,float xDiff);
     void draw(const vk::CommandBuffer& commandBuffer,
               const VulkanGraphicsPipeline& pipeline,
               uint32_t currentFrame) const override;

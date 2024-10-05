@@ -14,20 +14,17 @@ namespace vz {
 VulkanGraphicsPipelineDescriptor::VulkanGraphicsPipelineDescriptor(int binding,
                                                                    int count,
                                                                    vk::DescriptorType descriptorType,
-                                                                   const vk::ShaderStageFlags& stageFlag,
-                                                                   const vz::VulkanBase* vulkanBase) :
+                                                                   const vk::ShaderStageFlags& stageFlag) :
 m_graphicsPipeline(nullptr) {
     m_binding = binding;
     m_descriptorType = descriptorType;
     m_stageFlag = stageFlag;
     m_count = count;
-    m_vulkanBase = vulkanBase;
 }
 #pragma endregion
 #pragma region UniformDescriptor
-VulkanGraphicsPipelineUniformBufferDescriptor::VulkanGraphicsPipelineUniformBufferDescriptor(int binding,
-                                                                                             const vz::VulkanBase* vulkanBase)
-    : VulkanGraphicsPipelineDescriptor(binding,1,vk::DescriptorType::eUniformBuffer,vk::ShaderStageFlagBits::eVertex,vulkanBase) {}
+VulkanGraphicsPipelineUniformBufferDescriptor::VulkanGraphicsPipelineUniformBufferDescriptor(int binding)
+    : VulkanGraphicsPipelineDescriptor(binding,1,vk::DescriptorType::eUniformBuffer,vk::ShaderStageFlagBits::eVertex) {}
 void VulkanGraphicsPipelineUniformBufferDescriptor::updateUniformBuffer(const std::array<UniformBuffer,FRAMES_IN_FLIGHT>& uniformBuffer) {
     if(m_graphicsPipeline == nullptr) {
         VZ_LOG_CRITICAL("Uniform descriptor was not assigned to a graphics pipeline!");
@@ -53,8 +50,7 @@ void VulkanGraphicsPipelineUniformBufferDescriptor::updateUniformBuffer(const st
 #pragma endregion
 #pragma region ImageDescriptor
 VulkanGraphicsPipelineImageDescriptor::VulkanGraphicsPipelineImageDescriptor(
-    int binding,
-    const vz::VulkanBase* vulkanBase) : VulkanGraphicsPipelineDescriptor(binding,MAX_IMAGES_IN_SHADER,vk::DescriptorType::eCombinedImageSampler,vk::ShaderStageFlagBits::eFragment,vulkanBase) {}
+    int binding) : VulkanGraphicsPipelineDescriptor(binding,MAX_IMAGES_IN_SHADER,vk::DescriptorType::eCombinedImageSampler,vk::ShaderStageFlagBits::eFragment) {}
 void VulkanGraphicsPipelineImageDescriptor::updateImage(const std::vector<VulkanImage*>& images) {
     assert(MAX_IMAGES_IN_SHADER>images.size());
     if(m_graphicsPipeline == nullptr) {

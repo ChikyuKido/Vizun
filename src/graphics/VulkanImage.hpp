@@ -2,20 +2,15 @@
 #define TEXTURE_HPP
 #include <memory>
 #include <string>
+#include <vulkan/vulkan.hpp>
 
-namespace vk {
-class DeviceMemory;
-class Image;
-class Sampler;
-class ImageView;
-}
 namespace vz {
 class VulkanBuffer;
 class VulkanBase;
 class VulkanImage {
 public:
-    bool createImage(const VulkanBase& vulkanBase, uint32_t width,uint32_t height, vk::Format format, vk::ImageTiling tiling, vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties);
-    void cleanup(const VulkanBase& vulkanBase);
+    bool createImage(uint32_t width,uint32_t height, vk::Format format, vk::ImageTiling tiling, vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties);
+    void cleanup();
     [[nodiscard]] std::shared_ptr<vk::Image> getImage() const {
         return m_image;
     }
@@ -36,10 +31,10 @@ public:
     }
 
 protected:
-    void transitionImageLayout(const VulkanBase& vulkanBase, vk::Format format, vk::ImageLayout oldLayout,vk::ImageLayout newLayout);
-    void copyBufferToImage(const VulkanBase& vulkanBase);
-    bool createImageView(const VulkanBase& vulkanbase);
-    bool createTextureSampler(const VulkanBase& vulkanBase);
+    void transitionImageLayout(vk::Format format, vk::ImageLayout oldLayout,vk::ImageLayout newLayout);
+    void copyBufferToImage();
+    bool createImageView();
+    bool createTextureSampler();
     std::shared_ptr<vk::Image> m_image;
     std::shared_ptr<vk::ImageView> m_imageView;
     std::shared_ptr<vk::DeviceMemory> m_imageMemory;
@@ -50,7 +45,7 @@ protected:
 };
 class VulkanImageTexture : public VulkanImage {
 public:
-    bool loadImageTexture(const VulkanBase& vulkanBase, const std::string& path);
+    bool loadImageTexture(const std::string& path);
 };
 }
 

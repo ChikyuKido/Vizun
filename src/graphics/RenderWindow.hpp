@@ -2,36 +2,41 @@
 #define RENDERWINDOW_HPP
 
 #define GLFW_INCLUDE_VULKAN
-#include "VulkanBase.hpp"
 #include "VulkanRenderer.hpp"
-#include "utils/VulkanConfig.hpp"
+#include "config/VulkanRenderWindowConfig.hpp"
 
 #include <GLFW/glfw3.h>
 #include <memory>
 #include <string>
 
 namespace vz {
+class VulkanSwapchain;
 class Renderer;
 class RenderWindow {
 public:
     RenderWindow(int width, int height, std::string title);
-    RenderWindow(int width, int height, std::string title, VulkanConfig vulkanConfig);
+    RenderWindow(int width, int height, std::string title, VulkanRenderWindowConfig vulkanConfig);
     ~RenderWindow();
 
-    void draw();
-    void setResizable(const bool resizable);
+    void begin() const;
+    void draw(RenderTarget& renderTarget) const;
+    void draw(RenderTarget& renderTarget, const std::shared_ptr<VulkanGraphicsPipeline>& graphicsPipeline) const;
+    void end() const;
+    void setResizable(bool resizable);
     bool isResizeable() const;
     bool shouldWindowClose() const;
     GLFWwindow* getWindowHandle() const;
-    VulkanBase* getVulkanBase();
-    const std::shared_ptr<VulkanRenderer>& getRenderer();
+    VulkanSwapchain& getSwapchain() const;
+    const VulkanRenderer& getRenderer() const;
+    const VulkanRenderWindowConfig* getConfig() const;
+    const vk::SurfaceKHR& getSurface() const;
 
 private:
-    void initGLFW() const;
     void createWindow();
     void initVulkan();
     void destroyWindow();
     void recreateWindow();
+    bool createSurface();
 
     int m_width;
     int m_height;
@@ -39,9 +44,10 @@ private:
     bool m_resizable = true;
     GLFWwindow* m_windowHandle = nullptr;
 
-    VulkanConfig m_vulkanConfig;
-    VulkanBase m_vulkanBase;
-    std::shared_ptr<VulkanRenderer> m_renderer{nullptr};
+    vk::SurfaceKHR m_surface;
+    VulkanRenderWindowConfig m_vulkanConfig;
+    std::unique_ptr<VulkanSwapchain> m_vulkanSwapchain;
+    std::unique_ptr<VulkanRenderer> m_renderer;
 };
 
 

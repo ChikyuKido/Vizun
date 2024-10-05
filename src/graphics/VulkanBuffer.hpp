@@ -11,13 +11,13 @@ namespace vz {
 class VulkanBase;
 class VulkanBuffer {
 public:
-    bool createBuffer(const VulkanBase& vulkanBase,uint64_t size,vk::BufferUsageFlags usageFlagBits,vk::MemoryPropertyFlags memoryPropertyBits);
-    bool mapData(const VulkanBase& vulkanBase);
+    bool createBuffer(uint64_t size,vk::BufferUsageFlags usageFlagBits,vk::MemoryPropertyFlags memoryPropertyBits);
+    bool mapData();
     bool uploadData(const void* data);
-    bool unmapData(const VulkanBase& vulkanBase);
-    void uploadDataInstant(const VulkanBase& vulkanBase, const void* data);
-    bool copyBuffer(const VulkanBase& vulkanBase, const VulkanBuffer& srcBuffer);
-    void cleanup(const VulkanBase& vulkanBase) const;
+    bool unmapData();
+    void uploadDataInstant(const void* data);
+    bool copyBuffer(const VulkanBuffer& srcBuffer);
+    void cleanup() const;
     [[nodiscard]] const vk::Buffer& getBuffer() const;
     [[nodiscard]] const vk::DeviceMemory& getBufferMemory() const;
     [[nodiscard]] size_t getBufferSize() const;
@@ -33,24 +33,24 @@ protected:
 
 class VertexBuffer : public VulkanBuffer{
 public:
-    bool createBuffer(const VulkanBase& vulkanBase, const std::vector<Vertex>& vertices);
+    bool createBuffer(const std::vector<Vertex>& vertices);
 
 };
 class IndexBuffer : public VulkanBuffer {
 public:
-    bool createBuffer(const VulkanBase& vulkanBase, const std::vector<uint32_t>& indices);
-    bool createBuffer(const VulkanBase& vulkanBase, const std::vector<uint16_t>& indices);
+    bool createBuffer(const std::vector<uint32_t>& indices);
+    bool createBuffer(const std::vector<uint16_t>& indices);
     [[nodiscard]] size_t getIndicesCount() const;
     [[nodiscard]] vk::IndexType getIndexType() const;
 private:
     size_t m_indicesCount = 0;
     vk::IndexType m_indexType = vk::IndexType::eNoneKHR;
-    bool createBuffer(const VulkanBase& vulkanBase, size_t indicesSize,const void* indicesData,vk::IndexType type);
+    bool createBuffer( size_t indicesSize,const void* indicesData,vk::IndexType type);
 };
 class VertexIndexBuffer : public VulkanBuffer {
 public:
-    bool createBuffer(const VulkanBase& vulkanBase,const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices);
-    bool createBuffer(const VulkanBase& vulkanBase, const std::vector<Vertex>& vertices, const std::vector<uint16_t>& indices);
+    bool createBuffer(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices);
+    bool createBuffer(const std::vector<Vertex>& vertices, const std::vector<uint16_t>& indices);
     [[nodiscard]] size_t getVerticiesCount() const;
     [[nodiscard]] size_t getIndicesCount() const;
     [[nodiscard]] size_t getIndicesOffsetSize() const;
@@ -63,12 +63,12 @@ private:
 
     vk::IndexType m_indexType = vk::IndexType::eNoneKHR;
 
-    bool createBuffer(const VulkanBase& vulkanBase,const std::vector<Vertex>& vertices,size_t indicesSize,
+    bool createBuffer(const std::vector<Vertex>& vertices,size_t indicesSize,
                       const void* indicesData,vk::IndexType type);
 };
 class UniformBuffer : public VulkanBuffer {
 public:
-    bool createBuffer(const VulkanBase& vulkanBase,size_t size);
+    bool createBuffer(size_t size);
 };
 }
 

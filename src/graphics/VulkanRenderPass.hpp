@@ -1,15 +1,17 @@
 #ifndef VULKANRENDERPASS_HPP
 #define VULKANRENDERPASS_HPP
 
-#include "VulkanBase.hpp"
+#include <vulkan/vulkan.hpp>
 
 namespace vz {
+struct VulkanRenderPassConfig;
+class RenderWindow;
 class VulkanRenderPass {
 public:
     vk::RenderPass renderPass;
 
-    void cleanup(const VulkanBase& vulkanBase);
-    bool createRenderPass(const VulkanBase& vulkanBase,const VulkanRenderPassConfig& config);
+    void cleanup();
+    bool createRenderPass(const VulkanRenderPassConfig& config, const RenderWindow* window);
 private:
 };
 }
