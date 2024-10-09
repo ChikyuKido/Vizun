@@ -8,6 +8,7 @@
 #include "config/VizunConfig.hpp"
 
 #include <memory>
+#include <typeindex>
 
 namespace vz {
 class VulkanBase;
@@ -21,14 +22,16 @@ struct UniformBufferObject {
     glm::mat4 proj;
 };
 
+using RenderTargetMap = std::unordered_map<std::type_index, std::vector<RenderTarget*>>;
+
 class VulkanRenderer {
 public:
     VulkanRenderer(VulkanRendererConfig& config,RenderWindow* window);
 
-    void begin();
+
     void draw(RenderTarget& renderTarget);
     void draw(RenderTarget& renderTarget, const std::shared_ptr<VulkanGraphicsPipeline>& graphicsPipeline);
-    void end();
+    void display();
     uint32_t getCurrentFrame() const {
         return m_currentFrame;
     }
@@ -53,7 +56,7 @@ private:
     VulkanGraphicsPipelineImageDescriptor m_imageDesc = VulkanGraphicsPipelineImageDescriptor(1);
     std::shared_ptr<VulkanGraphicsPipeline> m_defaultGraphicsPipeline;
     std::shared_ptr<VulkanRenderPass> m_renderPass;
-    std::unordered_map<std::shared_ptr<VulkanGraphicsPipeline>,std::vector<RenderTarget*>> m_drawCalls;
+    std::unordered_map<std::shared_ptr<VulkanGraphicsPipeline>, RenderTargetMap> m_drawCalls;
     std::vector<std::shared_ptr<VulkanGraphicsPipeline>> m_graphicPipelines;
     vk::CommandPool m_commandPool;
     FRAMES(vk::CommandBuffer) m_commandBuffers;
@@ -63,6 +66,9 @@ private:
     uint32_t m_currentFrame = 0;
     uint32_t m_imageIndex = 0;
     bool m_framebufferResized = false;
+
+    void begin();
+    void end();
 
     bool createCommandPool();
     bool createCommandBuffer();

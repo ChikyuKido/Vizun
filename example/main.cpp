@@ -28,11 +28,10 @@ int main() {
     auto next_time_point = std::chrono::steady_clock::now() + std::chrono::seconds(1);
     while(!renderWindow.shouldWindowClose()) {
         glfwPollEvents();
-        renderWindow.begin();
         renderWindow.draw(img);
         renderWindow.draw(img2);
         renderWindow.draw(img3);
-        renderWindow.end();
+        renderWindow.display();
         frames++;
         if (std::chrono::steady_clock::now() >= next_time_point) {
             std::cout << "FPS:" << frames << std::endl;

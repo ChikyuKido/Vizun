@@ -155,7 +155,6 @@ bool VulkanImage::createTextureSampler() {
 #pragma endregion
 #pragma region VulkanImageTexture
 bool VulkanImageTexture::loadImageTexture(const std::string& path) {
-    static VulkanBase& vb = VizunEngine::getVulkanBase();
     int texWidth, texHeight, texChannels;
     stbi_uc* pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
     const vk::DeviceSize imageSize = texWidth * texHeight * 4;

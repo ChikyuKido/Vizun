@@ -30,9 +30,6 @@ RenderWindow::~RenderWindow() {
     vb.device.waitIdle();
     m_vulkanSwapchain->cleanup();
 }
-void RenderWindow::begin() const {
-    m_renderer->begin();
-}
 void RenderWindow::draw(RenderTarget& renderTarget) const {
     m_renderer->draw(renderTarget);
 }
@@ -40,9 +37,6 @@ void RenderWindow::draw(RenderTarget& renderTarget) const {
 
 void RenderWindow::draw(RenderTarget& renderTarget, const std::shared_ptr<VulkanGraphicsPipeline>& graphicsPipeline) const {
     m_renderer->draw(renderTarget, graphicsPipeline);
-}
-void RenderWindow::end() const {
-    m_renderer->end();
 }
 void RenderWindow::setResizable(const bool resizable) {
     if (m_resizable != resizable) {
@@ -72,6 +66,10 @@ const VulkanRenderWindowConfig* RenderWindow::getConfig() const {
 }
 const vk::SurfaceKHR& RenderWindow::getSurface() const {
     return m_surface;
+}
+
+void RenderWindow::display() const {
+    m_renderer->display();
 }
 
 void RenderWindow::createWindow() {

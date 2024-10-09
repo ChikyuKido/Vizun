@@ -77,6 +77,7 @@ void VulkanRenderer::begin() {
     updateUniformBufferTest(m_uniformBuffers[m_currentFrame]);
 
     VKF(vb.device.waitForFences(1, &m_inFlightFences[m_currentFrame], vk::True, UINT64_MAX));
+    VKF(vb.device.resetFences(1, &m_inFlightFences[m_currentFrame]));
     VKF(m_commandBuffers[m_currentFrame].reset());
     const vk::ResultValue<uint32_t> imageIndexResult = vb.device.acquireNextImageKHR(m_window->getSwapchain().swapchain,
                                             UINT64_MAX,
@@ -92,7 +93,6 @@ void VulkanRenderer::begin() {
         VZ_LOG_CRITICAL("Failed to acquire swap chain image!");
     }
     m_imageIndex = imageIndexResult.value;
-    VKF(vb.device.resetFences(1, &m_inFlightFences[m_currentFrame]));
     vk::CommandBufferBeginInfo beginInfo;
     VKF(m_commandBuffers[m_currentFrame].begin(beginInfo));
 
@@ -121,8 +121,6 @@ void VulkanRenderer::begin() {
     scissor.offset = vk::Offset2D{ 0, 0 };
     scissor.extent = m_window->getSwapchain().swapchainExtent;
     m_commandBuffers[m_currentFrame].setScissor(0, 1, &scissor);
-    m_defaultGraphicsPipeline->bindPipeline(m_commandBuffers[m_currentFrame],m_currentFrame);
-
 }
 void VulkanRenderer::draw(RenderTarget& renderTarget) {
     draw(renderTarget,m_defaultGraphicsPipeline);
@@ -140,33 +138,18 @@ void VulkanRenderer::draw(RenderTarget& renderTarget, const std::shared_ptr<Vulk
             return;
         }
     }
-    if(!m_drawCalls.contains(graphicsPipeline)) {
-        m_drawCalls[graphicsPipeline] = std::vector<RenderTarget*>();
+    if (!m_drawCalls.contains(graphicsPipeline)) {
+        m_drawCalls[graphicsPipeline] = RenderTargetMap();
     }
-    m_drawCalls[graphicsPipeline].push_back(&renderTarget);
+    const auto typeIndex = std::type_index(typeid(renderTarget));
+    if (!m_drawCalls[graphicsPipeline].contains(typeIndex)) {
+        m_drawCalls[graphicsPipeline][typeIndex] = std::vector<RenderTarget*>();
+    }
+    m_drawCalls[graphicsPipeline][typeIndex].push_back(&renderTarget);
+
 }
 void VulkanRenderer::end() {
     static VulkanBase& vb = VizunEngine::getVulkanBase();
-    for (auto& [pipeline,allCalls] : m_drawCalls) {
-        std::map<int,std::vector<RenderTarget*>> renderTargetsPerCommoner;
-        std::vector<RenderTarget*> renderTargetsUniqueCommoner;
-        for (auto* call : allCalls) {
-            if(!renderTargetsPerCommoner.contains(call->getCommoner())) {
-                renderTargetsPerCommoner[call->getCommoner()] = std::vector<RenderTarget*>();
-                renderTargetsUniqueCommoner.push_back(call);
-            }
-            renderTargetsPerCommoner[call->getCommoner()].push_back(call);
-        }
-        pipeline->bindPipeline(m_commandBuffers[m_currentFrame],m_currentFrame);
-        renderTargetsUniqueCommoner[0]->prepareCommoner(*this,renderTargetsUniqueCommoner,*pipeline);
-        for (auto [commoner,calls] : renderTargetsPerCommoner) {
-            calls[0]->useCommoner(*this,*pipeline);
-            for (auto *call : calls) {
-                call->draw(m_commandBuffers[m_currentFrame],*pipeline,m_currentFrame);
-            }
-        }
-        allCalls.clear();
-    }
 
     m_commandBuffers[m_currentFrame].endRenderPass();
     VKF(m_commandBuffers[m_currentFrame].end());
@@ -205,6 +188,44 @@ void VulkanRenderer::end() {
 
     m_currentFrame = (m_currentFrame + 1) % FRAMES_IN_FLIGHT;
 }
+
+void VulkanRenderer::display() {
+    std::unordered_map<std::shared_ptr<VulkanGraphicsPipeline>,std::unordered_map<std::type_index,std::unordered_map<int,std::vector<RenderTarget*>>>> renderTargetsPerPipelinePerIndexPerCommoner;
+    for (auto& [pipeline,renderMaps] : m_drawCalls) {
+        for (const auto& [typeIndex,allCalls] : renderMaps) {
+            auto& renderTargetsPerCommoner = renderTargetsPerPipelinePerIndexPerCommoner[pipeline][typeIndex];
+            auto currentUniqueRenderTargetsPerCommoner = std::vector<RenderTarget*>();
+
+            for (auto* call : allCalls) {
+                if (!renderTargetsPerCommoner.contains(call->getCommoner())) {
+                    renderTargetsPerCommoner[call->getCommoner()] = std::vector<RenderTarget*>();
+                    currentUniqueRenderTargetsPerCommoner.push_back(call);
+                }
+                renderTargetsPerCommoner[call->getCommoner()].push_back(call);
+            }
+
+            if (!currentUniqueRenderTargetsPerCommoner.empty()) {
+                currentUniqueRenderTargetsPerCommoner[0]->prepareCommoner(*this, currentUniqueRenderTargetsPerCommoner, *pipeline);
+            }
+        }
+    }
+    begin();
+    for (const auto& [pipeline,renderTargetsPerIndexPerCommoner] : renderTargetsPerPipelinePerIndexPerCommoner) {
+        pipeline->bindPipeline(getCurrentCmdBuffer(),m_currentFrame);
+        for (const auto& [_,renderTargetsPerCommoner] : renderTargetsPerIndexPerCommoner) {
+            for (auto [commoner,calls] : renderTargetsPerCommoner) {
+                calls[0]->useCommoner(*this,*pipeline);
+                for (const auto *call : calls) {
+                    call->draw(m_commandBuffers[m_currentFrame],*pipeline,m_currentFrame);
+                }
+            }
+        }
+    }
+    m_drawCalls.clear();
+    end();
+
+}
+
 std::shared_ptr<VulkanGraphicsPipeline> VulkanRenderer::createGraphicsPipeline(VulkanGraphicsPipelineConfig& config) {
     auto pipeline = std::make_shared<VulkanGraphicsPipeline>();
     pipeline->createGraphicsPipeline(*m_renderPass,config);

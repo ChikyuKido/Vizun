@@ -18,10 +18,9 @@ public:
     RenderWindow(int width, int height, std::string title, VulkanRenderWindowConfig vulkanConfig);
     ~RenderWindow();
 
-    void begin() const;
+
     void draw(RenderTarget& renderTarget) const;
     void draw(RenderTarget& renderTarget, const std::shared_ptr<VulkanGraphicsPipeline>& graphicsPipeline) const;
-    void end() const;
     void setResizable(bool resizable);
     bool isResizeable() const;
     bool shouldWindowClose() const;
@@ -30,6 +29,7 @@ public:
     const VulkanRenderer& getRenderer() const;
     const VulkanRenderWindowConfig* getConfig() const;
     const vk::SurfaceKHR& getSurface() const;
+    void display() const;
 
 private:
     void createWindow();

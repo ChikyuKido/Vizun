@@ -155,7 +155,6 @@ void VulkanGraphicsPipeline::updateDescriptor(std::vector<vk::WriteDescriptorSet
     for (int i = 0; i < writeDescSets.size(); ++i) {
         writeDescSets[i].dstSet = m_descriptorSets[i];
     }
-    vb.device.waitIdle();
     vb.device.updateDescriptorSets(writeDescSets.size(), writeDescSets.data(), 0, nullptr);
 }
 void VulkanGraphicsPipeline::bindDescriptorSet(const vk::CommandBuffer& commandBuffer, uint32_t currentFrame) const {
