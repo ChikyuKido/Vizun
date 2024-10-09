@@ -117,7 +117,7 @@ bool VulkanSwapchain::createImageViews() {
     }
     return true;
 }
-std::vector<vk::Framebuffer> VulkanSwapchain::createFramebuffers(const VulkanRenderPass& renderPass) {
+std::vector<vk::Framebuffer> VulkanSwapchain::createFramebuffers(const VulkanRenderPass& renderPass) const {
     static VulkanBase& vb = VizunEngine::getVulkanBase();
     std::vector<vk::Framebuffer> framebuffers;
     framebuffers.resize(swapchainImageViews.size());

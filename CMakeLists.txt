@@ -16,7 +16,7 @@ set(VIZUN_BUILD_EXAMPLES ON)
 set(VIZUN_ENABLE_VALIDATION_LAYER ON)
 set(VIZUN_ENABLE_ASSERT ON)
 
-set(SPDLOG_FMT_EXTERNAL ON)
+
 find_package(Vulkan REQUIRED)
 
 include_directories(src)
@@ -24,8 +24,9 @@ include_directories(lib/stb_image)
 include_directories(lib/glm)
 include_directories(${Vulkan_INCLUDE_DIR})
 
+set(SPDLOG_FMT_EXTERNAL OFF)
 add_subdirectory(lib/spdlog)
-add_subdirectory(lib/glfw)
+
 set(BUILD_SHARED_LIBS OFF)
 set(GLFW_BUILD_EXAMPLES OFF)
 set(GLFW_BUILD_TESTS OFF)
@@ -33,7 +34,7 @@ set(GLFW_BUILD_DOCS OFF)
 set(GLFW_INSTALL OFF)
 set(GLFW_BUILD_X11 ON)
 set(GLFW_BUILD_WAYLAND OFF)
-
+add_subdirectory(lib/glfw)
 
 set(SOURCE_FILES
         src/graphics/RenderWindow.cpp

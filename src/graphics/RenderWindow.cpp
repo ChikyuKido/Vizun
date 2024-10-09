@@ -26,6 +26,8 @@ RenderWindow::RenderWindow(int width, int height, std::string title, VulkanRende
 RenderWindow::~RenderWindow() {
     destroyWindow();
     glfwTerminate();
+    static VulkanBase& vb = VizunEngine::getVulkanBase();
+    vb.device.waitIdle();
     m_vulkanSwapchain->cleanup();
 }
 void RenderWindow::begin() const {

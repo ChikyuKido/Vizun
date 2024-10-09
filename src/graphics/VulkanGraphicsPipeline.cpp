@@ -155,6 +155,7 @@ void VulkanGraphicsPipeline::updateDescriptor(std::vector<vk::WriteDescriptorSet
     for (int i = 0; i < writeDescSets.size(); ++i) {
         writeDescSets[i].dstSet = m_descriptorSets[i];
     }
+    vb.device.waitIdle();
     vb.device.updateDescriptorSets(writeDescSets.size(), writeDescSets.data(), 0, nullptr);
 }
 void VulkanGraphicsPipeline::bindDescriptorSet(const vk::CommandBuffer& commandBuffer, uint32_t currentFrame) const {
@@ -180,7 +181,7 @@ bool VulkanGraphicsPipeline::createDescriptors(VulkanGraphicsPipelineConfig& pip
     vk::DescriptorSetLayoutCreateInfo layoutInfo;
     layoutInfo.bindingCount = static_cast<uint32_t>(descriptorSetLayoutBindings.size());
     layoutInfo.pBindings = descriptorSetLayoutBindings.data();
-    layoutInfo.flags = vk::DescriptorSetLayoutCreateFlagBits::eUpdateAfterBindPool;
+    // layoutInfo.flags = vk::DescriptorSetLayoutCreateFlagBits::eUpdateAfterBindPool;
     VK_RESULT_ASSIGN(m_descriptorSetLayout, vb.device.createDescriptorSetLayout(layoutInfo))
     
     std::array<vk::DescriptorPoolSize, 2> poolSizes{}; //TODO: change to the descriptor class

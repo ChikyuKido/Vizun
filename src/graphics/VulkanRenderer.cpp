@@ -75,14 +75,16 @@ void updateUniformBufferTest(vz::UniformBuffer& ub) {
 void VulkanRenderer::begin() {
     static VulkanBase& vb = VizunEngine::getVulkanBase();
     updateUniformBufferTest(m_uniformBuffers[m_currentFrame]);
-    VKF(vb.device.waitForFences(1, &m_inFlightFences[m_currentFrame], vk::True, UINT64_MAX));
 
+    VKF(vb.device.waitForFences(1, &m_inFlightFences[m_currentFrame], vk::True, UINT64_MAX));
+    VKF(m_commandBuffers[m_currentFrame].reset());
     const vk::ResultValue<uint32_t> imageIndexResult = vb.device.acquireNextImageKHR(m_window->getSwapchain().swapchain,
                                             UINT64_MAX,
                                             m_imageAvailableSemaphores[m_currentFrame],
                                             nullptr);
     if(imageIndexResult.result == vk::Result::eErrorOutOfDateKHR) {
         m_window->getSwapchain().recreateSwapchain(m_window);
+        createFrameBuffers();
         begin(); // call it again so that the begin is in a valid state.
         return;
     }
@@ -91,7 +93,6 @@ void VulkanRenderer::begin() {
     }
     m_imageIndex = imageIndexResult.value;
     VKF(vb.device.resetFences(1, &m_inFlightFences[m_currentFrame]));
-    VKF(m_commandBuffers[m_currentFrame].reset());
     vk::CommandBufferBeginInfo beginInfo;
     VKF(m_commandBuffers[m_currentFrame].begin(beginInfo));
 
@@ -195,6 +196,7 @@ void VulkanRenderer::end() {
     if(result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || m_framebufferResized) {
         m_framebufferResized = false;
         m_window->getSwapchain().recreateSwapchain(m_window);
+        createFrameBuffers();
         return;
     }
     if(result != vk::Result::eSuccess) {

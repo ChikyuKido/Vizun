@@ -29,7 +29,7 @@ public:
 
     bool createSwapchain(RenderWindow* window);
     bool recreateSwapchain(RenderWindow* window);
-    std::vector<vk::Framebuffer> createFramebuffers(const VulkanRenderPass& renderPass);
+    std::vector<vk::Framebuffer> createFramebuffers(const VulkanRenderPass& renderPass) const;
     void cleanup() const;
 private:
     vk::SurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats) const;
