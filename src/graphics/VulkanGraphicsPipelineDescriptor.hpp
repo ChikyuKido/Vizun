@@ -46,12 +46,12 @@ protected:
 class VulkanGraphicsPipelineUniformBufferDescriptor : public VulkanGraphicsPipelineDescriptor {
 public:
     VulkanGraphicsPipelineUniformBufferDescriptor(int binding);
-    void updateUniformBuffer(const std::array<UniformBuffer,FRAMES_IN_FLIGHT>& uniformBuffer);
+    void updateUniformBuffer(const std::array<UniformBuffer,FRAMES_IN_FLIGHT>& uniformBuffer,int currentFrame) const;
 };
 class VulkanGraphicsPipelineImageDescriptor : public VulkanGraphicsPipelineDescriptor {
 public:
     VulkanGraphicsPipelineImageDescriptor(int binding);
-    void updateImage(const std::vector<VulkanImage*>& images);
+    void updateImage(const std::vector<VulkanImage*>& images,int currentFrame);
 
     vz::VulkanImage* getEmptyImage() {
         static VulkanImageTexture vulkanImageTexture;
@@ -61,7 +61,13 @@ public:
         return &vulkanImageTexture;
     }
 };
+class VulkanGraphicsPipelineStorageBufferDescriptor : public VulkanGraphicsPipelineDescriptor {
+public:
+    VulkanGraphicsPipelineStorageBufferDescriptor(int binding);
+    void updateStorageBuffer(const std::vector<VulkanImage*>& images,int currentFrame);
+private:
 
+};
 }
 
 

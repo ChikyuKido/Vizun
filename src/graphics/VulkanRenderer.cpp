@@ -57,7 +57,6 @@ VulkanRenderer::VulkanRenderer(VulkanRendererConfig& config, RenderWindow* windo
     for (auto & m_uniformBuffer : m_uniformBuffers) {
         m_uniformBuffer.createBuffer(sizeof(UniformBufferObject));
     }
-    m_ubDesc.updateUniformBuffer(m_uniformBuffers);
 }
 void updateUniformBufferTest(vz::UniformBuffer& ub) {
     static auto startTime = std::chrono::high_resolution_clock::now();
@@ -75,6 +74,7 @@ void updateUniformBufferTest(vz::UniformBuffer& ub) {
 void VulkanRenderer::begin() {
     static VulkanBase& vb = VizunEngine::getVulkanBase();
     updateUniformBufferTest(m_uniformBuffers[m_currentFrame]);
+
 
     VKF(vb.device.waitForFences(1, &m_inFlightFences[m_currentFrame], vk::True, UINT64_MAX));
     VKF(vb.device.resetFences(1, &m_inFlightFences[m_currentFrame]));
@@ -182,6 +182,7 @@ void VulkanRenderer::end() {
         createFrameBuffers();
         return;
     }
+
     if(result != vk::Result::eSuccess) {
         VZ_LOG_CRITICAL("Failed to present swap chain image!");
     }
@@ -209,6 +210,7 @@ void VulkanRenderer::display() {
             }
         }
     }
+    m_ubDesc.updateUniformBuffer(m_uniformBuffers,m_currentFrame);
     begin();
     for (const auto& [pipeline,renderTargetsPerIndexPerCommoner] : renderTargetsPerPipelinePerIndexPerCommoner) {
         pipeline->bindPipeline(getCurrentCmdBuffer(),m_currentFrame);

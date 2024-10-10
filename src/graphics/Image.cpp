@@ -45,7 +45,7 @@ void Image::prepareCommoner(VulkanRenderer& renderer,
         images.push_back(&imgRenderTarget->m_vulkanImage);
         imgRenderTarget->m_commonerUseId = id++;
     }
-    renderer.getImgDesc().updateImage(images);
+    renderer.getImgDesc().updateImage(images,renderer.getCurrentFrame());
 }
 int Image::getMaxCommoners() {
     return MAX_IMAGES_IN_SHADER;

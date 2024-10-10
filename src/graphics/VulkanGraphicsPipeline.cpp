@@ -150,10 +150,10 @@ bool VulkanGraphicsPipeline::createGraphicsPipeline(const VulkanRenderPass& vulk
     return true;
 }
 
-void VulkanGraphicsPipeline::updateDescriptor(std::vector<vk::WriteDescriptorSet>& writeDescSets) const {
+void VulkanGraphicsPipeline::updateDescriptor(std::vector<vk::WriteDescriptorSet>& writeDescSets,int currentFrame) const {
     static VulkanBase& vb = VizunEngine::getVulkanBase();
     for (int i = 0; i < writeDescSets.size(); ++i) {
-        writeDescSets[i].dstSet = m_descriptorSets[i];
+        writeDescSets[i].dstSet = m_descriptorSets[currentFrame];
     }
     vb.device.updateDescriptorSets(writeDescSets.size(), writeDescSets.data(), 0, nullptr);
 }
@@ -180,14 +180,14 @@ bool VulkanGraphicsPipeline::createDescriptors(VulkanGraphicsPipelineConfig& pip
     vk::DescriptorSetLayoutCreateInfo layoutInfo;
     layoutInfo.bindingCount = static_cast<uint32_t>(descriptorSetLayoutBindings.size());
     layoutInfo.pBindings = descriptorSetLayoutBindings.data();
-    // layoutInfo.flags = vk::DescriptorSetLayoutCreateFlagBits::eUpdateAfterBindPool;
     VK_RESULT_ASSIGN(m_descriptorSetLayout, vb.device.createDescriptorSetLayout(layoutInfo))
     
-    std::array<vk::DescriptorPoolSize, 2> poolSizes{}; //TODO: change to the descriptor class
-    poolSizes[0].type = vk::DescriptorType::eUniformBuffer;
-    poolSizes[0].descriptorCount = static_cast<uint32_t>(FRAMES_IN_FLIGHT);
-    poolSizes[1].type = vk::DescriptorType::eCombinedImageSampler;
-    poolSizes[1].descriptorCount = static_cast<uint32_t>(FRAMES_IN_FLIGHT);
+    std::vector<vk::DescriptorPoolSize> poolSizes{}; //TODO: change to the descriptor class
+    poolSizes.resize(pipelineConfig.descriptors.size());
+    for (int i = 0; i < poolSizes.size(); ++i) {
+        poolSizes[i].type = pipelineConfig.descriptors[i]->getDescriptorType();
+        poolSizes[i].descriptorCount = pipelineConfig.descriptors[i]->getCount();
+    }
 
 
     vk::DescriptorPoolCreateInfo poolInfo;

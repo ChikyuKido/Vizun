@@ -3,6 +3,8 @@
 #define RENDERTARGET_HPP
 #include <cstdint>
 #include <vector>
+#include <glm/mat4x4.hpp>
+
 namespace vk {
 class CommandBuffer;
 }
@@ -17,6 +19,8 @@ public:
     virtual int getMaxCommoners() = 0;
     virtual int getCommoner() = 0;
     virtual void useCommoner(VulkanRenderer& renderer,VulkanGraphicsPipeline& pipeline) = 0;
+protected:
+    glm::mat4 m_transform = {};
 };
 }
 

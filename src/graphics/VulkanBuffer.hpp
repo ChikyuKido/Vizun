@@ -70,6 +70,10 @@ class UniformBuffer : public VulkanBuffer {
 public:
     bool createBuffer(size_t size);
 };
+class StorageBuffer : public VulkanBuffer {
+public:
+    bool createBuffer(size_t size);
+}
 }
 
 

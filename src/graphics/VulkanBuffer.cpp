@@ -214,4 +214,16 @@ bool UniformBuffer::createBuffer(size_t size) {
 }
 
 #pragma endregion
+#pragma region StorageBuffer
+
+bool StorageBuffer::createBuffer(size_t size) {
+    if (!VulkanBuffer::createBuffer(size,
+                                    vk::BufferUsageFlagBits::eStorageBuffer,
+                                    vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent))
+        return false;
+    mapData();
+    return true;
+}
+
+#pragma endregion
 } // namespace vz

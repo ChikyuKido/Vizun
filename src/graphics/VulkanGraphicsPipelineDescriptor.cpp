@@ -25,7 +25,7 @@ m_graphicsPipeline(nullptr) {
 #pragma region UniformDescriptor
 VulkanGraphicsPipelineUniformBufferDescriptor::VulkanGraphicsPipelineUniformBufferDescriptor(int binding)
     : VulkanGraphicsPipelineDescriptor(binding,1,vk::DescriptorType::eUniformBuffer,vk::ShaderStageFlagBits::eVertex) {}
-void VulkanGraphicsPipelineUniformBufferDescriptor::updateUniformBuffer(const std::array<UniformBuffer,FRAMES_IN_FLIGHT>& uniformBuffer) {
+void VulkanGraphicsPipelineUniformBufferDescriptor::updateUniformBuffer(const std::array<UniformBuffer,FRAMES_IN_FLIGHT>& uniformBuffer,int currentFrame) const {
     if(m_graphicsPipeline == nullptr) {
         VZ_LOG_CRITICAL("Uniform descriptor was not assigned to a graphics pipeline!");
     }
@@ -45,13 +45,13 @@ void VulkanGraphicsPipelineUniformBufferDescriptor::updateUniformBuffer(const st
         descriptorWrite.pBufferInfo = &bufferInfo;
         descriptors.push_back(descriptorWrite);
     }
-    m_graphicsPipeline->updateDescriptor(descriptors);
+    m_graphicsPipeline->updateDescriptor(descriptors,currentFrame);
 }
 #pragma endregion
 #pragma region ImageDescriptor
 VulkanGraphicsPipelineImageDescriptor::VulkanGraphicsPipelineImageDescriptor(
     int binding) : VulkanGraphicsPipelineDescriptor(binding,MAX_IMAGES_IN_SHADER,vk::DescriptorType::eCombinedImageSampler,vk::ShaderStageFlagBits::eFragment) {}
-void VulkanGraphicsPipelineImageDescriptor::updateImage(const std::vector<VulkanImage*>& images) {
+void VulkanGraphicsPipelineImageDescriptor::updateImage(const std::vector<VulkanImage*>& images,int currentFrame) {
     assert(MAX_IMAGES_IN_SHADER>images.size());
     if(m_graphicsPipeline == nullptr) {
         VZ_LOG_CRITICAL("Image descriptor was not assigned to a graphics pipeline!");
@@ -80,7 +80,7 @@ void VulkanGraphicsPipelineImageDescriptor::updateImage(const std::vector<Vulkan
     descriptorWrite.pImageInfo = imageInfos.data();
     descriptors.push_back(descriptorWrite);
 
-    m_graphicsPipeline->updateDescriptor(descriptors);
+    m_graphicsPipeline->updateDescriptor(descriptors,currentFrame);
 }
 #pragma endregion
 } // namespace vz

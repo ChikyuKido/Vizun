@@ -13,7 +13,7 @@ public:
     vk::Pipeline pipeline;
     void cleanup();
     bool createGraphicsPipeline(const VulkanRenderPass& vulkanRenderPass, VulkanGraphicsPipelineConfig& pipelineConfig);
-    void updateDescriptor(std::vector<vk::WriteDescriptorSet>& writeDescSet) const;
+    void updateDescriptor(std::vector<vk::WriteDescriptorSet>& writeDescSet,int currentFrame) const;
     void bindDescriptorSet(const vk::CommandBuffer& commandBuffer,uint32_t currentFrame) const;
     void bindPipeline(const vk::CommandBuffer& commandBuffer,uint32_t currentFrame) const;
 private:
