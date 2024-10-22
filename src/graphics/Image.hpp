@@ -15,7 +15,7 @@ public:
     explicit Image(std::string imagePath);
     void draw(const vk::CommandBuffer& commandBuffer,
               const VulkanGraphicsPipeline& pipeline,
-              uint32_t currentFrame,const std::vector<RenderTarget*>& targets) override;
+              uint32_t currentFrame,uint32_t instances) override;
     void prepareCommoner(VulkanRenderer& renderer,const std::vector<RenderTarget*>& targets,VulkanGraphicsPipeline& pipeline) override;
     int getMaxCommoners() override;
     int getCommoner() override;

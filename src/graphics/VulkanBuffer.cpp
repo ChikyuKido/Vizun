@@ -236,6 +236,7 @@ bool StorageBuffer::createBuffer(size_t size) {
     vk::BufferUsageFlagBits::eStorageBuffer,
                                     vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent))
         return false;
+    mapData();
     return true;
 }
 

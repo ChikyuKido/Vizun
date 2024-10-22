@@ -18,21 +18,21 @@ int main() {
 
 
     vz::VulkanRenderWindowConfig vulkanConfig;
-    vulkanConfig.vulkanSwapchainConfig.presentMode = vk::PresentModeKHR::eFifo;
+    vulkanConfig.vulkanSwapchainConfig.presentMode = vk::PresentModeKHR::eImmediate;
 
     vz::RenderWindow renderWindow(800,600,"Vizun",vulkanConfig);
     vz::Image img("rsc/texts/img.jpg");
-    vz::Image img2("rsc/texts/img.jpg");
-    vz::Image img3("rsc/texts/img.jpg");
-    img.translate(1.02f,1.02f,0.0f);
-    img2.translate(1.02f,1.02f,1.02f);
+    vz::Image img2("rsc/texts/img2.jpg");
+    vz::Image img3("rsc/texts/img3.jpg");
+    // img.translate(1.02f,1.02f,1.0f);
+    // img2.translate(1.02f,1.02f,1.02f);
     uint32_t frames = 0;
     auto next_time_point = std::chrono::steady_clock::now() + std::chrono::seconds(1);
     while(!renderWindow.shouldWindowClose()) {
         glfwPollEvents();
-        renderWindow.draw(img);
-        renderWindow.draw(img2);
-        renderWindow.draw(img3);
+        for (int i = 0; i < 16; ++i) {
+            renderWindow.draw(img);
+        }
         renderWindow.display();
         frames++;
         if (std::chrono::steady_clock::now() >= next_time_point) {

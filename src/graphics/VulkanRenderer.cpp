@@ -71,10 +71,12 @@ void updateUniformBufferTest(vz::UniformBuffer& ub) {
     auto currentTime = std::chrono::high_resolution_clock::now();
     float time = std::chrono::duration<float>(currentTime - startTime).count();
     UniformBufferObject ubo{};
-    ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0,0, 1.0f));
+    // ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0,0, 1.0f));
     ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     ubo.proj = glm::perspective(glm::radians(45.0f), 800.0f/600.0f, 0.1f, 10.0f);
     ubo.proj[1][1] *= -1;
+
+    ubo.viewProj = ubo.proj * ubo.view;
 
     ub.uploadData(&ubo);
 }
@@ -225,14 +227,14 @@ void VulkanRenderer::display() {
     uint32_t lastTransformSize = 0;
     begin();
     for (const auto& [pipeline,renderTargetsPerIndexPerCommoner] : renderTargetsPerPipelinePerIndexPerCommoner) {
-        m_transformBuffers[m_currentFrame].uploadDataInstant(renderTargetsPerGraphicsPipeline[pipeline].data());
+        m_transformBuffers[m_currentFrame].uploadData(renderTargetsPerGraphicsPipeline[pipeline].data());
         pipeline->bindPipeline(getCurrentCmdBuffer());
+        pipeline->bindDescriptorSet(getCurrentCmdBuffer(),m_currentFrame,{});
         for (const auto& [_,renderTargetsPerCommoner] : renderTargetsPerIndexPerCommoner) {
             for (auto [commoner,calls] : renderTargetsPerCommoner) {
-                m_commandBuffers[m_currentFrame].pushConstants(pipeline->pipelineLayout,vk::ShaderStageFlagBits::eVertex,4,sizeof(uint32_t),&lastTransformSize);
-                pipeline->bindDescriptorSet(getCurrentCmdBuffer(),m_currentFrame,{});
                 calls[0]->useCommoner(*this,*pipeline);
-                calls[0]->draw(m_commandBuffers[m_currentFrame],*pipeline,m_currentFrame,calls);
+                m_commandBuffers[m_currentFrame].pushConstants(pipeline->pipelineLayout,vk::ShaderStageFlagBits::eVertex,4,sizeof(uint32_t),&lastTransformSize);
+                calls[0]->draw(m_commandBuffers[m_currentFrame],*pipeline,m_currentFrame,calls.size());
                 lastTransformSize = lastTransformSize+calls.size();
             }
         }

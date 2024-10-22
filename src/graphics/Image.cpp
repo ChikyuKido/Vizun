@@ -24,12 +24,12 @@ Image::Image(std::string rscPath) {
     }
     m_viBuffer.createBuffer(m_vertices,m_indices);
 }
-void Image::draw(const vk::CommandBuffer& commandBuffer, const VulkanGraphicsPipeline& pipeline, uint32_t currentFrame,const std::vector<RenderTarget*>& targets) {
+void Image::draw(const vk::CommandBuffer& commandBuffer, const VulkanGraphicsPipeline& pipeline, uint32_t currentFrame,uint32_t instances) {
     vk::Buffer vertexBuffers[] = {m_viBuffer.getBuffer()};
     vk::DeviceSize offsets[] = {0};
     commandBuffer.bindVertexBuffers(0,1,vertexBuffers,offsets);
     commandBuffer.bindIndexBuffer(m_viBuffer.getBuffer(),m_viBuffer.getIndicesOffsetSize(),m_viBuffer.getIndexType());
-    commandBuffer.drawIndexed(m_viBuffer.getIndicesCount(),targets.size(),0,0,0);
+    commandBuffer.drawIndexed(m_viBuffer.getIndicesCount(),instances,0,0,0);
 }
 void Image::prepareCommoner(VulkanRenderer& renderer,
                             const std::vector<RenderTarget*>& targets,
