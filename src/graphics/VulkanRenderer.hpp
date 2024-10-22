@@ -52,9 +52,10 @@ private:
     RenderWindow* m_window;
     std::vector<vk::Framebuffer> m_framebuffers;
     FRAMES(UniformBuffer) m_uniformBuffers;
+    FRAMES(StorageBuffer) m_transformBuffers;
     VulkanGraphicsPipelineUniformBufferDescriptor m_ubDesc =VulkanGraphicsPipelineUniformBufferDescriptor(0);
     VulkanGraphicsPipelineImageDescriptor m_imageDesc = VulkanGraphicsPipelineImageDescriptor(1);
-    VulkanGraphicsPipelineStorageBufferDescriptor m_transformDesc = VulkanGraphicsPipelineStorageBufferDescriptor(2);
+    VulkanGraphicsPipelineStorageBufferDescriptor m_transformDesc = VulkanGraphicsPipelineStorageBufferDescriptor(2,false);
     std::shared_ptr<VulkanGraphicsPipeline> m_defaultGraphicsPipeline;
     std::shared_ptr<VulkanRenderPass> m_renderPass;
     std::unordered_map<std::shared_ptr<VulkanGraphicsPipeline>, RenderTargetMap> m_drawCalls;

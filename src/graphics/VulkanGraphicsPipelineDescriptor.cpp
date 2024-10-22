@@ -83,4 +83,28 @@ void VulkanGraphicsPipelineImageDescriptor::updateImage(const std::vector<Vulkan
     m_graphicsPipeline->updateDescriptor(descriptors,currentFrame);
 }
 #pragma endregion
+#pragma region StorageDescriptor
+VulkanGraphicsPipelineStorageBufferDescriptor::VulkanGraphicsPipelineStorageBufferDescriptor(int binding,bool dynamic):
+    VulkanGraphicsPipelineDescriptor(binding,1,dynamic ? vk::DescriptorType::eStorageBufferDynamic : vk::DescriptorType::eStorageBuffer,vk::ShaderStageFlagBits::eVertex) {
+}
+
+void VulkanGraphicsPipelineStorageBufferDescriptor::updateStorageBuffer(const StorageBuffer& buffer, int currentFrame) const {
+    vk::DescriptorBufferInfo bufferInfo{};
+    bufferInfo.buffer = buffer.getBuffer();
+    bufferInfo.offset = 0;
+    bufferInfo.range = buffer.getBufferSize();
+
+
+    std::vector<vk::WriteDescriptorSet> writes;
+    vk::WriteDescriptorSet descriptorWrite{};
+    descriptorWrite.dstBinding = m_binding;
+    descriptorWrite.dstArrayElement = 0;
+    descriptorWrite.descriptorType = m_descriptorType;
+    descriptorWrite.descriptorCount = m_count;
+    descriptorWrite.pBufferInfo = &bufferInfo;
+    writes.push_back(descriptorWrite);
+
+    m_graphicsPipeline->updateDescriptor(writes,currentFrame);
+}
+#pragma endregion
 } // namespace vz

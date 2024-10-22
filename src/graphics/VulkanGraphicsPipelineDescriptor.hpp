@@ -63,10 +63,8 @@ public:
 };
 class VulkanGraphicsPipelineStorageBufferDescriptor : public VulkanGraphicsPipelineDescriptor {
 public:
-    VulkanGraphicsPipelineStorageBufferDescriptor(int binding);
-    void updateStorageBuffer(const std::vector<VulkanImage*>& images,int currentFrame);
-private:
-
+    VulkanGraphicsPipelineStorageBufferDescriptor(int binding,bool dynamic);
+    void updateStorageBuffer(const StorageBuffer& buffer,int currentFrame) const;
 };
 }
 

@@ -46,7 +46,7 @@ VulkanRenderer::VulkanRenderer(VulkanRendererConfig& config, RenderWindow* windo
     defaultConf.vertexInputBindingDescription = Vertex::getBindingDescritption();
     defaultConf.dynamicStates = {vk::DynamicState::eScissor,vk::DynamicState::eViewport};
     defaultConf.descriptors = {
-        &m_ubDesc,&m_imageDesc
+        &m_ubDesc,&m_imageDesc,&m_transformDesc
     };
     defaultConf.fragShaderPath = "rsc/shaders/default_frag.spv";
     defaultConf.vertShaderPath = "rsc/shaders/default_vert.spv";
@@ -54,8 +54,15 @@ VulkanRenderer::VulkanRenderer(VulkanRendererConfig& config, RenderWindow* windo
     if(!m_defaultGraphicsPipeline->createGraphicsPipeline(*m_renderPass,defaultConf)) {
         VZ_LOG_CRITICAL("Could not create graphics pipeline");
     }
-    for (auto & m_uniformBuffer : m_uniformBuffers) {
-        m_uniformBuffer.createBuffer(sizeof(UniformBufferObject));
+    for (auto & uniformBuffer : m_uniformBuffers) {
+        uniformBuffer.createBuffer(sizeof(UniformBufferObject));
+    }
+    for (auto & transformBuffer : m_transformBuffers) {
+        transformBuffer.createBuffer(sizeof(glm::mat4)*16000);
+    }
+    for (int i = 0; i < FRAMES_IN_FLIGHT; ++i) {
+        m_ubDesc.updateUniformBuffer(m_uniformBuffers,i);
+
     }
 }
 void updateUniformBufferTest(vz::UniformBuffer& ub) {
@@ -64,7 +71,7 @@ void updateUniformBufferTest(vz::UniformBuffer& ub) {
     auto currentTime = std::chrono::high_resolution_clock::now();
     float time = std::chrono::duration<float>(currentTime - startTime).count();
     UniformBufferObject ubo{};
-    ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f) /*glm::radians(-45.0f)*/, glm::vec3(0.0f, 0.0f, 1.0f));
+    ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0,0, 1.0f));
     ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     ubo.proj = glm::perspective(glm::radians(45.0f), 800.0f/600.0f, 0.1f, 10.0f);
     ubo.proj[1][1] *= -1;
@@ -192,12 +199,15 @@ void VulkanRenderer::end() {
 
 void VulkanRenderer::display() {
     std::unordered_map<std::shared_ptr<VulkanGraphicsPipeline>,std::unordered_map<std::type_index,std::unordered_map<int,std::vector<RenderTarget*>>>> renderTargetsPerPipelinePerIndexPerCommoner;
+    std::unordered_map<std::shared_ptr<VulkanGraphicsPipeline>,std::vector<glm::mat4>> renderTargetsPerGraphicsPipeline;
     for (auto& [pipeline,renderMaps] : m_drawCalls) {
+        auto& renderTargets = renderTargetsPerGraphicsPipeline[pipeline];
         for (const auto& [typeIndex,allCalls] : renderMaps) {
             auto& renderTargetsPerCommoner = renderTargetsPerPipelinePerIndexPerCommoner[pipeline][typeIndex];
             auto currentUniqueRenderTargetsPerCommoner = std::vector<RenderTarget*>();
 
             for (auto* call : allCalls) {
+                renderTargets.push_back(call->getTransform());
                 if (!renderTargetsPerCommoner.contains(call->getCommoner())) {
                     renderTargetsPerCommoner[call->getCommoner()] = std::vector<RenderTarget*>();
                     currentUniqueRenderTargetsPerCommoner.push_back(call);
@@ -210,16 +220,20 @@ void VulkanRenderer::display() {
             }
         }
     }
-    m_ubDesc.updateUniformBuffer(m_uniformBuffers,m_currentFrame);
+    // m_ubDesc.updateUniformBuffer(m_uniformBuffers,m_currentFrame);
+    m_transformDesc.updateStorageBuffer(m_transformBuffers[m_currentFrame],m_currentFrame);
+    uint32_t lastTransformSize = 0;
     begin();
     for (const auto& [pipeline,renderTargetsPerIndexPerCommoner] : renderTargetsPerPipelinePerIndexPerCommoner) {
-        pipeline->bindPipeline(getCurrentCmdBuffer(),m_currentFrame);
+        m_transformBuffers[m_currentFrame].uploadDataInstant(renderTargetsPerGraphicsPipeline[pipeline].data());
+        pipeline->bindPipeline(getCurrentCmdBuffer());
         for (const auto& [_,renderTargetsPerCommoner] : renderTargetsPerIndexPerCommoner) {
             for (auto [commoner,calls] : renderTargetsPerCommoner) {
+                m_commandBuffers[m_currentFrame].pushConstants(pipeline->pipelineLayout,vk::ShaderStageFlagBits::eVertex,4,sizeof(uint32_t),&lastTransformSize);
+                pipeline->bindDescriptorSet(getCurrentCmdBuffer(),m_currentFrame,{});
                 calls[0]->useCommoner(*this,*pipeline);
-                for (const auto *call : calls) {
-                    call->draw(m_commandBuffers[m_currentFrame],*pipeline,m_currentFrame);
-                }
+                calls[0]->draw(m_commandBuffers[m_currentFrame],*pipeline,m_currentFrame,calls);
+                lastTransformSize = lastTransformSize+calls.size();
             }
         }
     }

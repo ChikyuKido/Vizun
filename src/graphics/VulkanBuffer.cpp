@@ -10,6 +10,8 @@ namespace vz {
 bool VulkanBuffer::createBuffer(uint64_t size,
                                 vk::BufferUsageFlags usageFlagBits,
                                 vk::MemoryPropertyFlags memoryPropertyBits) {
+    m_memoryPropertyBits = memoryPropertyBits;
+    m_usageFlagBits = usageFlagBits;
     static VulkanBase& vb = VizunEngine::getVulkanBase();
     this->m_size = size;
     vk::BufferCreateInfo bufferInfo;
@@ -72,6 +74,19 @@ void VulkanBuffer::cleanup() const {
     vb.device.destroyBuffer(m_buffer);
     vb.device.freeMemory(m_bufferMemory);
 }
+
+bool VulkanBuffer::resizeBuffer(uint64_t size) {
+    VulkanBuffer tempBuffer;
+    if(!tempBuffer.createBuffer(size, m_usageFlagBits, m_memoryPropertyBits)) return false;
+    if(!tempBuffer.copyBuffer(*this)) return false;
+
+    m_size = size;
+    cleanup();
+    m_buffer = tempBuffer.m_buffer;
+    m_bufferMemory = tempBuffer.m_bufferMemory;
+    return true;
+}
+
 const vk::Buffer& VulkanBuffer::getBuffer() const {
     return m_buffer;
 }
@@ -218,10 +233,9 @@ bool UniformBuffer::createBuffer(size_t size) {
 
 bool StorageBuffer::createBuffer(size_t size) {
     if (!VulkanBuffer::createBuffer(size,
-                                    vk::BufferUsageFlagBits::eStorageBuffer,
+    vk::BufferUsageFlagBits::eStorageBuffer,
                                     vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent))
         return false;
-    mapData();
     return true;
 }
 

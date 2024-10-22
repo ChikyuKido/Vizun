@@ -14,8 +14,8 @@ public:
     void cleanup();
     bool createGraphicsPipeline(const VulkanRenderPass& vulkanRenderPass, VulkanGraphicsPipelineConfig& pipelineConfig);
     void updateDescriptor(std::vector<vk::WriteDescriptorSet>& writeDescSet,int currentFrame) const;
-    void bindDescriptorSet(const vk::CommandBuffer& commandBuffer,uint32_t currentFrame) const;
-    void bindPipeline(const vk::CommandBuffer& commandBuffer,uint32_t currentFrame) const;
+    void bindDescriptorSet(const vk::CommandBuffer& commandBuffer,uint32_t currentFrame,const std::vector<uint32_t>& offsets) const;
+    void bindPipeline(const vk::CommandBuffer& commandBuffer) const;
 private:
     bool createDescriptors(VulkanGraphicsPipelineConfig& pipelineConfig);
     std::vector<char> loadShaderContent(const std::string& path) const;

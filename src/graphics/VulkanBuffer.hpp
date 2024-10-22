@@ -18,6 +18,7 @@ public:
     void uploadDataInstant(const void* data);
     bool copyBuffer(const VulkanBuffer& srcBuffer);
     void cleanup() const;
+    bool resizeBuffer(uint64_t size);
     [[nodiscard]] const vk::Buffer& getBuffer() const;
     [[nodiscard]] const vk::DeviceMemory& getBufferMemory() const;
     [[nodiscard]] size_t getBufferSize() const;
@@ -29,6 +30,8 @@ protected:
     vk::DeviceMemory m_bufferMemory;
     void* m_mappedData{nullptr};
     uint64_t m_size = -1;
+    vk::BufferUsageFlags m_usageFlagBits;
+    vk::MemoryPropertyFlags m_memoryPropertyBits;
 };
 
 class VertexBuffer : public VulkanBuffer{
@@ -73,7 +76,7 @@ public:
 class StorageBuffer : public VulkanBuffer {
 public:
     bool createBuffer(size_t size);
-}
+};
 }
 
 

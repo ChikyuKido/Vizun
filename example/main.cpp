@@ -21,9 +21,11 @@ int main() {
     vulkanConfig.vulkanSwapchainConfig.presentMode = vk::PresentModeKHR::eFifo;
 
     vz::RenderWindow renderWindow(800,600,"Vizun",vulkanConfig);
-    vz::Image img("rsc/texts/img.jpg",-0.7f);
-    vz::Image img2("rsc/texts/img2.jpg",+1.2f);
-    vz::Image img3("rsc/texts/img3.jpg",+1.7f);
+    vz::Image img("rsc/texts/img.jpg");
+    vz::Image img2("rsc/texts/img.jpg");
+    vz::Image img3("rsc/texts/img.jpg");
+    img.translate(1.02f,1.02f,0.0f);
+    img2.translate(1.02f,1.02f,1.02f);
     uint32_t frames = 0;
     auto next_time_point = std::chrono::steady_clock::now() + std::chrono::seconds(1);
     while(!renderWindow.shouldWindowClose()) {

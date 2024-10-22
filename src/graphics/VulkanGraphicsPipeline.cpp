@@ -112,17 +112,26 @@ bool VulkanGraphicsPipeline::createGraphicsPipeline(const VulkanRenderPass& vulk
     colorBlendState.attachmentCount = 1;
     colorBlendState.pAttachments = &colorBlendAttachment;
 
-    vk::PushConstantRange pushConstantRange{};
-    pushConstantRange.stageFlags = vk::ShaderStageFlagBits::eFragment;
-    pushConstantRange.offset = 0;
-    pushConstantRange.size = 4;
+    vk::PushConstantRange pushConstantRangeTextureIndex{};
+    pushConstantRangeTextureIndex.stageFlags = vk::ShaderStageFlagBits::eFragment;
+    pushConstantRangeTextureIndex.offset = 0;
+    pushConstantRangeTextureIndex.size = 4;
+
+    vk::PushConstantRange pushConstantRangeTransformOffset{};
+    pushConstantRangeTransformOffset.stageFlags = vk::ShaderStageFlagBits::eVertex;
+    pushConstantRangeTransformOffset.offset = 4;
+    pushConstantRangeTransformOffset.size = 4;
+
+    std::vector<vk::PushConstantRange> pushConstants;
+    pushConstants.push_back(pushConstantRangeTextureIndex);
+    pushConstants.push_back(pushConstantRangeTransformOffset);
 
     //TODO: add this to the config too
     vk::PipelineLayoutCreateInfo pipelineLayoutInfo;
     pipelineLayoutInfo.setLayoutCount = 1;
     pipelineLayoutInfo.pSetLayouts = &m_descriptorSetLayout;
-    pipelineLayoutInfo.pushConstantRangeCount = 1;
-    pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
+    pipelineLayoutInfo.pushConstantRangeCount = pushConstants.size();
+    pipelineLayoutInfo.pPushConstantRanges = pushConstants.data();
 
 
     VK_RESULT_ASSIGN(pipelineLayout, vb.device.createPipelineLayout(pipelineLayoutInfo))
@@ -157,13 +166,12 @@ void VulkanGraphicsPipeline::updateDescriptor(std::vector<vk::WriteDescriptorSet
     }
     vb.device.updateDescriptorSets(writeDescSets.size(), writeDescSets.data(), 0, nullptr);
 }
-void VulkanGraphicsPipeline::bindDescriptorSet(const vk::CommandBuffer& commandBuffer, uint32_t currentFrame) const {
+void VulkanGraphicsPipeline::bindDescriptorSet(const vk::CommandBuffer& commandBuffer, uint32_t currentFrame, const std::vector<uint32_t>& offsets) const {
     commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout,
-            0, 1, &m_descriptorSets[currentFrame], 0, nullptr);
+            0, 1, &m_descriptorSets[currentFrame], offsets.size(), offsets.data());
 }
-void VulkanGraphicsPipeline::bindPipeline(const vk::CommandBuffer& commandBuffer,uint32_t currentFrame) const {
+void VulkanGraphicsPipeline::bindPipeline(const vk::CommandBuffer& commandBuffer) const {
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
-    bindDescriptorSet(commandBuffer, currentFrame);
 }
 bool VulkanGraphicsPipeline::createDescriptors(VulkanGraphicsPipelineConfig& pipelineConfig) {
     static VulkanBase& vb = VizunEngine::getVulkanBase();
@@ -182,18 +190,17 @@ bool VulkanGraphicsPipeline::createDescriptors(VulkanGraphicsPipelineConfig& pip
     layoutInfo.pBindings = descriptorSetLayoutBindings.data();
     VK_RESULT_ASSIGN(m_descriptorSetLayout, vb.device.createDescriptorSetLayout(layoutInfo))
     
-    std::vector<vk::DescriptorPoolSize> poolSizes{}; //TODO: change to the descriptor class
+    std::vector<vk::DescriptorPoolSize> poolSizes{};
     poolSizes.resize(pipelineConfig.descriptors.size());
     for (int i = 0; i < poolSizes.size(); ++i) {
         poolSizes[i].type = pipelineConfig.descriptors[i]->getDescriptorType();
         poolSizes[i].descriptorCount = pipelineConfig.descriptors[i]->getCount();
     }
 
-
     vk::DescriptorPoolCreateInfo poolInfo;
     poolInfo.poolSizeCount = poolSizes.size();
     poolInfo.pPoolSizes = poolSizes.data();
-    poolInfo.maxSets = FRAMES_IN_FLIGHT * poolSizes.size()*2+1;
+    poolInfo.maxSets = FRAMES_IN_FLIGHT*8;//TOdo: fix the amount of sets
 
     VK_RESULT_ASSIGN(m_descriptorPool,vb.device.createDescriptorPool(poolInfo));
     std::vector layouts(FRAMES_IN_FLIGHT,m_descriptorSetLayout);
