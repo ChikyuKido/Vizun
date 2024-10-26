@@ -1,10 +1,10 @@
 
 #include "VulkanSwapchain.hpp"
 
-#include "RenderWindow.hpp"
-#include "VizunEngine.hpp"
+#include "graphics/window/RenderWindow.hpp"
+#include "core/VizunEngine.hpp"
 #include "VulkanBase.hpp"
-#include "VulkanRenderPass.hpp"
+#include "graphics/renderpass/VulkanRenderPass.hpp"
 #include "utils/Logger.hpp"
 
 namespace vz {

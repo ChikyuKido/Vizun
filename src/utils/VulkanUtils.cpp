@@ -1,8 +1,8 @@
 
 #include "VulkanUtils.hpp"
 #include "Logger.hpp"
-#include "VizunEngine.hpp"
-#include "graphics/VulkanBase.hpp"
+#include "core/VizunEngine.hpp"
+#include "graphics/base/VulkanBase.hpp"
 
 #include <cstring>
 

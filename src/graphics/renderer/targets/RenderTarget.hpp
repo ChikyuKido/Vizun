@@ -25,16 +25,17 @@ public:
         return m_transform;
     }
 
-    void translate(float x, float y, float z) {
-        m_transform = glm::translate(m_transform, glm::vec3(x, y, z));
+    void translate(const glm::vec3& translation) {
+        m_transform = glm::translate(m_transform, translation);
     }
-
     void rotate(float angle, const glm::vec3& axis) {
         m_transform = glm::rotate(m_transform, glm::radians(angle), axis);
     }
-
-    void scale(float scaleX, float scaleY, float scaleZ) {
-        m_transform = glm::scale(m_transform, glm::vec3(scaleX, scaleY, scaleZ));
+    void scale(const glm::vec3& scale) {
+        m_transform = glm::scale(m_transform, scale);
+    }
+    void reset() {
+        m_transform = glm::mat4(1.0f);
     }
 protected:
     glm::mat4 m_transform = glm::mat4(1.0f);

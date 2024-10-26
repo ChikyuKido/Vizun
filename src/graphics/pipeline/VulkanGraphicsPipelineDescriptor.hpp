@@ -2,10 +2,11 @@
 #ifndef VULAKNGRAPHICSPIPELINEDESCRIPTOR_HPP
 #define VULAKNGRAPHICSPIPELINEDESCRIPTOR_HPP
 
-#include "VizunEngine.hpp"
-#include "VulkanBuffer.hpp"
-#include "VulkanImage.hpp"
+#include "core/VizunEngine.hpp"
+#include "graphics/resources/VulkanBuffer.hpp"
+#include "graphics/resources/VulkanImage.hpp"
 #include "config/VizunConfig.hpp"
+#include "resource_loader/ResourceLoader.hpp"
 #include "utils/Logger.hpp"
 
 
@@ -52,13 +53,17 @@ class VulkanGraphicsPipelineImageDescriptor : public VulkanGraphicsPipelineDescr
 public:
     VulkanGraphicsPipelineImageDescriptor(int binding);
     void updateImage(const std::vector<VulkanImage*>& images,int currentFrame);
-
-    vz::VulkanImage* getEmptyImage() {
-        static VulkanImageTexture vulkanImageTexture;
-        if(vulkanImageTexture.getImage() == nullptr) {
-            VZ_LOG_INFO(vulkanImageTexture.loadImageTexture("rsc/texts/1x1.png"));
+private:
+    VulkanImage* getEmptyImage() {
+        static VulkanImage* img = nullptr;
+        if(img == nullptr) {
+            img = ResourceLoader::getVulkanImage("rsc/texts/1x1.png");
+            if(img == nullptr) {
+                ResourceLoader::loadVulkanImage("rsc/texts/1x1.png");
+            }
+            img = ResourceLoader::getVulkanImage("rsc/texts/1x1.png");
         }
-        return &vulkanImageTexture;
+        return img;
     }
 };
 class VulkanGraphicsPipelineStorageBufferDescriptor : public VulkanGraphicsPipelineDescriptor {

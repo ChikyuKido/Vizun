@@ -2,9 +2,9 @@
 
 #include "VulkanGraphicsPipeline.hpp"
 
-#include "Vertex.hpp"
-#include "VizunEngine.hpp"
-#include "VulkanBase.hpp"
+#include "data/Vertex.hpp"
+#include "core/VizunEngine.hpp"
+#include "graphics/base/VulkanBase.hpp"
 #include "VulkanGraphicsPipelineDescriptor.hpp"
 #include "config/VizunConfig.hpp"
 #include "utils/Logger.hpp"
@@ -81,7 +81,7 @@ bool VulkanGraphicsPipeline::createGraphicsPipeline(const VulkanRenderPass& vulk
     rasterizer.polygonMode = vk::PolygonMode::eFill;
     rasterizer.lineWidth = 1.0f;
     rasterizer.cullMode = vk::CullModeFlagBits::eBack;
-    rasterizer.frontFace = vk::FrontFace::eClockwise;
+    rasterizer.frontFace = vk::FrontFace::eCounterClockwise;
     rasterizer.depthBiasEnable = vk::False;
 
     //TODO: add this to the config too

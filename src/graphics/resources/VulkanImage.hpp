@@ -29,23 +29,17 @@ public:
     [[nodiscard]] std::shared_ptr<vk::Sampler> getSampler() const {
         return m_sampler;
     }
-
-protected:
     void transitionImageLayout(vk::Format format, vk::ImageLayout oldLayout,vk::ImageLayout newLayout);
-    void copyBufferToImage();
+    void copyBufferToImage(const VulkanBuffer& buffer) const;
+protected:
     bool createImageView();
     bool createTextureSampler();
     std::shared_ptr<vk::Image> m_image;
     std::shared_ptr<vk::ImageView> m_imageView;
     std::shared_ptr<vk::DeviceMemory> m_imageMemory;
-    std::shared_ptr<VulkanBuffer> m_stagingBuffer{nullptr};
     std::shared_ptr<vk::Sampler> m_sampler;
     uint32_t m_height{0};
     uint32_t m_width{0};
-};
-class VulkanImageTexture : public VulkanImage {
-public:
-    bool loadImageTexture(const std::string& path);
 };
 }
 

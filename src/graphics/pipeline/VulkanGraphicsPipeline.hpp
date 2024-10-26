@@ -1,7 +1,7 @@
 #ifndef VULKANGRAPHICSPIPELINE_HPP
 #define VULKANGRAPHICSPIPELINE_HPP
 
-#include "VulkanRenderPass.hpp"
+#include "graphics/renderpass/VulkanRenderPass.hpp"
 
 namespace vz {
 struct VulkanGraphicsPipelineConfig;

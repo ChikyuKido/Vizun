@@ -5,7 +5,7 @@
 #include "VulkanGraphicsPipelineDescriptor.hpp"
 
 #include "VulkanGraphicsPipeline.hpp"
-#include "VulkanImage.hpp"
+#include "graphics/resources/VulkanImage.hpp"
 #include "config/VizunConfig.hpp"
 #include "utils/Logger.hpp"
 

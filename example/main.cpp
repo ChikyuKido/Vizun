@@ -1,9 +1,8 @@
 
-#include "VizunEngine.hpp"
-#include "graphics/Image.hpp"
-#include "graphics/RenderTarget.hpp"
-#include "graphics/RenderWindow.hpp"
-#include "graphics/VulkanGraphicsPipelineDescriptor.hpp"
+#include "core/VizunEngine.hpp"
+#include "../src/graphics/renderer/targets/Image.hpp"
+#include "graphics/window/RenderWindow.hpp"
+#include "resource_loader/ResourceLoader.hpp"
 
 #include <chrono>
 #include <iostream>
@@ -17,21 +16,27 @@ int main() {
     VZ_INITIALIZE_ENGINE(vizunEngineConfig);
 
 
+
     vz::VulkanRenderWindowConfig vulkanConfig;
     vulkanConfig.vulkanSwapchainConfig.presentMode = vk::PresentModeKHR::eImmediate;
 
     vz::RenderWindow renderWindow(800,600,"Vizun",vulkanConfig);
-    vz::Image img("rsc/texts/img.jpg");
-    vz::Image img2("rsc/texts/img2.jpg");
-    vz::Image img3("rsc/texts/img3.jpg");
-    // img.translate(1.02f,1.02f,1.0f);
-    // img2.translate(1.02f,1.02f,1.02f);
+
+    vz::ResourceLoader::loadVulkanImage("rsc/texts/slime-move-forward1.png");
+
+    std::vector<vz::Image> imgs;
+    for (float i = 0; i < 16; ++i) {
+        vz::Image img("rsc/texts/slime-move-forward1.png");
+        imgs.push_back(img);
+    }
     uint32_t frames = 0;
     auto next_time_point = std::chrono::steady_clock::now() + std::chrono::seconds(1);
     while(!renderWindow.shouldWindowClose()) {
         glfwPollEvents();
-        for (int i = 0; i < 16; ++i) {
-            renderWindow.draw(img);
+       for (float i = 0; i < imgs.size(); ++i) {
+            imgs[i].reset();
+            imgs[i].translate({i/imgs.size(),i/imgs.size(),0});
+            renderWindow.draw( imgs[i]);
         }
         renderWindow.display();
         frames++;

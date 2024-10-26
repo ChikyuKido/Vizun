@@ -1,11 +1,11 @@
 
 #include "VulkanRenderer.hpp"
 
-#include "RenderTarget.hpp"
-#include "RenderWindow.hpp"
-#include "VizunEngine.hpp"
-#include "VulkanBase.hpp"
-#include "VulkanSwapchain.hpp"
+#include "graphics/renderer/targets/RenderTarget.hpp"
+#include "graphics/window/RenderWindow.hpp"
+#include "core/VizunEngine.hpp"
+#include "graphics/base/VulkanBase.hpp"
+#include "graphics/base/VulkanSwapchain.hpp"
 #include "config/VizunConfig.hpp"
 #include "utils/Logger.hpp"
 
@@ -147,15 +147,10 @@ void VulkanRenderer::draw(RenderTarget& renderTarget, const std::shared_ptr<Vulk
             return;
         }
     }
-    if (!m_drawCalls.contains(graphicsPipeline)) {
-        m_drawCalls[graphicsPipeline] = RenderTargetMap();
-    }
+    RenderTargetMap& targetMap = m_drawCalls[graphicsPipeline];
     const auto typeIndex = std::type_index(typeid(renderTarget));
-    if (!m_drawCalls[graphicsPipeline].contains(typeIndex)) {
-        m_drawCalls[graphicsPipeline][typeIndex] = std::vector<RenderTarget*>();
-    }
-    m_drawCalls[graphicsPipeline][typeIndex].push_back(&renderTarget);
-
+    auto& renderTargetList = targetMap[typeIndex];
+    renderTargetList.push_back(&renderTarget);
 }
 void VulkanRenderer::end() {
     static VulkanBase& vb = VizunEngine::getVulkanBase();
@@ -227,7 +222,8 @@ void VulkanRenderer::display() {
     uint32_t lastTransformSize = 0;
     begin();
     for (const auto& [pipeline,renderTargetsPerIndexPerCommoner] : renderTargetsPerPipelinePerIndexPerCommoner) {
-        m_transformBuffers[m_currentFrame].uploadData(renderTargetsPerGraphicsPipeline[pipeline].data());
+        auto renderTargets = renderTargetsPerGraphicsPipeline[pipeline];
+        m_transformBuffers[m_currentFrame].uploadData(renderTargets.data(),renderTargets.size() * sizeof(renderTargets[0]));
         pipeline->bindPipeline(getCurrentCmdBuffer());
         pipeline->bindDescriptorSet(getCurrentCmdBuffer(),m_currentFrame,{});
         for (const auto& [_,renderTargetsPerCommoner] : renderTargetsPerIndexPerCommoner) {

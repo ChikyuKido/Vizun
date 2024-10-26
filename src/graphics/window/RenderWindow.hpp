@@ -2,7 +2,7 @@
 #define RENDERWINDOW_HPP
 
 #define GLFW_INCLUDE_VULKAN
-#include "VulkanRenderer.hpp"
+#include "graphics/renderer/VulkanRenderer.hpp"
 #include "config/VulkanRenderWindowConfig.hpp"
 
 #include <GLFW/glfw3.h>

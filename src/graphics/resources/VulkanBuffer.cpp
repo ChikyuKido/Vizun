@@ -1,7 +1,7 @@
 #include "VulkanBuffer.hpp"
 
-#include "VizunEngine.hpp"
-#include "VulkanBase.hpp"
+#include "core/VizunEngine.hpp"
+#include "graphics/base/VulkanBase.hpp"
 #include "utils/Logger.hpp"
 #include "utils/VulkanUtils.hpp"
 
@@ -37,6 +37,14 @@ bool VulkanBuffer::mapData() {
     VKF(vb.device.mapMemory(m_bufferMemory, 0, m_size, {}, &m_mappedData));
     return true;
 }
+bool VulkanBuffer::uploadData(const void* data,uint32_t size) {
+    if(m_mappedData == nullptr) {
+        VZ_LOG_ERROR("Can't upload data because buffer is not mapped");
+        return false;
+    }
+    memcpy(m_mappedData, data, size);
+    return true;
+}
 bool VulkanBuffer::uploadData(const void* data) {
     if(m_mappedData == nullptr) {
         VZ_LOG_ERROR("Can't upload data because buffer is not mapped");
@@ -54,6 +62,11 @@ bool VulkanBuffer::unmapData() {
     vb.device.unmapMemory(m_bufferMemory);
     m_mappedData = nullptr;
     return true;
+}
+void VulkanBuffer::uploadDataInstant(const void* data,uint32_t size) {
+    mapData();
+    uploadData(data,size);
+    unmapData();
 }
 void VulkanBuffer::uploadDataInstant(const void* data) {
     mapData();
@@ -233,7 +246,7 @@ bool UniformBuffer::createBuffer(size_t size) {
 
 bool StorageBuffer::createBuffer(size_t size) {
     if (!VulkanBuffer::createBuffer(size,
-    vk::BufferUsageFlagBits::eStorageBuffer,
+                vk::BufferUsageFlagBits::eStorageBuffer,
                                     vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent))
         return false;
     mapData();

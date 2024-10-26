@@ -1,6 +1,6 @@
 #ifndef VERTEXBUFFER_HPP
 #define VERTEXBUFFER_HPP
-#include "Vertex.hpp"
+#include "data/Vertex.hpp"
 
 #include <cstdint>
 #include <vulkan/vulkan.hpp>
@@ -13,8 +13,10 @@ class VulkanBuffer {
 public:
     bool createBuffer(uint64_t size,vk::BufferUsageFlags usageFlagBits,vk::MemoryPropertyFlags memoryPropertyBits);
     bool mapData();
+    bool uploadData(const void* data,uint32_t size);
     bool uploadData(const void* data);
     bool unmapData();
+    void uploadDataInstant(const void* data,uint32_t size);
     void uploadDataInstant(const void* data);
     bool copyBuffer(const VulkanBuffer& srcBuffer);
     void cleanup() const;

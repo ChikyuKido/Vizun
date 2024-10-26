@@ -22,7 +22,7 @@ layout(set = 0, binding = 2) readonly buffer StorageBuffer {
 
 void main() {
     mat4 modelMatrix = trans.transforms[gl_InstanceIndex+pushConstants.transformOffset];
-    gl_Position = vec4(inPosition, 0.0, 1.0);
+    gl_Position = ubo.viewProj * modelMatrix * vec4(inPosition, 0.0, 1.0);
 
     fragColor = inColor;
     fragTexCoord = inTexCoord;

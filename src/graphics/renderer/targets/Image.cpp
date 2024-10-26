@@ -2,8 +2,9 @@
 
 #include "Image.hpp"
 
-#include "VulkanImage.hpp"
-#include "VulkanRenderer.hpp"
+#include "graphics/resources/VulkanImage.hpp"
+#include "graphics/renderer/VulkanRenderer.hpp"
+#include "resource_loader/ResourceLoader.hpp"
 #include <iostream>
 
 namespace vz {
@@ -18,8 +19,9 @@ const std::vector<Vertex> Image::m_vertices = {
 const std::vector<uint16_t> Image::m_indices = {
     0, 1, 2, 2, 3, 0
 };
-Image::Image(std::string rscPath) {
-    if(!m_vulkanImage.loadImageTexture(rscPath)) {
+Image::Image(const std::string& rscPath) {
+    m_vulkanImage = ResourceLoader::getVulkanImage(rscPath);
+    if(m_vulkanImage == nullptr) {
         VZ_LOG_CRITICAL("Could not load image texture");
     }
     m_viBuffer.createBuffer(m_vertices,m_indices);
@@ -38,7 +40,7 @@ void Image::prepareCommoner(VulkanRenderer& renderer,
     int id = 0;
     for (RenderTarget* rt : targets) {
         auto* imgRenderTarget = static_cast<Image*>(rt);
-        images.push_back(&imgRenderTarget->m_vulkanImage);
+        images.push_back(imgRenderTarget->m_vulkanImage);
         imgRenderTarget->m_commonerUseId = id++;
     }
     renderer.getImgDesc().updateImage(images,renderer.getCurrentFrame());
@@ -47,7 +49,7 @@ int Image::getMaxCommoners() {
     return MAX_IMAGES_IN_SHADER;
 }
 int Image::getCommoner() {
-    return reinterpret_cast<int64_t>(&m_vulkanImage);
+    return reinterpret_cast<int64_t>(m_vulkanImage);
 }
 void Image::useCommoner(VulkanRenderer& renderer,VulkanGraphicsPipeline& pipeline) {
     renderer.getCurrentCmdBuffer().pushConstants(pipeline.pipelineLayout,vk::ShaderStageFlagBits::eFragment,0,sizeof(m_commonerUseId),&m_commonerUseId);

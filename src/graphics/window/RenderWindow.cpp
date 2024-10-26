@@ -3,9 +3,8 @@
 #include "utils/Events.hpp"
 #include "utils/Logger.hpp"
 #define STB_IMAGE_IMPLEMENTATION
-#include "VizunEngine.hpp"
-#include "VulkanSwapchain.hpp"
-#include "utils/VulkanUtils.hpp"
+#include "core/VizunEngine.hpp"
+#include "graphics/base/VulkanSwapchain.hpp"
 
 #include <stb_image.h>
 
@@ -33,8 +32,6 @@ RenderWindow::~RenderWindow() {
 void RenderWindow::draw(RenderTarget& renderTarget) const {
     m_renderer->draw(renderTarget);
 }
-
-
 void RenderWindow::draw(RenderTarget& renderTarget, const std::shared_ptr<VulkanGraphicsPipeline>& graphicsPipeline) const {
     m_renderer->draw(renderTarget, graphicsPipeline);
 }

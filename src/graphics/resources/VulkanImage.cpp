@@ -1,7 +1,7 @@
 #include "VulkanImage.hpp"
 
-#include "VizunEngine.hpp"
-#include "VulkanBase.hpp"
+#include "core/VizunEngine.hpp"
+#include "graphics/base/VulkanBase.hpp"
 #include "VulkanBuffer.hpp"
 #include "utils/Logger.hpp"
 #include "utils/VulkanUtils.hpp"
@@ -103,8 +103,8 @@ void VulkanImage::transitionImageLayout(vk::Format format,
 
     VulkanUtils::endSingleTimeCommands(commandBuffer);
 }
-void VulkanImage::copyBufferToImage() {
-    vk::CommandBuffer commandBuffer = VulkanUtils::beginSingleTimeCommands();
+void VulkanImage::copyBufferToImage(const VulkanBuffer& buffer) const {
+    auto commandBuffer = VulkanUtils::beginSingleTimeCommands();
     vk::BufferImageCopy region;
     region.bufferOffset = 0;
     region.bufferRowLength = 0;
@@ -115,7 +115,7 @@ void VulkanImage::copyBufferToImage() {
     region.imageSubresource.layerCount = 1;
     region.imageOffset = vk::Offset3D{0, 0, 0};
     region.imageExtent = vk::Extent3D{m_width, m_height, 1};
-    commandBuffer.copyBufferToImage(m_stagingBuffer->getBuffer(), *m_image, vk::ImageLayout::eTransferDstOptimal, 1, &region);
+    commandBuffer.copyBufferToImage(buffer.getBuffer(), *m_image, vk::ImageLayout::eTransferDstOptimal, 1, &region);
     VulkanUtils::endSingleTimeCommands(commandBuffer);
 }
 bool VulkanImage::createImageView() {
@@ -150,32 +150,6 @@ bool VulkanImage::createTextureSampler() {
     samplerInfo.maxLod = 0.0f;
 
     VK_RESULT_ASSIGN_SHARED(m_sampler,vb.device.createSampler(samplerInfo),vk::Sampler)
-    return true;
-}
-#pragma endregion
-#pragma region VulkanImageTexture
-bool VulkanImageTexture::loadImageTexture(const std::string& path) {
-    int texWidth, texHeight, texChannels;
-    stbi_uc* pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-    const vk::DeviceSize imageSize = texWidth * texHeight * 4;
-    if (!pixels) {
-        VZ_LOG_ERROR("failed to load texture image");
-        return false;
-    }
-    m_stagingBuffer = std::make_shared<VulkanBuffer>();
-    m_stagingBuffer->createBuffer(imageSize,
-                                  vk::BufferUsageFlagBits::eTransferSrc,
-                                  vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
-    m_stagingBuffer->uploadDataInstant(pixels);
-    stbi_image_free(pixels);
-    if(!createImage(texWidth,texHeight,vk::Format::eR8G8B8A8Srgb,vk::ImageTiling::eOptimal,
-        vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled, vk::MemoryPropertyFlagBits::eDeviceLocal)) {
-        return false;
-    }
-    transitionImageLayout(vk::Format::eR8G8B8A8Srgb,vk::ImageLayout::eUndefined,vk::ImageLayout::eTransferDstOptimal);
-    copyBufferToImage();
-    transitionImageLayout(vk::Format::eR8G8B8A8Srgb, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
-    m_stagingBuffer->cleanup();
     return true;
 }
 #pragma endregion

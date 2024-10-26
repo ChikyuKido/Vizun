@@ -37,42 +37,46 @@ set(GLFW_BUILD_WAYLAND OFF)
 add_subdirectory(lib/glfw)
 
 set(SOURCE_FILES
-        src/graphics/RenderWindow.cpp
-        src/graphics/RenderWindow.hpp
+        src/graphics/window/RenderWindow.cpp
+        src/graphics/window/RenderWindow.hpp
         src/utils/Logger.hpp
-        src/graphics/VulkanBase.cpp
-        src/graphics/VulkanBase.hpp
+        src/graphics/base/VulkanBase.cpp
+        src/graphics/base/VulkanBase.hpp
         src/config/VulkanRenderWindowConfig.hpp
         src/utils/VulkanUtils.hpp
         src/utils/VulkanUtils.cpp
-        src/graphics/VulkanSwapchain.cpp
-        src/graphics/VulkanSwapchain.hpp
-        src/graphics/VulkanGraphicsPipeline.cpp
-        src/graphics/VulkanGraphicsPipeline.hpp
-        src/graphics/VulkanGraphicsPipeline.cpp
-        src/graphics/VulkanGraphicsPipeline.hpp
-        src/graphics/VulkanRenderPass.cpp
-        src/graphics/VulkanRenderPass.hpp
-        src/graphics/RenderTarget.hpp
+        src/graphics/base/VulkanSwapchain.cpp
+        src/graphics/base/VulkanSwapchain.hpp
+        src/graphics/pipeline/VulkanGraphicsPipeline.cpp
+        src/graphics/pipeline/VulkanGraphicsPipeline.hpp
+        src/graphics/pipeline/VulkanGraphicsPipeline.cpp
+        src/graphics/pipeline/VulkanGraphicsPipeline.hpp
+        src/graphics/renderpass/VulkanRenderPass.cpp
+        src/graphics/renderpass/VulkanRenderPass.hpp
+        src/graphics/renderer/targets/RenderTarget.hpp
         src/utils/Events.cpp
         src/utils/Events.hpp
         src/utils/Events.cpp
         src/utils/Events.hpp
-        src/graphics/Vertex.hpp
-        src/graphics/VulkanBuffer.cpp
-        src/graphics/VulkanBuffer.hpp
-        src/graphics/VulkanImage.cpp
-        src/graphics/VulkanImage.hpp
-        src/graphics/VulkanRenderer.cpp
-        src/graphics/VulkanRenderer.hpp
-        src/graphics/VulkanGraphicsPipelineDescriptor.cpp
-        src/graphics/VulkanGraphicsPipelineDescriptor.hpp
+        src/data/Vertex.hpp
+        src/graphics/resources/VulkanBuffer.cpp
+        src/graphics/resources/VulkanBuffer.hpp
+        src/graphics/resources/VulkanImage.cpp
+        src/graphics/resources/VulkanImage.hpp
+        src/graphics/renderer/VulkanRenderer.cpp
+        src/graphics/renderer/VulkanRenderer.hpp
+        src/graphics/pipeline/VulkanGraphicsPipelineDescriptor.cpp
+        src/graphics/pipeline/VulkanGraphicsPipelineDescriptor.hpp
         src/config/VizunConfig.hpp
-        src/graphics/Image.cpp
-        src/graphics/Image.cpp
-        src/graphics/Image.hpp
-        src/VizunEngine.cpp
-        src/VizunEngine.hpp
+        src/graphics/renderer/targets/Image.cpp
+        src/graphics/renderer/targets/Image.cpp
+        src/graphics/renderer/targets/Image.hpp
+        src/core/VizunEngine.cpp
+        src/core/VizunEngine.hpp
+        src/resource_loader/ResourceLoader.hpp
+        src/resource_loader/loader/Loader.hpp
+        src/resource_loader/loader/VulkanImageLoader.hpp
+        src/resource_loader/ResourceLoader.cpp
 )
 add_library(Vizun ${SOURCE_FILES})
 

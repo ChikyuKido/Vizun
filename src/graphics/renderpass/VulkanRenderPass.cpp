@@ -1,8 +1,8 @@
 
 #include "VulkanRenderPass.hpp"
 
-#include "RenderWindow.hpp"
-#include "VulkanSwapchain.hpp"
+#include "graphics/window/RenderWindow.hpp"
+#include "graphics/base/VulkanSwapchain.hpp"
 #include "utils/Logger.hpp"
 
 namespace vz {

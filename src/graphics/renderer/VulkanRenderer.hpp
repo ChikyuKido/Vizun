@@ -1,10 +1,10 @@
 #ifndef VULKANRENDERER_HPP
 #define VULKANRENDERER_HPP
 
-#include "VizunEngine.hpp"
-#include "VulkanBase.hpp"
-#include "VulkanGraphicsPipeline.hpp"
-#include "VulkanGraphicsPipelineDescriptor.hpp"
+#include "core/VizunEngine.hpp"
+#include "graphics/base/VulkanBase.hpp"
+#include "graphics/pipeline/VulkanGraphicsPipeline.hpp"
+#include "graphics/pipeline/VulkanGraphicsPipelineDescriptor.hpp"
 #include "config/VizunConfig.hpp"
 
 #include <memory>
