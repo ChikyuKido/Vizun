@@ -76,23 +76,23 @@ void VulkanBuffer::uploadDataInstant(const void* data) {
 bool VulkanBuffer::copyBuffer(const VulkanBuffer& srcBuffer) {
     vk::CommandBuffer commandBuffer = VulkanUtils::beginSingleTimeCommands();
     vk::BufferCopy copyRegion;
-    copyRegion.size = m_size;
+    copyRegion.size = srcBuffer.getBufferSize();
     commandBuffer.copyBuffer(srcBuffer.getBuffer(),m_buffer,1,&copyRegion);
     VulkanUtils::endSingleTimeCommands(commandBuffer);
     return true;
 }
 
-void VulkanBuffer::cleanup() const {
+void VulkanBuffer::cleanup() {
     static VulkanBase& vb = VizunEngine::getVulkanBase();
+    if(m_mappedData != nullptr) unmapData();
     vb.device.destroyBuffer(m_buffer);
     vb.device.freeMemory(m_bufferMemory);
 }
 
 bool VulkanBuffer::resizeBuffer(uint64_t size) {
     VulkanBuffer tempBuffer;
-    if(!tempBuffer.createBuffer(size, m_usageFlagBits, m_memoryPropertyBits)) return false;
+    if(!tempBuffer.createBuffer(size, m_usageFlagBits | vk::BufferUsageFlagBits::eTransferDst, m_memoryPropertyBits)) return false;
     if(!tempBuffer.copyBuffer(*this)) return false;
-
     m_size = size;
     cleanup();
     m_buffer = tempBuffer.m_buffer;
@@ -246,7 +246,7 @@ bool UniformBuffer::createBuffer(size_t size) {
 
 bool StorageBuffer::createBuffer(size_t size) {
     if (!VulkanBuffer::createBuffer(size,
-                vk::BufferUsageFlagBits::eStorageBuffer,
+                vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferSrc,
                                     vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent))
         return false;
     mapData();

@@ -10,21 +10,26 @@
 namespace vz {
 
 const std::vector<Vertex> Image::m_vertices = {
-    {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
-    {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
-    {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
-    {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
+    {{0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
+    {{1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
+    {{1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
+    {{0.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
 };
 
 const std::vector<uint16_t> Image::m_indices = {
     0, 1, 2, 2, 3, 0
 };
+VertexIndexBuffer Image::m_viBuffer;
+
 Image::Image(const std::string& rscPath) {
     m_vulkanImage = ResourceLoader::getVulkanImage(rscPath);
     if(m_vulkanImage == nullptr) {
         VZ_LOG_CRITICAL("Could not load image texture");
     }
-    m_viBuffer.createBuffer(m_vertices,m_indices);
+    if(m_viBuffer.getBuffer() == VK_NULL_HANDLE) {
+        VZ_LOG_DEBUG("Image does not have a default vertex index buffer. Create one");
+        m_viBuffer.createBuffer(m_vertices,m_indices);
+    }
 }
 void Image::draw(const vk::CommandBuffer& commandBuffer, const VulkanGraphicsPipeline& pipeline, uint32_t currentFrame,uint32_t instances) {
     vk::Buffer vertexBuffers[] = {m_viBuffer.getBuffer()};
@@ -53,5 +58,14 @@ int Image::getCommoner() {
 }
 void Image::useCommoner(VulkanRenderer& renderer,VulkanGraphicsPipeline& pipeline) {
     renderer.getCurrentCmdBuffer().pushConstants(pipeline.pipelineLayout,vk::ShaderStageFlagBits::eFragment,0,sizeof(m_commonerUseId),&m_commonerUseId);
+}
+
+void Image::setSize(float x, float y) {
+    setSize({x,y});
+}
+
+void Image::setSize(const glm::vec2& size) {
+    m_size = size;
+    updateTransform();
 }
 }

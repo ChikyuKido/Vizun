@@ -1,6 +1,7 @@
 #ifndef VULKANRENDERER_HPP
 #define VULKANRENDERER_HPP
 
+#include "Camera.hpp"
 #include "core/VizunEngine.hpp"
 #include "graphics/base/VulkanBase.hpp"
 #include "graphics/pipeline/VulkanGraphicsPipeline.hpp"
@@ -56,6 +57,7 @@ private:
     VulkanGraphicsPipelineUniformBufferDescriptor m_ubDesc =VulkanGraphicsPipelineUniformBufferDescriptor(0);
     VulkanGraphicsPipelineImageDescriptor m_imageDesc = VulkanGraphicsPipelineImageDescriptor(1);
     VulkanGraphicsPipelineStorageBufferDescriptor m_transformDesc = VulkanGraphicsPipelineStorageBufferDescriptor(2,false);
+    Camera m_camera;
     std::shared_ptr<VulkanGraphicsPipeline> m_defaultGraphicsPipeline;
     std::shared_ptr<VulkanRenderPass> m_renderPass;
     std::unordered_map<std::shared_ptr<VulkanGraphicsPipeline>, RenderTargetMap> m_drawCalls;

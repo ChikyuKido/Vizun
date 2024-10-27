@@ -24,21 +24,38 @@ public:
     glm::mat4 getTransform() const {
         return m_transform;
     }
-
-    void translate(const glm::vec3& translation) {
-        m_transform = glm::translate(m_transform, translation);
+    void setPosition(const glm::vec2& position) {
+        m_pos = position;
+        updateTransform();
     }
-    void rotate(float angle, const glm::vec3& axis) {
-        m_transform = glm::rotate(m_transform, glm::radians(angle), axis);
+    void setPosition(float x,float y) {
+        m_pos = glm::vec2(x,y);
+        updateTransform();
     }
-    void scale(const glm::vec3& scale) {
-        m_transform = glm::scale(m_transform, scale);
+    void setRotation(float angle) {
+        m_rotation = angle;
+        updateTransform();
+    }
+    void setScale(const glm::vec2& scale) {
+        m_scale = scale;
+        updateTransform();
     }
     void reset() {
         m_transform = glm::mat4(1.0f);
     }
 protected:
+    glm::vec2 m_scale = glm::vec2(1.0f, 1.0f);
+    glm::vec2 m_pos = glm::vec2(0.0f, 0.0f);
+    float m_rotation = 0.0f;
     glm::mat4 m_transform = glm::mat4(1.0f);
+
+    virtual void updateTransform() {
+        m_transform = glm::mat4(1.0f);
+        m_transform = glm::translate(m_transform, glm::vec3(m_pos, 0.0f)); // Translate first
+        m_transform = glm::rotate(m_transform, glm::radians(m_rotation), glm::vec3(0.0f, 0.0f, 1.0f));
+        m_transform = glm::scale(m_transform, glm::vec3(m_scale, 1.0f)); // Scale last
+    }
+
 };
 }
 

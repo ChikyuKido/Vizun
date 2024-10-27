@@ -20,14 +20,22 @@ public:
     int getMaxCommoners() override;
     int getCommoner() override;
     void useCommoner(VulkanRenderer& renderer,VulkanGraphicsPipeline& pipeline) override;
-
+    void setSize(float x,float y);
+    void setSize(const glm::vec2& size);
+protected:
+    void updateTransform() override {
+        auto tempScale = m_scale;
+        m_scale = m_scale * m_size;
+        RenderTarget::updateTransform();
+        m_scale = tempScale;
+    }
 private:
-
     static const std::vector<Vertex> m_vertices;
     static const std::vector<uint16_t> m_indices;
+    static VertexIndexBuffer m_viBuffer;
 
+    glm::vec2 m_size;
     VulkanImage* m_vulkanImage = nullptr;
-    VertexIndexBuffer m_viBuffer;
     int m_commonerUseId;
 };
 

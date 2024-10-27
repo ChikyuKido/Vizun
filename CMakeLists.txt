@@ -77,6 +77,8 @@ set(SOURCE_FILES
         src/resource_loader/loader/Loader.hpp
         src/resource_loader/loader/VulkanImageLoader.hpp
         src/resource_loader/ResourceLoader.cpp
+        src/graphics/renderer/Camera.cpp
+        src/graphics/renderer/Camera.hpp
 )
 add_library(Vizun ${SOURCE_FILES})
 
@@ -90,6 +92,10 @@ add_custom_target(build_shaders ALL
 add_definitions(-DVULKAN_HPP_NO_EXCEPTIONS -DVULKAN_HPP_NO_SMART_HANDLE -DVULKAN_HPP_NO_SETTERS -DVULKAN_HPP_NO_SPACESHIP_OPERATOR -DVULKAN_HPP_NO_TO_STRING)
 
 add_dependencies(Vizun build_shaders)
+
+
+#set(CMAKE_CXX_FLAGS "-O3 -march=native -flto -DNDEBUG -mavx2 -mfma -ffast-math -funroll-loops")
+
 
 if(VIZUN_BUILD_EXAMPLES)
     message("Building vizun examples")

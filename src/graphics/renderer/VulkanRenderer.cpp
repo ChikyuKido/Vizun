@@ -17,7 +17,7 @@ namespace vz {
 
 
 VulkanRenderer::VulkanRenderer(VulkanRendererConfig& config, RenderWindow* window) :
-    m_window(window) {
+    m_window(window),m_camera(0,window->getWidth(),0,window->getHeight()) {
     if (!createCommandPool()) {
         VZ_LOG_CRITICAL("Failed to create commandPool");
     }
@@ -55,35 +55,21 @@ VulkanRenderer::VulkanRenderer(VulkanRendererConfig& config, RenderWindow* windo
         VZ_LOG_CRITICAL("Could not create graphics pipeline");
     }
     for (auto & uniformBuffer : m_uniformBuffers) {
-        uniformBuffer.createBuffer(sizeof(UniformBufferObject));
+        uniformBuffer.createBuffer(sizeof(CameraObject));
     }
     for (auto & transformBuffer : m_transformBuffers) {
-        transformBuffer.createBuffer(sizeof(glm::mat4)*16000);
+        transformBuffer.createBuffer(sizeof(glm::mat4)*TRANSFORM_BUFFER_SIZE);
     }
     for (int i = 0; i < FRAMES_IN_FLIGHT; ++i) {
         m_ubDesc.updateUniformBuffer(m_uniformBuffers,i);
 
     }
 }
-void updateUniformBufferTest(vz::UniformBuffer& ub) {
-    static auto startTime = std::chrono::high_resolution_clock::now();
 
-    auto currentTime = std::chrono::high_resolution_clock::now();
-    float time = std::chrono::duration<float>(currentTime - startTime).count();
-    UniformBufferObject ubo{};
-    // ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0,0, 1.0f));
-    ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    ubo.proj = glm::perspective(glm::radians(45.0f), 800.0f/600.0f, 0.1f, 10.0f);
-    ubo.proj[1][1] *= -1;
-
-    ubo.viewProj = ubo.proj * ubo.view;
-
-    ub.uploadData(&ubo);
-}
 void VulkanRenderer::begin() {
     static VulkanBase& vb = VizunEngine::getVulkanBase();
-    updateUniformBufferTest(m_uniformBuffers[m_currentFrame]);
-
+    auto camera = m_camera.getCameraObject();
+    m_uniformBuffers[m_currentFrame].uploadData(&camera,sizeof(camera));
 
     VKF(vb.device.waitForFences(1, &m_inFlightFences[m_currentFrame], vk::True, UINT64_MAX));
     VKF(vb.device.resetFences(1, &m_inFlightFences[m_currentFrame]));
@@ -217,13 +203,21 @@ void VulkanRenderer::display() {
             }
         }
     }
-    // m_ubDesc.updateUniformBuffer(m_uniformBuffers,m_currentFrame);
+    for (auto &targets : std::views::values(renderTargetsPerGraphicsPipeline)) {
+        auto& transformBuffer = m_transformBuffers[m_currentFrame];
+        if(targets.size() * sizeof(glm::mat4) > transformBuffer.getBufferSize()) {
+            uint64_t newBufferSize = (targets.size()+TRANSFORM_BUFFER_SIZE)*sizeof(glm::mat4);
+            VZ_LOG_DEBUG("Transform buffer to small to hold {} transform resize it to: {}",targets.size(),newBufferSize/sizeof(glm::mat4));
+            transformBuffer.resizeBuffer(newBufferSize);
+            transformBuffer.mapData();
+        }
+    }
     m_transformDesc.updateStorageBuffer(m_transformBuffers[m_currentFrame],m_currentFrame);
     uint32_t lastTransformSize = 0;
     begin();
     for (const auto& [pipeline,renderTargetsPerIndexPerCommoner] : renderTargetsPerPipelinePerIndexPerCommoner) {
         auto renderTargets = renderTargetsPerGraphicsPipeline[pipeline];
-        m_transformBuffers[m_currentFrame].uploadData(renderTargets.data(),renderTargets.size() * sizeof(renderTargets[0]));
+        m_transformBuffers[m_currentFrame].uploadData(renderTargets.data(),renderTargets.size() * sizeof(glm::mat4));
         pipeline->bindPipeline(getCurrentCmdBuffer());
         pipeline->bindDescriptorSet(getCurrentCmdBuffer(),m_currentFrame,{});
         for (const auto& [_,renderTargetsPerCommoner] : renderTargetsPerIndexPerCommoner) {

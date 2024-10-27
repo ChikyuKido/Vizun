@@ -29,6 +29,8 @@ public:
     const VulkanRenderer& getRenderer() const;
     const VulkanRenderWindowConfig* getConfig() const;
     const vk::SurfaceKHR& getSurface() const;
+    int getWidth() const;
+    int getHeight() const;
     void display() const;
 
 private:

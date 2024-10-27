@@ -2,6 +2,7 @@
 
 #include "graphics/base/VulkanBase.hpp"
 #include "utils/Logger.hpp"
+#include "utils/VulkanUtils.hpp"
 
 namespace vz {
 VulkanBase* VizunEngine::m_vulkanBase = nullptr;

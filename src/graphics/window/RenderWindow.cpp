@@ -65,6 +65,14 @@ const vk::SurfaceKHR& RenderWindow::getSurface() const {
     return m_surface;
 }
 
+int RenderWindow::getWidth() const {
+    return m_width;
+}
+
+int RenderWindow::getHeight() const {
+    return m_height;
+}
+
 void RenderWindow::display() const {
     m_renderer->display();
 }

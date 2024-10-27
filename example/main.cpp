@@ -15,7 +15,7 @@ int main() {
     vizunEngineConfig.instanceConfig.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
     VZ_INITIALIZE_ENGINE(vizunEngineConfig);
 
-
+    spdlog::set_level(spdlog::level::debug);
 
     vz::VulkanRenderWindowConfig vulkanConfig;
     vulkanConfig.vulkanSwapchainConfig.presentMode = vk::PresentModeKHR::eImmediate;
@@ -24,19 +24,20 @@ int main() {
 
     vz::ResourceLoader::loadVulkanImage("rsc/texts/slime-move-forward1.png");
 
+
     std::vector<vz::Image> imgs;
-    for (float i = 0; i < 16; ++i) {
+    for (int i = 0; i < 1; ++i) {
         vz::Image img("rsc/texts/slime-move-forward1.png");
+        img.setSize(12,12);
+        img.setPosition((i%300)*3,(i/300)*3);
         imgs.push_back(img);
     }
     uint32_t frames = 0;
     auto next_time_point = std::chrono::steady_clock::now() + std::chrono::seconds(1);
     while(!renderWindow.shouldWindowClose()) {
         glfwPollEvents();
-       for (float i = 0; i < imgs.size(); ++i) {
-            imgs[i].reset();
-            imgs[i].translate({i/imgs.size(),i/imgs.size(),0});
-            renderWindow.draw( imgs[i]);
+        for (float i = 0; i < imgs.size(); ++i) {
+            renderWindow.draw(imgs[i]);
         }
         renderWindow.display();
         frames++;
