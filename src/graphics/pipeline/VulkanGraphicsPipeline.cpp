@@ -64,27 +64,24 @@ bool VulkanGraphicsPipeline::createGraphicsPipeline(const VulkanRenderPass& vulk
     vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
     vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
-    inputAssembly.topology = vk::PrimitiveTopology::eTriangleList;
+    inputAssembly.topology = pipelineConfig.topology;
     inputAssembly.primitiveRestartEnable = vk::False;
 
 
-    //TODO: let the user set the amount of viewports and scissors
     vk::PipelineViewportStateCreateInfo viewportState;
     viewportState.viewportCount = 1;
     viewportState.scissorCount = 1;
 
 
-    //TODO: add this to the config too
     vk::PipelineRasterizationStateCreateInfo rasterizer;
     rasterizer.depthClampEnable = vk::False;
     rasterizer.rasterizerDiscardEnable = vk::False;
-    rasterizer.polygonMode = vk::PolygonMode::eFill;
+    rasterizer.polygonMode = pipelineConfig.polygonMode;
     rasterizer.lineWidth = 1.0f;
     rasterizer.cullMode = vk::CullModeFlagBits::eNone;
     rasterizer.frontFace = vk::FrontFace::eCounterClockwise;
     rasterizer.depthBiasEnable = vk::False;
 
-    //TODO: add this to the config too
     vk::PipelineMultisampleStateCreateInfo multisampling;
     multisampling.sampleShadingEnable = vk::False;
     multisampling.rasterizationSamples = vk::SampleCountFlagBits::e1;
@@ -93,7 +90,6 @@ bool VulkanGraphicsPipeline::createGraphicsPipeline(const VulkanRenderPass& vulk
     multisampling.alphaToCoverageEnable = vk::False;
     multisampling.alphaToOneEnable = vk::False;
 
-    //TODO: add this to the config too
     vk::PipelineColorBlendAttachmentState colorBlendAttachment;
     colorBlendAttachment.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
                                           vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
@@ -105,33 +101,18 @@ bool VulkanGraphicsPipeline::createGraphicsPipeline(const VulkanRenderPass& vulk
     colorBlendAttachment.dstAlphaBlendFactor = vk::BlendFactor::eZero;
     colorBlendAttachment.alphaBlendOp = vk::BlendOp::eAdd;
 
-    //TODO: add this to the config too
     vk::PipelineColorBlendStateCreateInfo colorBlendState;
     colorBlendState.logicOpEnable = vk::False;
     colorBlendState.logicOp = vk::LogicOp::eCopy;
     colorBlendState.attachmentCount = 1;
     colorBlendState.pAttachments = &colorBlendAttachment;
 
-    vk::PushConstantRange pushConstantRangeTextureIndex{};
-    pushConstantRangeTextureIndex.stageFlags = vk::ShaderStageFlagBits::eFragment;
-    pushConstantRangeTextureIndex.offset = 0;
-    pushConstantRangeTextureIndex.size = 4;
-
-    vk::PushConstantRange pushConstantRangeTransformOffset{};
-    pushConstantRangeTransformOffset.stageFlags = vk::ShaderStageFlagBits::eVertex;
-    pushConstantRangeTransformOffset.offset = 4;
-    pushConstantRangeTransformOffset.size = 4;
-
-    std::vector<vk::PushConstantRange> pushConstants;
-    pushConstants.push_back(pushConstantRangeTextureIndex);
-    pushConstants.push_back(pushConstantRangeTransformOffset);
-
     //TODO: add this to the config too
     vk::PipelineLayoutCreateInfo pipelineLayoutInfo;
     pipelineLayoutInfo.setLayoutCount = 1;
     pipelineLayoutInfo.pSetLayouts = &m_descriptorSetLayout;
-    pipelineLayoutInfo.pushConstantRangeCount = pushConstants.size();
-    pipelineLayoutInfo.pPushConstantRanges = pushConstants.data();
+    pipelineLayoutInfo.pushConstantRangeCount = pipelineConfig.pushConstants.size();
+    pipelineLayoutInfo.pPushConstantRanges = pipelineConfig.pushConstants.data();
 
     vk::PipelineDepthStencilStateCreateInfo depthStencil;
     depthStencil.depthTestEnable = vk::False;
@@ -204,7 +185,7 @@ bool VulkanGraphicsPipeline::createDescriptors(VulkanGraphicsPipelineConfig& pip
     vk::DescriptorPoolCreateInfo poolInfo;
     poolInfo.poolSizeCount = poolSizes.size();
     poolInfo.pPoolSizes = poolSizes.data();
-    poolInfo.maxSets = FRAMES_IN_FLIGHT*8;//TOdo: fix the amount of sets
+    poolInfo.maxSets = FRAMES_IN_FLIGHT*pipelineConfig.descriptors.size();
 
     VK_RESULT_ASSIGN(m_descriptorPool,vb.device.createDescriptorPool(poolInfo));
     std::vector layouts(FRAMES_IN_FLIGHT,m_descriptorSetLayout);

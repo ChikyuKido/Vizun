@@ -1,8 +1,9 @@
 
 #include "core/VizunEngine.hpp"
-#include "../src/graphics/renderer/targets/Image.hpp"
+#include "graphics/renderer/targets/Image.hpp"
 #include "graphics/window/RenderWindow.hpp"
 #include "resource_loader/ResourceLoader.hpp"
+#include "utils/Events.hpp"
 
 #include <chrono>
 #include <iostream>

@@ -31,6 +31,10 @@ struct VulkanGraphicsPipelineConfig {
     vk::VertexInputBindingDescription vertexInputBindingDescription;
     std::vector<vk::VertexInputAttributeDescription> vertexInputAttributes;
     std::vector<VulkanGraphicsPipelineDescriptor*> descriptors;
+    vk::PrimitiveTopology topology = vk::PrimitiveTopology::eTriangleList;
+    vk::PolygonMode polygonMode = vk::PolygonMode::eFill;
+    std::vector<vk::PushConstantRange> pushConstants;
+
 };
 struct VulkanRendererConfig {
     VulkanRenderPass* renderPass = nullptr;

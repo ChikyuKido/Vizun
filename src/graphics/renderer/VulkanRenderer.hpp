@@ -54,7 +54,7 @@ private:
     std::vector<vk::Framebuffer> m_framebuffers;
     FRAMES(UniformBuffer) m_uniformBuffers;
     FRAMES(StorageBuffer) m_transformBuffers;
-    VulkanGraphicsPipelineUniformBufferDescriptor m_ubDesc =VulkanGraphicsPipelineUniformBufferDescriptor(0);
+    VulkanGraphicsPipelineUniformBufferDescriptor m_ubDesc = VulkanGraphicsPipelineUniformBufferDescriptor(0);
     VulkanGraphicsPipelineImageDescriptor m_imageDesc = VulkanGraphicsPipelineImageDescriptor(1);
     VulkanGraphicsPipelineStorageBufferDescriptor m_transformDesc = VulkanGraphicsPipelineStorageBufferDescriptor(2,false);
     Camera m_camera;

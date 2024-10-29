@@ -41,6 +41,16 @@ VulkanRenderer::VulkanRenderer(VulkanRendererConfig& config, RenderWindow* windo
 
     m_defaultGraphicsPipeline = std::make_shared<VulkanGraphicsPipeline>();
 
+    vk::PushConstantRange pushConstantRangeTextureIndex{};
+    pushConstantRangeTextureIndex.stageFlags = vk::ShaderStageFlagBits::eFragment;
+    pushConstantRangeTextureIndex.offset = 0;
+    pushConstantRangeTextureIndex.size = 4;
+
+    vk::PushConstantRange pushConstantRangeTransformOffset{};
+    pushConstantRangeTransformOffset.stageFlags = vk::ShaderStageFlagBits::eVertex;
+    pushConstantRangeTransformOffset.offset = 4;
+    pushConstantRangeTransformOffset.size = 4;
+
     VulkanGraphicsPipelineConfig defaultConf;
     defaultConf.vertexInputAttributes = Vertex::getAttributeDescriptions();
     defaultConf.vertexInputBindingDescription = Vertex::getBindingDescritption();
@@ -48,8 +58,12 @@ VulkanRenderer::VulkanRenderer(VulkanRendererConfig& config, RenderWindow* windo
     defaultConf.descriptors = {
         &m_ubDesc,&m_imageDesc,&m_transformDesc
     };
+    defaultConf.topology = vk::PrimitiveTopology::eTriangleList;
+    defaultConf.polygonMode = vk::PolygonMode::eFill;
     defaultConf.fragShaderPath = "rsc/shaders/default_frag.spv";
     defaultConf.vertShaderPath = "rsc/shaders/default_vert.spv";
+    defaultConf.pushConstants.push_back(pushConstantRangeTextureIndex);
+    defaultConf.pushConstants.push_back(pushConstantRangeTransformOffset);
 
     if(!m_defaultGraphicsPipeline->createGraphicsPipeline(*m_renderPass,defaultConf)) {
         VZ_LOG_CRITICAL("Could not create graphics pipeline");

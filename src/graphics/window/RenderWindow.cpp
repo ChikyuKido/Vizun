@@ -16,10 +16,25 @@ RenderWindow(width, height, std::move(title), VulkanRenderWindowConfig()) {}
 RenderWindow::RenderWindow(int width, int height, std::string title, VulkanRenderWindowConfig vulkanConfig)
     : m_width(width), m_height(height), m_title(std::move(title)), m_vulkanConfig(vulkanConfig) {
     createWindow();
+
     glfwSetFramebufferSizeCallback(m_windowHandle,[](GLFWwindow*, int width, int height) {Events::resizeSignal.emit(width,height);});
+    glfwSetKeyCallback(m_windowHandle,[](GLFWwindow*, int key, int, int action, int) {
+       if (action == GLFW_PRESS) {
+           Events::keyJustPressedSignal.emit(key);
+           Events::keyPressedSignal.emit(key);
+       }else if (action == GLFW_RELEASE) {
+           Events::keyReleasedSignal.emit(key);
+       }else if (action == GLFW_REPEAT) {
+           Events::keyPressedSignal.emit(key);
+       }
+    });
     m_vulkanSwapchain = std::make_unique<VulkanSwapchain>();
     initVulkan();
     m_renderer = std::make_unique<VulkanRenderer>(vulkanConfig.vulkanRenderConfig,this);
+    Events::resizeSignal.connect([this](int width, int height) {
+        m_width = width;
+        m_height = height;
+    });
 }
 
 RenderWindow::~RenderWindow() {
