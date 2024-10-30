@@ -27,7 +27,7 @@ public:
     vk::Format swapchainFormat;
     static VulkanSwapChainSupportDetails querySwapChainSupport(const vk::PhysicalDevice& device,const vk::SurfaceKHR& surface);
 
-    bool createSwapchain(RenderWindow* window);
+    bool createSwapchain(const RenderWindow* window);
     bool recreateSwapchain(RenderWindow* window);
     std::vector<vk::Framebuffer> createFramebuffers(const VulkanRenderPass& renderPass) const;
     void cleanup() const;

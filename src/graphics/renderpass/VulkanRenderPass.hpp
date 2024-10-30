@@ -10,9 +10,8 @@ class VulkanRenderPass {
 public:
     vk::RenderPass renderPass;
 
-    void cleanup();
+    void cleanup() const;
     bool createRenderPass(const VulkanRenderPassConfig& config, const RenderWindow* window);
-private:
 };
 }
 

@@ -61,7 +61,7 @@ bool VulkanBase::createInstance() {
     return vk::createInstance(&instanceInfo, nullptr, &instance) == vk::Result::eSuccess;
 }
 bool VulkanBase::pickPhysicalDevice(vk::SurfaceKHR& surface) {
-    auto deviceResult = instance.enumeratePhysicalDevices();
+    const auto deviceResult = instance.enumeratePhysicalDevices();
     if (deviceResult.result != vk::Result::eSuccess) {
         VZ_LOG_ERROR("Failed to find physical devices");
         return false;
@@ -79,10 +79,10 @@ bool VulkanBase::pickPhysicalDevice(vk::SurfaceKHR& surface) {
         }
         candidates.insert(std::make_pair(rateDeviceSuitability(device), device));
     }
-    for (auto candidate : candidates) {
+    for (auto [score, device] : candidates) {
         VZ_LOG_INFO("Found GPU {} with a score of {}",
-                    static_cast<char*>(candidate.second.getProperties().deviceName),
-                    candidate.first);
+                    static_cast<char*>(device.getProperties().deviceName),
+                    score);
     }
     if (candidates.rbegin()->first > 0) {
         physicalDevice = candidates.rbegin()->second;
@@ -92,10 +92,10 @@ bool VulkanBase::pickPhysicalDevice(vk::SurfaceKHR& surface) {
     return true;
 }
 bool VulkanBase::createLogicalDevice(vk::SurfaceKHR& surface) {
-    QueueFamilyIndices indices = findQueueFamilies(physicalDevice,surface);
+    auto [graphicsFamily, presentFamily] = findQueueFamilies(physicalDevice,surface);
 
     std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
-    std::set uniqueQueueFamilies = {indices.graphicsFamily.value(), indices.presentFamily.value()};
+    std::set uniqueQueueFamilies = {graphicsFamily.value(), presentFamily.value()};
 
     constexpr float queuePriority = 1.0f;
     for (uint32_t queueFamily : uniqueQueueFamilies) {
@@ -120,9 +120,9 @@ bool VulkanBase::createLogicalDevice(vk::SurfaceKHR& surface) {
     if (result.result != vk::Result::eSuccess) { return false; }
     device = result.value;
 
-    graphicsQueue.queueFamilyIndex = indices.graphicsFamily.value();
+    graphicsQueue.queueFamilyIndex = graphicsFamily.value();
     graphicsQueue.queue = device.getQueue(graphicsQueue.queueFamilyIndex, 0);
-    presentQueue.queueFamilyIndex = indices.presentFamily.value();
+    presentQueue.queueFamilyIndex = presentFamily.value();
     presentQueue.queue = device.getQueue(presentQueue.queueFamilyIndex, 0);
     return true;
 }
@@ -146,17 +146,16 @@ bool VulkanBase::isDeviceSuitable(vk::PhysicalDevice device,vk::SurfaceKHR& surf
     const bool extensionsSupported = areDeviceExtensionsSupported(device);
     bool swapChainAdequate = false;
     if(extensionsSupported) {
-        VulkanSwapChainSupportDetails swapChainSupport = VulkanSwapchain::querySwapChainSupport(device,surface);
-        swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
+        auto [capabilities, formats, presentModes] = VulkanSwapchain::querySwapChainSupport(device,surface);
+        swapChainAdequate = !formats.empty() && !presentModes.empty();
     }
     bool areFeaturesSupported = false;
-    vk::PhysicalDeviceFeatures features = device.getFeatures();
-    if(features.samplerAnisotropy == vk::True) {
+    if(device.getFeatures().samplerAnisotropy == vk::True) {
         areFeaturesSupported = true;
     }
     return familyIndices.isComplete() && extensionsSupported && swapChainAdequate && areFeaturesSupported;
 }
-bool VulkanBase::areDeviceExtensionsSupported(vk::PhysicalDevice device) const {
+bool VulkanBase::areDeviceExtensionsSupported(const vk::PhysicalDevice device) const {
     std::vector<vk::ExtensionProperties> extensions = device.enumerateDeviceExtensionProperties().value;
 
     std::set<std::string> requiredExtensions(m_vulkanConfig->deviceConfig.enableDeviceFeatures.begin(), m_vulkanConfig->deviceConfig.enableDeviceFeatures.end());

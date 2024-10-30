@@ -11,9 +11,9 @@ class VulkanGraphicsPipeline {
 public:
     vk::PipelineLayout pipelineLayout;
     vk::Pipeline pipeline;
-    void cleanup();
+    void cleanup() const;
     bool createGraphicsPipeline(const VulkanRenderPass& vulkanRenderPass, VulkanGraphicsPipelineConfig& pipelineConfig);
-    void updateDescriptor(std::vector<vk::WriteDescriptorSet>& writeDescSet,int currentFrame) const;
+    void updateDescriptor(std::vector<vk::WriteDescriptorSet>& writeDescSets,int currentFrame) const;
     void bindDescriptorSet(const vk::CommandBuffer& commandBuffer,uint32_t currentFrame,const std::vector<uint32_t>& offsets) const;
     void bindPipeline(const vk::CommandBuffer& commandBuffer) const;
 private:

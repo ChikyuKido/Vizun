@@ -1,7 +1,6 @@
 #ifndef TEXTURE_HPP
 #define TEXTURE_HPP
 #include <memory>
-#include <string>
 #include <vulkan/vulkan.hpp>
 
 namespace vz {
@@ -10,7 +9,7 @@ class VulkanBase;
 class VulkanImage {
 public:
     bool createImage(uint32_t width,uint32_t height, vk::Format format, vk::ImageTiling tiling, vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties);
-    void cleanup();
+    void cleanup() const;
     [[nodiscard]] std::shared_ptr<vk::Image> getImage() const {
         return m_image;
     }
@@ -29,7 +28,7 @@ public:
     [[nodiscard]] std::shared_ptr<vk::Sampler> getSampler() const {
         return m_sampler;
     }
-    void transitionImageLayout(vk::Format format, vk::ImageLayout oldLayout,vk::ImageLayout newLayout);
+    void transitionImageLayout(vk::ImageLayout oldLayout,vk::ImageLayout newLayout) const;
     void copyBufferToImage(const VulkanBuffer& buffer) const;
 protected:
     bool createImageView();

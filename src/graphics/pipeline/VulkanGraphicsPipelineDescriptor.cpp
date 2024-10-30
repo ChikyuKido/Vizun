@@ -11,9 +11,9 @@
 
 namespace vz {
 #pragma region Descriptor
-VulkanGraphicsPipelineDescriptor::VulkanGraphicsPipelineDescriptor(int binding,
-                                                                   int count,
-                                                                   vk::DescriptorType descriptorType,
+VulkanGraphicsPipelineDescriptor::VulkanGraphicsPipelineDescriptor(const int binding,
+                                                                   const int count,
+                                                                   const vk::DescriptorType descriptorType,
                                                                    const vk::ShaderStageFlags& stageFlag) :
 m_graphicsPipeline(nullptr) {
     m_binding = binding;
@@ -23,9 +23,9 @@ m_graphicsPipeline(nullptr) {
 }
 #pragma endregion
 #pragma region UniformDescriptor
-VulkanGraphicsPipelineUniformBufferDescriptor::VulkanGraphicsPipelineUniformBufferDescriptor(int binding)
+VulkanGraphicsPipelineUniformBufferDescriptor::VulkanGraphicsPipelineUniformBufferDescriptor(const int binding)
     : VulkanGraphicsPipelineDescriptor(binding,1,vk::DescriptorType::eUniformBuffer,vk::ShaderStageFlagBits::eVertex) {}
-void VulkanGraphicsPipelineUniformBufferDescriptor::updateUniformBuffer(const std::array<UniformBuffer,FRAMES_IN_FLIGHT>& uniformBuffer,int currentFrame) const {
+void VulkanGraphicsPipelineUniformBufferDescriptor::updateUniformBuffer(const std::array<UniformBuffer,FRAMES_IN_FLIGHT>& uniformBuffer,const int currentFrame) const {
     if(m_graphicsPipeline == nullptr) {
         VZ_LOG_CRITICAL("Uniform descriptor was not assigned to a graphics pipeline!");
     }
@@ -50,8 +50,9 @@ void VulkanGraphicsPipelineUniformBufferDescriptor::updateUniformBuffer(const st
 #pragma endregion
 #pragma region ImageDescriptor
 VulkanGraphicsPipelineImageDescriptor::VulkanGraphicsPipelineImageDescriptor(
-    int binding) : VulkanGraphicsPipelineDescriptor(binding,MAX_IMAGES_IN_SHADER,vk::DescriptorType::eCombinedImageSampler,vk::ShaderStageFlagBits::eFragment) {}
-void VulkanGraphicsPipelineImageDescriptor::updateImage(const std::vector<VulkanImage*>& images,int currentFrame) {
+    const int binding) : VulkanGraphicsPipelineDescriptor(binding,MAX_IMAGES_IN_SHADER,vk::DescriptorType::eCombinedImageSampler,vk::ShaderStageFlagBits::eFragment) {}
+
+void VulkanGraphicsPipelineImageDescriptor::updateImage(const std::vector<const VulkanImage*>& images,const int currentFrame) const {
     assert(MAX_IMAGES_IN_SHADER>images.size());
     if(m_graphicsPipeline == nullptr) {
         VZ_LOG_CRITICAL("Image descriptor was not assigned to a graphics pipeline!");
@@ -61,12 +62,12 @@ void VulkanGraphicsPipelineImageDescriptor::updateImage(const std::vector<Vulkan
     std::array<vk::DescriptorImageInfo,MAX_IMAGES_IN_SHADER> imageInfos;
     for (size_t j = 0; j < MAX_IMAGES_IN_SHADER; j++) {
         if(j < images.size()) {
-            auto* img = images[j];
+            const auto* img = images[j];
             imageInfos[j].imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
             imageInfos[j].imageView = *img->getImageView();
             imageInfos[j].sampler = *img->getSampler();
         }else {
-            auto* img = getEmptyImage();
+            const auto* img = getEmptyImage();
             imageInfos[j].imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
             imageInfos[j].imageView = *img->getImageView();
             imageInfos[j].sampler = *img->getSampler();
@@ -84,11 +85,11 @@ void VulkanGraphicsPipelineImageDescriptor::updateImage(const std::vector<Vulkan
 }
 #pragma endregion
 #pragma region StorageDescriptor
-VulkanGraphicsPipelineStorageBufferDescriptor::VulkanGraphicsPipelineStorageBufferDescriptor(int binding,bool dynamic):
+VulkanGraphicsPipelineStorageBufferDescriptor::VulkanGraphicsPipelineStorageBufferDescriptor(const int binding,const bool dynamic):
     VulkanGraphicsPipelineDescriptor(binding,1,dynamic ? vk::DescriptorType::eStorageBufferDynamic : vk::DescriptorType::eStorageBuffer,vk::ShaderStageFlagBits::eVertex) {
 }
 
-void VulkanGraphicsPipelineStorageBufferDescriptor::updateStorageBuffer(const StorageBuffer& buffer, int currentFrame) const {
+void VulkanGraphicsPipelineStorageBufferDescriptor::updateStorageBuffer(const StorageBuffer& buffer,const int currentFrame) const {
     vk::DescriptorBufferInfo bufferInfo{};
     bufferInfo.buffer = buffer.getBuffer();
     bufferInfo.offset = 0;

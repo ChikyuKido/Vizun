@@ -15,25 +15,25 @@ VulkanSwapChainSupportDetails VulkanSwapchain::querySwapChainSupport(const vk::P
     auto capabilitiesRes = device.getSurfaceCapabilitiesKHR(surface);
     if (capabilitiesRes.result != vk::Result::eSuccess) { return details; }
     details.capabilities = capabilitiesRes.value;
-    vk::ResultValue<std::vector<vk::SurfaceFormatKHR>> formatsRes = device.getSurfaceFormatsKHR(surface);
+    const vk::ResultValue<std::vector<vk::SurfaceFormatKHR>> formatsRes = device.getSurfaceFormatsKHR(surface);
     if (formatsRes.result != vk::Result::eSuccess) { return details; }
     details.formats = formatsRes.value;
-    vk::ResultValue<std::vector<vk::PresentModeKHR>> presentModesRes = device.getSurfacePresentModesKHR(surface);
+    const vk::ResultValue<std::vector<vk::PresentModeKHR>> presentModesRes = device.getSurfacePresentModesKHR(surface);
     if (presentModesRes.result != vk::Result::eSuccess) { return details; }
     details.presentModes = presentModesRes.value;
     return details;
 }
-bool VulkanSwapchain::createSwapchain(RenderWindow* window) {
+bool VulkanSwapchain::createSwapchain(const RenderWindow* window) {
     static VulkanBase& vb = VizunEngine::getVulkanBase();
-    const VulkanSwapChainSupportDetails swapChainSupport = querySwapChainSupport(vb.physicalDevice, window->getSurface());
+    const auto [capabilities, formats, presentModes] = querySwapChainSupport(vb.physicalDevice, window->getSurface());
 
-    const vk::SurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
-    const vk::PresentModeKHR presentMode = chooseSwapPresentMode(window->getConfig(), swapChainSupport.presentModes);
-    const vk::Extent2D extent = chooseSwapExtent(swapChainSupport.capabilities, window->getWindowHandle());
+    const vk::SurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(formats);
+    const vk::PresentModeKHR presentMode = chooseSwapPresentMode(window->getConfig(), presentModes);
+    const vk::Extent2D extent = chooseSwapExtent(capabilities, window->getWindowHandle());
 
-    uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
-    if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount) {
-        imageCount = swapChainSupport.capabilities.maxImageCount;
+    uint32_t imageCount = capabilities.minImageCount + 1;
+    if (capabilities.maxImageCount > 0 && imageCount > capabilities.maxImageCount) {
+        imageCount = capabilities.maxImageCount;
     }
 
     vk::SwapchainCreateInfoKHR createInfo;
@@ -56,7 +56,7 @@ bool VulkanSwapchain::createSwapchain(RenderWindow* window) {
         createInfo.imageSharingMode = vk::SharingMode::eExclusive;
     }
 
-    createInfo.preTransform = swapChainSupport.capabilities.currentTransform;
+    createInfo.preTransform = capabilities.currentTransform;
     createInfo.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
     createInfo.presentMode = presentMode;
     createInfo.clipped = vk::True;
@@ -122,7 +122,7 @@ std::vector<vk::Framebuffer> VulkanSwapchain::createFramebuffers(const VulkanRen
     std::vector<vk::Framebuffer> framebuffers;
     framebuffers.resize(swapchainImageViews.size());
     for (size_t i = 0; i < swapchainImageViews.size(); i++) {
-        VkImageView attachments[] = {
+        const VkImageView attachments[] = {
             swapchainImageViews[i]
         };
 
@@ -145,13 +145,13 @@ std::vector<vk::Framebuffer> VulkanSwapchain::createFramebuffers(const VulkanRen
 }
 void VulkanSwapchain::cleanup() const {
     static VulkanBase& vb = VizunEngine::getVulkanBase();
-    for (auto imageView : swapchainImageViews) {
+    for (const auto& imageView : swapchainImageViews) {
         vb.device.destroyImageView(imageView);
     }
     vb.device.destroySwapchainKHR(swapchain);
 }
 vk::SurfaceFormatKHR VulkanSwapchain::chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats) const {
-    for (auto availableFormat : availableFormats) {
+    for (const auto& availableFormat : availableFormats) {
         if (availableFormat.format == vk::Format::eB8G8R8Srgb &&
             availableFormat.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear) {
             return availableFormat;
@@ -166,7 +166,7 @@ vk::PresentModeKHR VulkanSwapchain::chooseSwapPresentMode(const VulkanRenderWind
         VZ_LOG_INFO("Present mode was forced. This is not recommended and can lead to unexptected behaviour");
         return vulkanConfig->vulkanSwapchainConfig.presentMode;
     }
-    for (auto availablePresentMode : availablePresentModes) {
+    for (const auto& availablePresentMode : availablePresentModes) {
         if (availablePresentMode == vulkanConfig->vulkanSwapchainConfig.presentMode) { return availablePresentMode; }
     }
     VZ_LOG_WARNING("No suitable present mode found returning fifo present mode");

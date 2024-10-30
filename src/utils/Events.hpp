@@ -8,15 +8,15 @@ template<typename... Args>
 class Signal {
 public:
     void connect(std::function<void(Args...)> slot) {
-        slots.push_back(slot);
+        m_slots.push_back(slot);
     }
     void emit(Args... args) {
-        for (auto& slot : slots) {
+        for (auto& slot : m_slots) {
             slot(args...);
         }
     }
 private:
-    std::vector<std::function<void(Args...)>> slots;
+    std::vector<std::function<void(Args...)>> m_slots;
 };
 
 class Events {

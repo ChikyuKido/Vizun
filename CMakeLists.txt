@@ -79,6 +79,9 @@ set(SOURCE_FILES
         src/resource_loader/ResourceLoader.cpp
         src/graphics/renderer/Camera.cpp
         src/graphics/renderer/Camera.hpp
+        src/graphics/renderer/VulkanGraphicsPipelineRenderer.hpp
+        src/graphics/renderer/VulkanImagePipelineRenderer.cpp
+        src/graphics/renderer/VulkanImagePipelineRenderer.hpp
 )
 add_library(Vizun ${SOURCE_FILES})
 
@@ -89,6 +92,7 @@ add_custom_target(build_shaders ALL
         WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/rsc/shaders"
 )
 
+add_definitions(-frtti)
 add_definitions(-DVULKAN_HPP_NO_EXCEPTIONS -DVULKAN_HPP_NO_SMART_HANDLE -DVULKAN_HPP_NO_SETTERS -DVULKAN_HPP_NO_SPACESHIP_OPERATOR -DVULKAN_HPP_NO_TO_STRING)
 
 add_dependencies(Vizun build_shaders)

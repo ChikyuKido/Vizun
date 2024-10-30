@@ -13,12 +13,12 @@ class VulkanBuffer {
 public:
     bool createBuffer(uint64_t size,vk::BufferUsageFlags usageFlagBits,vk::MemoryPropertyFlags memoryPropertyBits);
     bool mapData();
-    bool uploadData(const void* data,uint32_t size);
-    bool uploadData(const void* data);
+    bool uploadData(const void* data,uint32_t size) const;
+    bool uploadData(const void* data) const;
     bool unmapData();
     void uploadDataInstant(const void* data,uint32_t size);
     void uploadDataInstant(const void* data);
-    bool copyBuffer(const VulkanBuffer& srcBuffer);
+    bool copyBuffer(const VulkanBuffer& srcBuffer) const;
     void cleanup();
     bool resizeBuffer(uint64_t size);
     [[nodiscard]] const vk::Buffer& getBuffer() const;
@@ -56,7 +56,7 @@ class VertexIndexBuffer : public VulkanBuffer {
 public:
     bool createBuffer(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices);
     bool createBuffer(const std::vector<Vertex>& vertices, const std::vector<uint16_t>& indices);
-    [[nodiscard]] size_t getVerticiesCount() const;
+    [[nodiscard]] size_t getVerticesCount() const;
     [[nodiscard]] size_t getIndicesCount() const;
     [[nodiscard]] size_t getIndicesOffsetSize() const;
     [[nodiscard]] vk::IndexType getIndexType() const;

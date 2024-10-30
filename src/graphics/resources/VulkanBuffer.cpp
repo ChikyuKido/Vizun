@@ -7,12 +7,12 @@
 
 namespace vz {
 #pragma region VulkanBuffer
-bool VulkanBuffer::createBuffer(uint64_t size,
-                                vk::BufferUsageFlags usageFlagBits,
-                                vk::MemoryPropertyFlags memoryPropertyBits) {
+bool VulkanBuffer::createBuffer(const uint64_t size,
+                                const vk::BufferUsageFlags usageFlagBits,
+                                const vk::MemoryPropertyFlags memoryPropertyBits) {
     m_memoryPropertyBits = memoryPropertyBits;
     m_usageFlagBits = usageFlagBits;
-    static VulkanBase& vb = VizunEngine::getVulkanBase();
+    const static VulkanBase& vb = VizunEngine::getVulkanBase();
     this->m_size = size;
     vk::BufferCreateInfo bufferInfo;
     bufferInfo.size = size;
@@ -20,7 +20,7 @@ bool VulkanBuffer::createBuffer(uint64_t size,
     bufferInfo.sharingMode = vk::SharingMode::eExclusive;
     VK_RESULT_ASSIGN(m_buffer, vb.device.createBuffer(bufferInfo));
 
-    vk::MemoryRequirements memRequirements = vb.device.getBufferMemoryRequirements(m_buffer);
+    const vk::MemoryRequirements memRequirements = vb.device.getBufferMemoryRequirements(m_buffer);
     vk::MemoryAllocateInfo allocInfo;
     allocInfo.allocationSize = memRequirements.size;
     allocInfo.memoryTypeIndex = VulkanUtils::findMemoryType(memRequirements.memoryTypeBits, memoryPropertyBits);
@@ -37,7 +37,7 @@ bool VulkanBuffer::mapData() {
     VKF(vb.device.mapMemory(m_bufferMemory, 0, m_size, {}, &m_mappedData));
     return true;
 }
-bool VulkanBuffer::uploadData(const void* data,uint32_t size) {
+bool VulkanBuffer::uploadData(const void* data,const uint32_t size) const {
     if(m_mappedData == nullptr) {
         VZ_LOG_ERROR("Can't upload data because buffer is not mapped");
         return false;
@@ -45,7 +45,7 @@ bool VulkanBuffer::uploadData(const void* data,uint32_t size) {
     memcpy(m_mappedData, data, size);
     return true;
 }
-bool VulkanBuffer::uploadData(const void* data) {
+bool VulkanBuffer::uploadData(const void* data) const {
     if(m_mappedData == nullptr) {
         VZ_LOG_ERROR("Can't upload data because buffer is not mapped");
         return false;
@@ -63,7 +63,7 @@ bool VulkanBuffer::unmapData() {
     m_mappedData = nullptr;
     return true;
 }
-void VulkanBuffer::uploadDataInstant(const void* data,uint32_t size) {
+void VulkanBuffer::uploadDataInstant(const void* data,const uint32_t size) {
     mapData();
     uploadData(data,size);
     unmapData();
@@ -73,8 +73,8 @@ void VulkanBuffer::uploadDataInstant(const void* data) {
     uploadData(data);
     unmapData();
 }
-bool VulkanBuffer::copyBuffer(const VulkanBuffer& srcBuffer) {
-    vk::CommandBuffer commandBuffer = VulkanUtils::beginSingleTimeCommands();
+bool VulkanBuffer::copyBuffer(const VulkanBuffer& srcBuffer) const {
+    const vk::CommandBuffer commandBuffer = VulkanUtils::beginSingleTimeCommands();
     vk::BufferCopy copyRegion;
     copyRegion.size = srcBuffer.getBufferSize();
     commandBuffer.copyBuffer(srcBuffer.getBuffer(),m_buffer,1,&copyRegion);
@@ -89,7 +89,7 @@ void VulkanBuffer::cleanup() {
     vb.device.freeMemory(m_bufferMemory);
 }
 
-bool VulkanBuffer::resizeBuffer(uint64_t size) {
+bool VulkanBuffer::resizeBuffer(const uint64_t size) {
     VulkanBuffer tempBuffer;
     if(!tempBuffer.createBuffer(size, m_usageFlagBits | vk::BufferUsageFlagBits::eTransferDst, m_memoryPropertyBits)) return false;
     if(!tempBuffer.copyBuffer(*this)) return false;
@@ -115,7 +115,7 @@ const void* VulkanBuffer::getMappedData() const {
 #pragma endregion
 #pragma region VertexBuffer
 bool VertexBuffer::createBuffer(const std::vector<Vertex>& vertices) {
-    uint64_t size = sizeof(vertices[0]) * vertices.size();
+    const uint64_t size = sizeof(vertices[0]) * vertices.size();
     VulkanBuffer stagingBuffer;
     if (!stagingBuffer.createBuffer(size,
                                     vk::BufferUsageFlagBits::eTransferSrc,
@@ -135,12 +135,12 @@ bool VertexBuffer::createBuffer(const std::vector<Vertex>& vertices) {
 #pragma region IndexBuffer
 bool IndexBuffer::createBuffer(const std::vector<uint32_t>& indices) {
     m_indicesCount = indices.size();
-    size_t size = sizeof(uint32_t) * indices.size();
+    const size_t size = sizeof(uint32_t) * indices.size();
     return createBuffer(size, indices.data(), vk::IndexType::eUint32);
 }
 bool IndexBuffer::createBuffer(const std::vector<uint16_t>& indices) {
     m_indicesCount = indices.size();
-    size_t size = sizeof(uint16_t) * indices.size();
+    const size_t size = sizeof(uint16_t) * indices.size();
     return createBuffer(size, indices.data(), vk::IndexType::eUint16);
 }
 size_t IndexBuffer::getIndicesCount() const {
@@ -149,7 +149,7 @@ size_t IndexBuffer::getIndicesCount() const {
 vk::IndexType IndexBuffer::getIndexType() const {
     return m_indexType;
 }
-bool IndexBuffer::createBuffer(size_t indicesSize, const void* indicesData, vk::IndexType type) {
+bool IndexBuffer::createBuffer(const size_t indicesSize, const void* indicesData,const vk::IndexType type) {
     VulkanBuffer stagingBuffer;
     if (!stagingBuffer.createBuffer(indicesSize,
                                     vk::BufferUsageFlagBits::eTransferSrc,
@@ -173,17 +173,17 @@ bool IndexBuffer::createBuffer(size_t indicesSize, const void* indicesData, vk::
 bool VertexIndexBuffer::createBuffer(const std::vector<Vertex>& vertices,
                                      const std::vector<uint32_t>& indices) {
     m_indicesCount = indices.size();
-    size_t size = sizeof(uint32_t) * indices.size();
+    const size_t size = sizeof(uint32_t) * indices.size();
     return createBuffer(vertices,size,indices.data(),vk::IndexType::eUint32);
 
 }
 bool VertexIndexBuffer::createBuffer(const std::vector<Vertex>& vertices,
                                      const std::vector<uint16_t>& indices) {
     m_indicesCount = indices.size();
-    size_t size = sizeof(uint16_t) * indices.size();
+    const size_t size = sizeof(uint16_t) * indices.size();
     return createBuffer(vertices, size, indices.data(), vk::IndexType::eUint16);
 }
-size_t VertexIndexBuffer::getVerticiesCount() const {
+size_t VertexIndexBuffer::getVerticesCount() const {
     return m_verticesCount;
 }
 size_t VertexIndexBuffer::getIndicesCount() const {
@@ -196,12 +196,12 @@ vk::IndexType VertexIndexBuffer::getIndexType() const {
     return m_indexType;
 }
 bool VertexIndexBuffer::createBuffer(const std::vector<Vertex>& vertices,
-                                     size_t indicesSize,
+                                     const size_t indicesSize,
                                      const void* indicesData,
-                                     vk::IndexType type) {
+                                     const vk::IndexType type) {
     static VulkanBase& vb = VizunEngine::getVulkanBase();
-    size_t verticesSize = sizeof(vertices[0]) * indicesSize;
-    size_t bufferSize = verticesSize + indicesSize;
+    const size_t verticesSize = sizeof(vertices[0]) * indicesSize;
+    const size_t bufferSize = verticesSize + indicesSize;
     VulkanBuffer stagingBuffer;
     if (!stagingBuffer.createBuffer(bufferSize,
                                     vk::BufferUsageFlagBits::eTransferSrc,

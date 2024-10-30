@@ -20,7 +20,6 @@ public:
 
 
     void draw(RenderTarget& renderTarget) const;
-    void draw(RenderTarget& renderTarget, const std::shared_ptr<VulkanGraphicsPipeline>& graphicsPipeline) const;
     void setResizable(bool resizable);
     bool isResizeable() const;
     bool shouldWindowClose() const;

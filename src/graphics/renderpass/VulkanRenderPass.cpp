@@ -6,11 +6,11 @@
 #include "utils/Logger.hpp"
 
 namespace vz {
-void VulkanRenderPass::cleanup() {
+void VulkanRenderPass::cleanup() const {
     static VulkanBase& vb = VizunEngine::getVulkanBase();
     vb.device.destroyRenderPass(renderPass);
 }
-bool VulkanRenderPass::createRenderPass(const VulkanRenderPassConfig& config, const RenderWindow* window) {
+bool VulkanRenderPass::createRenderPass(const VulkanRenderPassConfig&, const RenderWindow* window) {
     static VulkanBase& vb = VizunEngine::getVulkanBase();
     vk::AttachmentDescription attachmentDescription;
     attachmentDescription.format = window->getSwapchain().swapchainFormat;
@@ -20,7 +20,7 @@ bool VulkanRenderPass::createRenderPass(const VulkanRenderPassConfig& config, co
     attachmentDescription.initialLayout = vk::ImageLayout::eUndefined;
     attachmentDescription.finalLayout = vk::ImageLayout::ePresentSrcKHR;
 
-    vk::AttachmentReference attachmentReference(0, vk::ImageLayout::eColorAttachmentOptimal);
+    const vk::AttachmentReference attachmentReference(0, vk::ImageLayout::eColorAttachmentOptimal);
 
     vk::SubpassDescription subpass;
     subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;

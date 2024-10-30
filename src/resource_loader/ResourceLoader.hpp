@@ -1,11 +1,6 @@
-//
-// Created by kido on 10/26/24.
-//
-
 #ifndef RESOURCELOADER_H
 #define RESOURCELOADER_H
 #include "loader/VulkanImageLoader.hpp"
-#include <iostream>
 
 namespace vz {
 

@@ -1,6 +1,7 @@
 
 #include "VulkanRenderer.hpp"
 
+#include "VulkanImagePipelineRenderer.hpp"
 #include "graphics/renderer/targets/RenderTarget.hpp"
 #include "graphics/window/RenderWindow.hpp"
 #include "core/VizunEngine.hpp"
@@ -16,7 +17,7 @@
 namespace vz {
 
 
-VulkanRenderer::VulkanRenderer(VulkanRendererConfig& config, RenderWindow* window) :
+VulkanRenderer::VulkanRenderer(const VulkanRendererConfig& config, RenderWindow* window) :
     m_window(window),m_camera(0,window->getWidth(),0,window->getHeight()) {
     if (!createCommandPool()) {
         VZ_LOG_CRITICAL("Failed to create commandPool");
@@ -36,54 +37,14 @@ VulkanRenderer::VulkanRenderer(VulkanRendererConfig& config, RenderWindow* windo
         m_renderPass = std::make_shared<VulkanRenderPass>(*config.renderPass);
     }
     if(!createFrameBuffers()) {
-        VZ_LOG_CRITICAL("Failed to create framebuffers for renderer");
+        VZ_LOG_CRITICAL("Failed to create frame buffers for renderer");
     }
-
-    m_defaultGraphicsPipeline = std::make_shared<VulkanGraphicsPipeline>();
-
-    vk::PushConstantRange pushConstantRangeTextureIndex{};
-    pushConstantRangeTextureIndex.stageFlags = vk::ShaderStageFlagBits::eFragment;
-    pushConstantRangeTextureIndex.offset = 0;
-    pushConstantRangeTextureIndex.size = 4;
-
-    vk::PushConstantRange pushConstantRangeTransformOffset{};
-    pushConstantRangeTransformOffset.stageFlags = vk::ShaderStageFlagBits::eVertex;
-    pushConstantRangeTransformOffset.offset = 4;
-    pushConstantRangeTransformOffset.size = 4;
-
-    VulkanGraphicsPipelineConfig defaultConf;
-    defaultConf.vertexInputAttributes = Vertex::getAttributeDescriptions();
-    defaultConf.vertexInputBindingDescription = Vertex::getBindingDescritption();
-    defaultConf.dynamicStates = {vk::DynamicState::eScissor,vk::DynamicState::eViewport};
-    defaultConf.descriptors = {
-        &m_ubDesc,&m_imageDesc,&m_transformDesc
-    };
-    defaultConf.topology = vk::PrimitiveTopology::eTriangleList;
-    defaultConf.polygonMode = vk::PolygonMode::eFill;
-    defaultConf.fragShaderPath = "rsc/shaders/default_frag.spv";
-    defaultConf.vertShaderPath = "rsc/shaders/default_vert.spv";
-    defaultConf.pushConstants.push_back(pushConstantRangeTextureIndex);
-    defaultConf.pushConstants.push_back(pushConstantRangeTransformOffset);
-
-    if(!m_defaultGraphicsPipeline->createGraphicsPipeline(*m_renderPass,defaultConf)) {
-        VZ_LOG_CRITICAL("Could not create graphics pipeline");
-    }
-    for (auto & uniformBuffer : m_uniformBuffers) {
-        uniformBuffer.createBuffer(sizeof(CameraObject));
-    }
-    for (auto & transformBuffer : m_transformBuffers) {
-        transformBuffer.createBuffer(sizeof(glm::mat4)*TRANSFORM_BUFFER_SIZE);
-    }
-    for (int i = 0; i < FRAMES_IN_FLIGHT; ++i) {
-        m_ubDesc.updateUniformBuffer(m_uniformBuffers,i);
-
-    }
+    auto imagePipelineRenderer = std::make_shared<VulkanImagePipelineRenderer>(m_renderPass,*this);
+    m_pipelines.push_back(std::move(imagePipelineRenderer));
 }
 
 void VulkanRenderer::begin() {
     static VulkanBase& vb = VizunEngine::getVulkanBase();
-    auto camera = m_camera.getCameraObject();
-    m_uniformBuffers[m_currentFrame].uploadData(&camera,sizeof(camera));
 
     VKF(vb.device.waitForFences(1, &m_inFlightFences[m_currentFrame], vk::True, UINT64_MAX));
     VKF(vb.device.resetFences(1, &m_inFlightFences[m_currentFrame]));
@@ -95,14 +56,14 @@ void VulkanRenderer::begin() {
     if(imageIndexResult.result == vk::Result::eErrorOutOfDateKHR) {
         m_window->getSwapchain().recreateSwapchain(m_window);
         createFrameBuffers();
-        begin(); // call it again so that the begin is in a valid state.
+        begin(); // call it again so that the method is in a valid state.
         return;
     }
     if(imageIndexResult.result != vk::Result::eSuccess && imageIndexResult.result  != vk::Result::eSuboptimalKHR) {
         VZ_LOG_CRITICAL("Failed to acquire swap chain image!");
     }
     m_imageIndex = imageIndexResult.value;
-    vk::CommandBufferBeginInfo beginInfo;
+    const vk::CommandBufferBeginInfo beginInfo;
     VKF(m_commandBuffers[m_currentFrame].begin(beginInfo));
 
     vk::RenderPassBeginInfo renderPassInfo;
@@ -132,25 +93,20 @@ void VulkanRenderer::begin() {
     m_commandBuffers[m_currentFrame].setScissor(0, 1, &scissor);
 }
 void VulkanRenderer::draw(RenderTarget& renderTarget) {
-    draw(renderTarget,m_defaultGraphicsPipeline);
-}
-void VulkanRenderer::draw(RenderTarget& renderTarget, const std::shared_ptr<VulkanGraphicsPipeline>& graphicsPipeline) {
-    if(graphicsPipeline != m_defaultGraphicsPipeline) {
-        bool found = false;
-        for (const auto& pipe : m_graphicPipelines) {
-            if(pipe == graphicsPipeline) {
-                found = true;
-            }
-        }
-        if(!found) {
-            VZ_LOG_ERROR("Tried to make a call with a graphicspipeline which was not created in this renderer");
-            return;
+    auto& type = typeid(renderTarget);
+    bool found = false;
+    std::shared_ptr<VulkanGraphicsPipelineRenderer> pipeline = nullptr;
+    for (const auto& p : m_pipelines) {
+        if(p->filter(type)) {
+            found = true;
+            pipeline = p;
+            break;
         }
     }
-    RenderTargetMap& targetMap = m_drawCalls[graphicsPipeline];
-    const auto typeIndex = std::type_index(typeid(renderTarget));
-    auto& renderTargetList = targetMap[typeIndex];
-    renderTargetList.push_back(&renderTarget);
+    if(!found) {
+        VZ_LOG_CRITICAL("Failed to find a pipeline!");
+    }
+    pipeline->queue(renderTarget);
 }
 void VulkanRenderer::end() {
     static VulkanBase& vb = VizunEngine::getVulkanBase();
@@ -158,14 +114,14 @@ void VulkanRenderer::end() {
     m_commandBuffers[m_currentFrame].endRenderPass();
     VKF(m_commandBuffers[m_currentFrame].end());
     vk::SubmitInfo submitInfo;
-    vk::Semaphore waitSemaphores[] = { m_imageAvailableSemaphores[m_currentFrame] };
-    vk::PipelineStageFlags waitStages[] = { vk::PipelineStageFlagBits::eColorAttachmentOutput };
+    const vk::Semaphore waitSemaphores[] = { m_imageAvailableSemaphores[m_currentFrame] };
+    constexpr vk::PipelineStageFlags waitStages[] = { vk::PipelineStageFlagBits::eColorAttachmentOutput };
     submitInfo.waitSemaphoreCount = 1;
     submitInfo.pWaitSemaphores = waitSemaphores;
     submitInfo.pWaitDstStageMask = waitStages;
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &m_commandBuffers[m_currentFrame];
-    vk::Semaphore signalSemaphores[] = { m_renderFinishedSemaphores[m_currentFrame] };
+    const vk::Semaphore signalSemaphores[] = { m_renderFinishedSemaphores[m_currentFrame] };
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
 
@@ -174,12 +130,12 @@ void VulkanRenderer::end() {
     vk::PresentInfoKHR presentInfo;
     presentInfo.waitSemaphoreCount = 1;
     presentInfo.pWaitSemaphores = signalSemaphores;
-    vk::SwapchainKHR swapchains[] = { m_window->getSwapchain().swapchain };
+    const vk::SwapchainKHR swapchains[] = { m_window->getSwapchain().swapchain };
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = swapchains;
     presentInfo.pImageIndices = &m_imageIndex;
 
-    vk::Result result = vb.presentQueue.queue.presentKHR(&presentInfo);
+    const vk::Result result = vb.presentQueue.queue.presentKHR(&presentInfo);
     if(result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || m_framebufferResized) {
         m_framebufferResized = false;
         m_window->getSwapchain().recreateSwapchain(m_window);
@@ -195,53 +151,12 @@ void VulkanRenderer::end() {
 }
 
 void VulkanRenderer::display() {
-    std::unordered_map<std::shared_ptr<VulkanGraphicsPipeline>,std::unordered_map<std::type_index,std::unordered_map<int,std::vector<RenderTarget*>>>> renderTargetsPerPipelinePerIndexPerCommoner;
-    std::unordered_map<std::shared_ptr<VulkanGraphicsPipeline>,std::vector<glm::mat4>> renderTargetsPerGraphicsPipeline;
-    for (auto& [pipeline,renderMaps] : m_drawCalls) {
-        auto& renderTargets = renderTargetsPerGraphicsPipeline[pipeline];
-        for (const auto& [typeIndex,allCalls] : renderMaps) {
-            auto& renderTargetsPerCommoner = renderTargetsPerPipelinePerIndexPerCommoner[pipeline][typeIndex];
-            auto currentUniqueRenderTargetsPerCommoner = std::vector<RenderTarget*>();
-
-            for (auto* call : allCalls) {
-                renderTargets.push_back(call->getTransform());
-                if (!renderTargetsPerCommoner.contains(call->getCommoner())) {
-                    renderTargetsPerCommoner[call->getCommoner()] = std::vector<RenderTarget*>();
-                    currentUniqueRenderTargetsPerCommoner.push_back(call);
-                }
-                renderTargetsPerCommoner[call->getCommoner()].push_back(call);
-            }
-
-            if (!currentUniqueRenderTargetsPerCommoner.empty()) {
-                currentUniqueRenderTargetsPerCommoner[0]->prepareCommoner(*this, currentUniqueRenderTargetsPerCommoner, *pipeline);
-            }
-        }
+    for (auto& pipeline : m_pipelines) {
+        pipeline->prepare(m_currentFrame);
     }
-    for (auto &targets : std::views::values(renderTargetsPerGraphicsPipeline)) {
-        auto& transformBuffer = m_transformBuffers[m_currentFrame];
-        if(targets.size() * sizeof(glm::mat4) > transformBuffer.getBufferSize()) {
-            uint64_t newBufferSize = (targets.size()+TRANSFORM_BUFFER_SIZE)*sizeof(glm::mat4);
-            VZ_LOG_DEBUG("Transform buffer to small to hold {} transform resize it to: {}",targets.size(),newBufferSize/sizeof(glm::mat4));
-            transformBuffer.resizeBuffer(newBufferSize);
-            transformBuffer.mapData();
-        }
-    }
-    m_transformDesc.updateStorageBuffer(m_transformBuffers[m_currentFrame],m_currentFrame);
-    uint32_t lastTransformSize = 0;
     begin();
-    for (const auto& [pipeline,renderTargetsPerIndexPerCommoner] : renderTargetsPerPipelinePerIndexPerCommoner) {
-        auto renderTargets = renderTargetsPerGraphicsPipeline[pipeline];
-        m_transformBuffers[m_currentFrame].uploadData(renderTargets.data(),renderTargets.size() * sizeof(glm::mat4));
-        pipeline->bindPipeline(getCurrentCmdBuffer());
-        pipeline->bindDescriptorSet(getCurrentCmdBuffer(),m_currentFrame,{});
-        for (const auto& [_,renderTargetsPerCommoner] : renderTargetsPerIndexPerCommoner) {
-            for (auto [commoner,calls] : renderTargetsPerCommoner) {
-                calls[0]->useCommoner(*this,*pipeline);
-                m_commandBuffers[m_currentFrame].pushConstants(pipeline->pipelineLayout,vk::ShaderStageFlagBits::eVertex,4,sizeof(uint32_t),&lastTransformSize);
-                calls[0]->draw(m_commandBuffers[m_currentFrame],*pipeline,m_currentFrame,calls.size());
-                lastTransformSize = lastTransformSize+calls.size();
-            }
-        }
+    for (auto& pipeline : m_pipelines) {
+        pipeline->display(getCurrentCmdBuffer(),m_currentFrame);
     }
     m_drawCalls.clear();
     end();
@@ -270,7 +185,7 @@ bool VulkanRenderer::createCommandBuffer() {
     allocInfo.commandBufferCount = m_commandBuffers.size();
     std::vector<vk::CommandBuffer> buffers;
     VK_RESULT_ASSIGN(buffers, vb.device.allocateCommandBuffers(allocInfo));
-    for (int i = 0; i < buffers.size(); ++i) {
+    for (size_t i = 0; i < buffers.size(); ++i) {
         m_commandBuffers[i] = buffers[i];
     }
     return true;

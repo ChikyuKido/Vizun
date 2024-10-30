@@ -17,7 +17,7 @@ class RenderTarget {
 public:
     virtual ~RenderTarget() = default;
     virtual void draw(const vk::CommandBuffer& commandBuffer,const VulkanGraphicsPipeline& pipeline,uint32_t currentFrame,uint32_t instances) = 0;
-    virtual void prepareCommoner(VulkanRenderer& renderer,const std::vector<RenderTarget*>& targets,VulkanGraphicsPipeline& pipeline) = 0;
+    virtual void prepareCommoner(const std::vector<RenderTarget*>& targets) = 0;
     virtual int getMaxCommoners() = 0;
     virtual int getCommoner() = 0;
     virtual void useCommoner(VulkanRenderer& renderer,VulkanGraphicsPipeline& pipeline) = 0;
@@ -28,11 +28,11 @@ public:
         m_pos = position;
         updateTransform();
     }
-    void setPosition(float x,float y) {
+    void setPosition(const float x,const float y) {
         m_pos = glm::vec2(x,y);
         updateTransform();
     }
-    void setRotation(float angle) {
+    void setRotation(const float angle) {
         m_rotation = angle;
         updateTransform();
     }

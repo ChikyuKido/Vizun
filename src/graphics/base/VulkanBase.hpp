@@ -103,8 +103,8 @@ public:
     vk::Instance instance;
     vk::Device device = nullptr;
     vk::PhysicalDevice physicalDevice = nullptr;
-    VulkanQueue graphicsQueue;
-    VulkanQueue presentQueue;
+    VulkanQueue graphicsQueue{};
+    VulkanQueue presentQueue{};
     vk::CommandPool nonRenderingPool;
     void cleanup() const;
     bool createVulkanBase();

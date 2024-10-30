@@ -12,6 +12,10 @@
 #include <typeindex>
 
 namespace vz {
+class VulkanGraphicsPipelineRenderer;
+}
+
+namespace vz {
 class VulkanBase;
 struct VulkanRendererConfig;
 class RenderTarget;
@@ -27,20 +31,13 @@ using RenderTargetMap = std::unordered_map<std::type_index, std::vector<RenderTa
 
 class VulkanRenderer {
 public:
-    VulkanRenderer(VulkanRendererConfig& config,RenderWindow* window);
+    VulkanRenderer(const VulkanRendererConfig& config,RenderWindow* window);
 
 
     void draw(RenderTarget& renderTarget);
-    void draw(RenderTarget& renderTarget, const std::shared_ptr<VulkanGraphicsPipeline>& graphicsPipeline);
     void display();
     uint32_t getCurrentFrame() const {
         return m_currentFrame;
-    }
-    VulkanGraphicsPipelineUniformBufferDescriptor& getUbDesc() {
-        return m_ubDesc;
-    }
-    VulkanGraphicsPipelineImageDescriptor& getImgDesc() {
-        return m_imageDesc;
     }
     vk::CommandBuffer& getCurrentCmdBuffer() {
         return m_commandBuffers[m_currentFrame];
@@ -48,17 +45,15 @@ public:
     FRAMES(vk::CommandBuffer)& getCmdBuffers() {
         return m_commandBuffers;
     }
+    Camera& getCamera() {
+        return m_camera;
+    }
     std::shared_ptr<VulkanGraphicsPipeline> createGraphicsPipeline(VulkanGraphicsPipelineConfig& config);
 private:
     RenderWindow* m_window;
     std::vector<vk::Framebuffer> m_framebuffers;
-    FRAMES(UniformBuffer) m_uniformBuffers;
-    FRAMES(StorageBuffer) m_transformBuffers;
-    VulkanGraphicsPipelineUniformBufferDescriptor m_ubDesc = VulkanGraphicsPipelineUniformBufferDescriptor(0);
-    VulkanGraphicsPipelineImageDescriptor m_imageDesc = VulkanGraphicsPipelineImageDescriptor(1);
-    VulkanGraphicsPipelineStorageBufferDescriptor m_transformDesc = VulkanGraphicsPipelineStorageBufferDescriptor(2,false);
+    std::vector<std::shared_ptr<VulkanGraphicsPipelineRenderer>> m_pipelines;
     Camera m_camera;
-    std::shared_ptr<VulkanGraphicsPipeline> m_defaultGraphicsPipeline;
     std::shared_ptr<VulkanRenderPass> m_renderPass;
     std::unordered_map<std::shared_ptr<VulkanGraphicsPipeline>, RenderTargetMap> m_drawCalls;
     std::vector<std::shared_ptr<VulkanGraphicsPipeline>> m_graphicPipelines;

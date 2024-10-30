@@ -14,9 +14,9 @@ bool VulkanUtils::isLayerSupported(const char* layer) {
     }
     return false;
 }
-uint32_t VulkanUtils::findMemoryType( uint32_t typeFilter, vk::MemoryPropertyFlags properties) {
+uint32_t VulkanUtils::findMemoryType(const uint32_t typeFilter,const vk::MemoryPropertyFlags properties) {
     static VulkanBase& vb = VizunEngine::getVulkanBase();
-    vk::PhysicalDeviceMemoryProperties memProperties = vb.physicalDevice.getMemoryProperties();
+    const vk::PhysicalDeviceMemoryProperties memProperties = vb.physicalDevice.getMemoryProperties();
     for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
         if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
             return i;
@@ -32,9 +32,9 @@ vk::CommandBuffer VulkanUtils::beginSingleTimeCommands() {
     allocInfo.commandPool = vb.nonRenderingPool;
     allocInfo.commandBufferCount = 1;
 
-    auto valueRes = vb.device.allocateCommandBuffers(allocInfo);
+    const auto valueRes = vb.device.allocateCommandBuffers(allocInfo);
     VKF(valueRes.result);
-    vk::CommandBuffer commandBuffer = valueRes.value[0];
+    const vk::CommandBuffer commandBuffer = valueRes.value[0];
 
     vk::CommandBufferBeginInfo beginInfo;
     beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;

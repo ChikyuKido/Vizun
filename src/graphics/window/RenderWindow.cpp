@@ -13,12 +13,12 @@ namespace vz {
 RenderWindow::RenderWindow(const int width, const int height, std::string title) :
 RenderWindow(width, height, std::move(title), VulkanRenderWindowConfig()) {}
 
-RenderWindow::RenderWindow(int width, int height, std::string title, VulkanRenderWindowConfig vulkanConfig)
+RenderWindow::RenderWindow(const int width,const int height, std::string title, VulkanRenderWindowConfig vulkanConfig)
     : m_width(width), m_height(height), m_title(std::move(title)), m_vulkanConfig(vulkanConfig) {
     createWindow();
 
-    glfwSetFramebufferSizeCallback(m_windowHandle,[](GLFWwindow*, int width, int height) {Events::resizeSignal.emit(width,height);});
-    glfwSetKeyCallback(m_windowHandle,[](GLFWwindow*, int key, int, int action, int) {
+    glfwSetFramebufferSizeCallback(m_windowHandle,[](GLFWwindow*, const int width,const int height) {Events::resizeSignal.emit(width,height);});
+    glfwSetKeyCallback(m_windowHandle,[](GLFWwindow*,const int key,int, const int action, int) {
        if (action == GLFW_PRESS) {
            Events::keyJustPressedSignal.emit(key);
            Events::keyPressedSignal.emit(key);
@@ -31,7 +31,7 @@ RenderWindow::RenderWindow(int width, int height, std::string title, VulkanRende
     m_vulkanSwapchain = std::make_unique<VulkanSwapchain>();
     initVulkan();
     m_renderer = std::make_unique<VulkanRenderer>(vulkanConfig.vulkanRenderConfig,this);
-    Events::resizeSignal.connect([this](int width, int height) {
+    Events::resizeSignal.connect([this](const int width,const int height) {
         m_width = width;
         m_height = height;
     });
@@ -40,15 +40,12 @@ RenderWindow::RenderWindow(int width, int height, std::string title, VulkanRende
 RenderWindow::~RenderWindow() {
     destroyWindow();
     glfwTerminate();
-    static VulkanBase& vb = VizunEngine::getVulkanBase();
-    vb.device.waitIdle();
+    const static VulkanBase& vb = VizunEngine::getVulkanBase();
+    VKF(vb.device.waitIdle());
     m_vulkanSwapchain->cleanup();
 }
 void RenderWindow::draw(RenderTarget& renderTarget) const {
     m_renderer->draw(renderTarget);
-}
-void RenderWindow::draw(RenderTarget& renderTarget, const std::shared_ptr<VulkanGraphicsPipeline>& graphicsPipeline) const {
-    m_renderer->draw(renderTarget, graphicsPipeline);
 }
 void RenderWindow::setResizable(const bool resizable) {
     if (m_resizable != resizable) {
@@ -127,7 +124,7 @@ void RenderWindow::recreateWindow() {
     createWindow();
 }
 bool RenderWindow::createSurface() {
-    static VulkanBase& vb = VizunEngine::getVulkanBase();
+    const static VulkanBase& vb = VizunEngine::getVulkanBase();
     VkSurfaceKHR tempSurface;
     const VkResult res = glfwCreateWindowSurface(vb.instance,m_windowHandle,nullptr,&tempSurface);
     VZ_LOG_INFO(static_cast<int>(res));

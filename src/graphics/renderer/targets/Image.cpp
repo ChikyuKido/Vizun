@@ -21,26 +21,25 @@ const std::vector<uint16_t> Image::m_indices = {
 };
 VertexIndexBuffer Image::m_viBuffer;
 
-Image::Image(const std::string& rscPath) {
-    m_vulkanImage = ResourceLoader::getVulkanImage(rscPath);
-    if(m_vulkanImage == nullptr) {
+Image::Image(const std::string& imagePath) {
+    m_vulkanImage = ResourceLoader::getVulkanImage(imagePath);
+    if (m_vulkanImage == nullptr) {
         VZ_LOG_CRITICAL("Could not load image texture");
     }
-    if(m_viBuffer.getBuffer() == VK_NULL_HANDLE) {
+    if (m_viBuffer.getBuffer() == VK_NULL_HANDLE) {
         VZ_LOG_DEBUG("Image does not have a default vertex index buffer. Create one");
-        m_viBuffer.createBuffer(m_vertices,m_indices);
+        m_viBuffer.createBuffer(m_vertices, m_indices);
     }
 }
-void Image::draw(const vk::CommandBuffer& commandBuffer, const VulkanGraphicsPipeline& pipeline, uint32_t currentFrame,uint32_t instances) {
-    vk::Buffer vertexBuffers[] = {m_viBuffer.getBuffer()};
-    vk::DeviceSize offsets[] = {0};
+
+void Image::draw(const vk::CommandBuffer& commandBuffer, const VulkanGraphicsPipeline&, const uint32_t,const uint32_t instances) {
+    const vk::Buffer vertexBuffers[] = {m_viBuffer.getBuffer()};
+    constexpr vk::DeviceSize offsets[] = {0};
     commandBuffer.bindVertexBuffers(0,1,vertexBuffers,offsets);
     commandBuffer.bindIndexBuffer(m_viBuffer.getBuffer(),m_viBuffer.getIndicesOffsetSize(),m_viBuffer.getIndexType());
     commandBuffer.drawIndexed(m_viBuffer.getIndicesCount(),instances,0,0,0);
 }
-void Image::prepareCommoner(VulkanRenderer& renderer,
-                            const std::vector<RenderTarget*>& targets,
-                            VulkanGraphicsPipeline& pipeline) {
+void Image::prepareCommoner(const std::vector<RenderTarget*>& targets) {
     std::vector<VulkanImage*> images;
     int id = 0;
     for (RenderTarget* rt : targets) {
@@ -48,7 +47,6 @@ void Image::prepareCommoner(VulkanRenderer& renderer,
         images.push_back(imgRenderTarget->m_vulkanImage);
         imgRenderTarget->m_commonerUseId = id++;
     }
-    renderer.getImgDesc().updateImage(images,renderer.getCurrentFrame());
 }
 int Image::getMaxCommoners() {
     return MAX_IMAGES_IN_SHADER;

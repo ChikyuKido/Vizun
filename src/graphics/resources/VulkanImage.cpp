@@ -10,12 +10,12 @@
 
 namespace vz {
 #pragma region VulkanImage
-bool VulkanImage::createImage(uint32_t width,
-                              uint32_t height,
-                              vk::Format format,
-                              vk::ImageTiling tiling,
-                              vk::ImageUsageFlags usage,
-                              vk::MemoryPropertyFlags properties) {
+bool VulkanImage::createImage(const uint32_t width,
+                              const uint32_t height,
+                              const vk::Format format,
+                              const vk::ImageTiling tiling,
+                              const vk::ImageUsageFlags usage,
+                              const vk::MemoryPropertyFlags properties) {
     static VulkanBase& vb = VizunEngine::getVulkanBase();
     vk::ImageCreateInfo imageInfo;
     imageInfo.imageType = vk::ImageType::e2D;
@@ -33,7 +33,7 @@ bool VulkanImage::createImage(uint32_t width,
 
     VK_RESULT_ASSIGN_SHARED(m_image, vb.device.createImage(imageInfo), vk::Image);
 
-    vk::MemoryRequirements memRequirements = vb.device.getImageMemoryRequirements(*m_image.get());
+    const vk::MemoryRequirements memRequirements = vb.device.getImageMemoryRequirements(*m_image.get());
     vk::MemoryAllocateInfo allocInfo;
     allocInfo.allocationSize = memRequirements.size;
     allocInfo.memoryTypeIndex = VulkanUtils::findMemoryType(memRequirements.memoryTypeBits, properties);
@@ -50,17 +50,16 @@ bool VulkanImage::createImage(uint32_t width,
     }
     return true;
 }
-void VulkanImage::cleanup() {
+void VulkanImage::cleanup() const {
     static VulkanBase& vb = VizunEngine::getVulkanBase();
     vb.device.destroySampler(*m_sampler);
     vb.device.destroyImageView(*m_imageView);
     vb.device.destroyImage(*m_image);
     vb.device.freeMemory(*m_imageMemory);
 }
-void VulkanImage::transitionImageLayout(vk::Format format,
-                                        vk::ImageLayout oldLayout,
-                                        vk::ImageLayout newLayout) {
-    vk::CommandBuffer commandBuffer = VulkanUtils::beginSingleTimeCommands();
+void VulkanImage::transitionImageLayout(const vk::ImageLayout oldLayout,
+                                        const vk::ImageLayout newLayout) const {
+    const vk::CommandBuffer commandBuffer = VulkanUtils::beginSingleTimeCommands();
 
     vk::ImageMemoryBarrier barrier;
     barrier.oldLayout = oldLayout;
@@ -83,7 +82,7 @@ void VulkanImage::transitionImageLayout(vk::Format format,
         destinationStage = vk::PipelineStageFlagBits::eTransfer;
     } else if (oldLayout == vk::ImageLayout::eTransferDstOptimal && newLayout == vk::ImageLayout::eShaderReadOnlyOptimal) {
         barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
-        barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;;
+        barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
         sourceStage = vk::PipelineStageFlagBits::eTransfer;
         destinationStage = vk::PipelineStageFlagBits::eFragmentShader;
     } else {
@@ -104,7 +103,7 @@ void VulkanImage::transitionImageLayout(vk::Format format,
     VulkanUtils::endSingleTimeCommands(commandBuffer);
 }
 void VulkanImage::copyBufferToImage(const VulkanBuffer& buffer) const {
-    auto commandBuffer = VulkanUtils::beginSingleTimeCommands();
+    const vk::CommandBuffer commandBuffer = VulkanUtils::beginSingleTimeCommands();
     vk::BufferImageCopy region;
     region.bufferOffset = 0;
     region.bufferRowLength = 0;
@@ -131,7 +130,7 @@ bool VulkanImage::createImageView() {
 }
 bool VulkanImage::createTextureSampler() {
     static VulkanBase& vb = VizunEngine::getVulkanBase();
-    vk::PhysicalDeviceProperties properties = vb.physicalDevice.getProperties();
+    const vk::PhysicalDeviceProperties properties = vb.physicalDevice.getProperties();
     vk::SamplerCreateInfo samplerInfo;
     samplerInfo.magFilter = vk::Filter::eLinear;
     samplerInfo.minFilter = vk::Filter::eLinear;

@@ -52,9 +52,9 @@ public:
 class VulkanGraphicsPipelineImageDescriptor : public VulkanGraphicsPipelineDescriptor {
 public:
     VulkanGraphicsPipelineImageDescriptor(int binding);
-    void updateImage(const std::vector<VulkanImage*>& images,int currentFrame);
+    void updateImage(const std::vector<const VulkanImage*>& images,int currentFrame) const;
 private:
-    VulkanImage* getEmptyImage() {
+    VulkanImage* getEmptyImage() const {
         static VulkanImage* img = nullptr;
         if(img == nullptr) {
             img = ResourceLoader::getVulkanImage("rsc/texts/1x1.png");

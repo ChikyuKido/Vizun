@@ -8,12 +8,10 @@
 #include "VulkanGraphicsPipelineDescriptor.hpp"
 #include "config/VizunConfig.hpp"
 #include "utils/Logger.hpp"
-
 #include <fstream>
-#include <iostream>
 
 namespace vz {
-void VulkanGraphicsPipeline::cleanup() {
+void VulkanGraphicsPipeline::cleanup() const {
     static VulkanBase& vb = VizunEngine::getVulkanBase();
     vb.device.destroyPipeline(pipeline);
     vb.device.destroyPipelineLayout(pipelineLayout);
@@ -23,8 +21,8 @@ bool VulkanGraphicsPipeline::createGraphicsPipeline(const VulkanRenderPass& vulk
                                                     VulkanGraphicsPipelineConfig& pipelineConfig) {
     static VulkanBase& vb = VizunEngine::getVulkanBase();
     RETURN_FALSE_WITH_LOG(!createDescriptors(pipelineConfig),"Failed to create Descriptors")
-    std::vector<char> vertShaderCode =  std::vector(pipelineConfig.vertShaderContent.begin(), pipelineConfig.vertShaderContent.end());
-    std::vector<char> fragShaderCode =  std::vector(pipelineConfig.fragShaderContent.begin(), pipelineConfig.fragShaderContent.end());
+    auto vertShaderCode =  std::vector(pipelineConfig.vertShaderContent.begin(), pipelineConfig.vertShaderContent.end());
+    auto fragShaderCode =  std::vector(pipelineConfig.fragShaderContent.begin(), pipelineConfig.fragShaderContent.end());
     if(vertShaderCode.empty()) {
         vertShaderCode = loadShaderContent(pipelineConfig.vertShaderPath);
     }
@@ -135,7 +133,7 @@ bool VulkanGraphicsPipeline::createGraphicsPipeline(const VulkanRenderPass& vulk
     pipelineInfo.pDynamicState = &dynamicState;
     pipelineInfo.layout = pipelineLayout;
     pipelineInfo.renderPass = vulkanRenderPass.renderPass;
-    pipelineInfo.subpass = 0; //TODO: check the vulkanRenderPass for the amount of subpasses
+    pipelineInfo.subpass = 0; //TODO: check the vulkanRenderPass for the amount of subPasses
 
     VK_RESULT_ASSIGN(pipeline, vb.device.createGraphicsPipeline(nullptr, pipelineInfo))
 
@@ -144,14 +142,14 @@ bool VulkanGraphicsPipeline::createGraphicsPipeline(const VulkanRenderPass& vulk
     return true;
 }
 
-void VulkanGraphicsPipeline::updateDescriptor(std::vector<vk::WriteDescriptorSet>& writeDescSets,int currentFrame) const {
+void VulkanGraphicsPipeline::updateDescriptor(std::vector<vk::WriteDescriptorSet>& writeDescSets,const int currentFrame) const {
     static VulkanBase& vb = VizunEngine::getVulkanBase();
-    for (int i = 0; i < writeDescSets.size(); ++i) {
+    for (size_t i = 0; i < writeDescSets.size(); ++i) {
         writeDescSets[i].dstSet = m_descriptorSets[currentFrame];
     }
     vb.device.updateDescriptorSets(writeDescSets.size(), writeDescSets.data(), 0, nullptr);
 }
-void VulkanGraphicsPipeline::bindDescriptorSet(const vk::CommandBuffer& commandBuffer, uint32_t currentFrame, const std::vector<uint32_t>& offsets) const {
+void VulkanGraphicsPipeline::bindDescriptorSet(const vk::CommandBuffer& commandBuffer,const uint32_t currentFrame, const std::vector<uint32_t>& offsets) const {
     commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout,
             0, 1, &m_descriptorSets[currentFrame], offsets.size(), offsets.data());
 }
@@ -161,7 +159,7 @@ void VulkanGraphicsPipeline::bindPipeline(const vk::CommandBuffer& commandBuffer
 bool VulkanGraphicsPipeline::createDescriptors(VulkanGraphicsPipelineConfig& pipelineConfig) {
     static VulkanBase& vb = VizunEngine::getVulkanBase();
     std::vector<vk::DescriptorSetLayoutBinding> descriptorSetLayoutBindings;
-    for (auto& descriptor : pipelineConfig.descriptors) {
+    for (const auto& descriptor : pipelineConfig.descriptors) {
         vk::DescriptorSetLayoutBinding binding;
         binding.binding = descriptor->getBinding();
         binding.descriptorType = descriptor->getDescriptorType();
@@ -177,7 +175,7 @@ bool VulkanGraphicsPipeline::createDescriptors(VulkanGraphicsPipelineConfig& pip
     
     std::vector<vk::DescriptorPoolSize> poolSizes{};
     poolSizes.resize(pipelineConfig.descriptors.size());
-    for (int i = 0; i < poolSizes.size(); ++i) {
+    for (size_t i = 0; i < poolSizes.size(); ++i) {
         poolSizes[i].type = pipelineConfig.descriptors[i]->getDescriptorType();
         poolSizes[i].descriptorCount = pipelineConfig.descriptors[i]->getCount();
     }
@@ -188,7 +186,7 @@ bool VulkanGraphicsPipeline::createDescriptors(VulkanGraphicsPipelineConfig& pip
     poolInfo.maxSets = FRAMES_IN_FLIGHT*pipelineConfig.descriptors.size();
 
     VK_RESULT_ASSIGN(m_descriptorPool,vb.device.createDescriptorPool(poolInfo));
-    std::vector layouts(FRAMES_IN_FLIGHT,m_descriptorSetLayout);
+    const std::vector layouts(FRAMES_IN_FLIGHT,m_descriptorSetLayout);
     vk::DescriptorSetAllocateInfo allocInfo;
     allocInfo.descriptorPool = m_descriptorPool;
     allocInfo.descriptorSetCount = static_cast<uint32_t>(FRAMES_IN_FLIGHT);

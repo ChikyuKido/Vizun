@@ -27,7 +27,7 @@ int main() {
 
 
     std::vector<vz::Image> imgs;
-    for (int i = 0; i < 1; ++i) {
+    for (int i = 0; i < 16000; ++i) {
         vz::Image img("rsc/texts/slime-move-forward1.png");
         img.setSize(12,12);
         img.setPosition((i%300)*3,(i/300)*3);
