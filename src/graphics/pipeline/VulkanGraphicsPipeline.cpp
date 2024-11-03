@@ -2,7 +2,7 @@
 
 #include "VulkanGraphicsPipeline.hpp"
 
-#include "data/Vertex.hpp"
+#include "data/ImageVertex.hpp"
 #include "core/VizunEngine.hpp"
 #include "graphics/base/VulkanBase.hpp"
 #include "VulkanGraphicsPipelineDescriptor.hpp"
@@ -183,7 +183,7 @@ bool VulkanGraphicsPipeline::createDescriptors(VulkanGraphicsPipelineConfig& pip
     vk::DescriptorPoolCreateInfo poolInfo;
     poolInfo.poolSizeCount = poolSizes.size();
     poolInfo.pPoolSizes = poolSizes.data();
-    poolInfo.maxSets = FRAMES_IN_FLIGHT*pipelineConfig.descriptors.size();
+    poolInfo.maxSets = FRAMES_IN_FLIGHT*pipelineConfig.descriptors.size()*4;
 
     VK_RESULT_ASSIGN(m_descriptorPool,vb.device.createDescriptorPool(poolInfo));
     const std::vector layouts(FRAMES_IN_FLIGHT,m_descriptorSetLayout);

@@ -1,10 +1,10 @@
 #ifndef VERTEXBUFFER_HPP
 #define VERTEXBUFFER_HPP
-#include "data/Vertex.hpp"
-
 #include <cstdint>
 #include <vulkan/vulkan.hpp>
 
+
+struct ImageVertex;
 
 namespace vz {
 
@@ -38,7 +38,7 @@ protected:
 
 class VertexBuffer : public VulkanBuffer{
 public:
-    bool createBuffer(const std::vector<Vertex>& vertices);
+    bool createBuffer(const std::vector<ImageVertex>& vertices);
 
 };
 class IndexBuffer : public VulkanBuffer {
@@ -54,8 +54,8 @@ private:
 };
 class VertexIndexBuffer : public VulkanBuffer {
 public:
-    bool createBuffer(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices);
-    bool createBuffer(const std::vector<Vertex>& vertices, const std::vector<uint16_t>& indices);
+    bool createBuffer(const std::vector<ImageVertex>& vertices, const std::vector<uint32_t>& indices);
+    bool createBuffer(const std::vector<ImageVertex>& vertices, const std::vector<uint16_t>& indices);
     [[nodiscard]] size_t getVerticesCount() const;
     [[nodiscard]] size_t getIndicesCount() const;
     [[nodiscard]] size_t getIndicesOffsetSize() const;
@@ -68,7 +68,7 @@ private:
 
     vk::IndexType m_indexType = vk::IndexType::eNoneKHR;
 
-    bool createBuffer(const std::vector<Vertex>& vertices,size_t indicesSize,
+    bool createBuffer(const std::vector<ImageVertex>& vertices,size_t indicesSize,
                       const void* indicesData,vk::IndexType type);
 };
 class UniformBuffer : public VulkanBuffer {

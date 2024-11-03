@@ -16,7 +16,6 @@ set(VIZUN_BUILD_EXAMPLES ON)
 set(VIZUN_ENABLE_VALIDATION_LAYER OFF)
 set(VIZUN_ENABLE_ASSERT ON)
 
-
 find_package(Vulkan REQUIRED)
 
 include_directories(src)
@@ -35,6 +34,10 @@ set(GLFW_INSTALL OFF)
 set(GLFW_BUILD_X11 ON)
 set(GLFW_BUILD_WAYLAND OFF)
 add_subdirectory(lib/glfw)
+
+add_subdirectory(lib/vma)
+
+
 
 set(SOURCE_FILES
         src/graphics/window/RenderWindow.cpp
@@ -58,7 +61,7 @@ set(SOURCE_FILES
         src/utils/Events.hpp
         src/utils/Events.cpp
         src/utils/Events.hpp
-        src/data/Vertex.hpp
+        src/data/ImageVertex.hpp
         src/graphics/resources/VulkanBuffer.cpp
         src/graphics/resources/VulkanBuffer.hpp
         src/graphics/resources/VulkanImage.cpp
@@ -82,10 +85,17 @@ set(SOURCE_FILES
         src/graphics/renderer/VulkanGraphicsPipelineRenderer.hpp
         src/graphics/renderer/VulkanImagePipelineRenderer.cpp
         src/graphics/renderer/VulkanImagePipelineRenderer.hpp
+        src/graphics/renderer/VulkanLinePipelineRenderer.cpp
+        src/graphics/renderer/VulkanLinePipelineRenderer.hpp
+        src/graphics/renderer/targets/Line.cpp
+        src/graphics/renderer/targets/Line.hpp
+        src/graphics/renderer/targets/Transform.hpp
+        src/data/Vertex.hpp
+        src/data/Color.hpp
 )
 add_library(Vizun ${SOURCE_FILES})
 
-target_link_libraries(Vizun PUBLIC glfw ${Vulkan_LIBRARIES} spdlog stdc++)
+target_link_libraries(Vizun PUBLIC glfw ${Vulkan_LIBRARIES} spdlog stdc++ GPUOpen::VulkanMemoryAllocator)
 
 add_custom_target(build_shaders ALL
         COMMAND "${PROJECT_SOURCE_DIR}/rsc/shaders/compile.sh"

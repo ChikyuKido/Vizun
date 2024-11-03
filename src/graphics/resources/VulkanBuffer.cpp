@@ -1,6 +1,7 @@
 #include "VulkanBuffer.hpp"
 
 #include "core/VizunEngine.hpp"
+#include "data/ImageVertex.hpp"
 #include "graphics/base/VulkanBase.hpp"
 #include "utils/Logger.hpp"
 #include "utils/VulkanUtils.hpp"
@@ -114,7 +115,7 @@ const void* VulkanBuffer::getMappedData() const {
 }
 #pragma endregion
 #pragma region VertexBuffer
-bool VertexBuffer::createBuffer(const std::vector<Vertex>& vertices) {
+bool VertexBuffer::createBuffer(const std::vector<ImageVertex>& vertices) {
     const uint64_t size = sizeof(vertices[0]) * vertices.size();
     VulkanBuffer stagingBuffer;
     if (!stagingBuffer.createBuffer(size,
@@ -170,14 +171,14 @@ bool IndexBuffer::createBuffer(const size_t indicesSize, const void* indicesData
 }
 #pragma endregion
 #pragma region VertexIndexBuffer
-bool VertexIndexBuffer::createBuffer(const std::vector<Vertex>& vertices,
+bool VertexIndexBuffer::createBuffer(const std::vector<ImageVertex>& vertices,
                                      const std::vector<uint32_t>& indices) {
     m_indicesCount = indices.size();
     const size_t size = sizeof(uint32_t) * indices.size();
     return createBuffer(vertices,size,indices.data(),vk::IndexType::eUint32);
 
 }
-bool VertexIndexBuffer::createBuffer(const std::vector<Vertex>& vertices,
+bool VertexIndexBuffer::createBuffer(const std::vector<ImageVertex>& vertices,
                                      const std::vector<uint16_t>& indices) {
     m_indicesCount = indices.size();
     const size_t size = sizeof(uint16_t) * indices.size();
@@ -195,7 +196,7 @@ size_t VertexIndexBuffer::getIndicesOffsetSize() const {
 vk::IndexType VertexIndexBuffer::getIndexType() const {
     return m_indexType;
 }
-bool VertexIndexBuffer::createBuffer(const std::vector<Vertex>& vertices,
+bool VertexIndexBuffer::createBuffer(const std::vector<ImageVertex>& vertices,
                                      const size_t indicesSize,
                                      const void* indicesData,
                                      const vk::IndexType type) {

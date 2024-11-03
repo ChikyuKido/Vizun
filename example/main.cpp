@@ -1,5 +1,5 @@
-
 #include "core/VizunEngine.hpp"
+
 #include "graphics/renderer/targets/Image.hpp"
 #include "graphics/window/RenderWindow.hpp"
 #include "resource_loader/ResourceLoader.hpp"
@@ -7,6 +7,8 @@
 
 #include <chrono>
 #include <iostream>
+
+
 
 
 
@@ -19,7 +21,7 @@ int main() {
     spdlog::set_level(spdlog::level::debug);
 
     vz::VulkanRenderWindowConfig vulkanConfig;
-    vulkanConfig.vulkanSwapchainConfig.presentMode = vk::PresentModeKHR::eImmediate;
+    vulkanConfig.vulkanSwapchainConfig.presentMode = vk::PresentModeKHR::eFifo;
 
     vz::RenderWindow renderWindow(800,600,"Vizun",vulkanConfig);
 
@@ -27,10 +29,10 @@ int main() {
 
 
     std::vector<vz::Image> imgs;
-    for (int i = 0; i < 16000; ++i) {
+    for (int i = 0; i < 1; ++i) {
         vz::Image img("rsc/texts/slime-move-forward1.png");
         img.setSize(12,12);
-        img.setPosition((i%300)*3,(i/300)*3);
+        img.setPosition(400,300);
         imgs.push_back(img);
     }
     uint32_t frames = 0;

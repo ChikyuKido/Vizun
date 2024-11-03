@@ -1,11 +1,14 @@
+
+#define VMA_IMPLEMENTATION
 #include "VizunEngine.hpp"
 
+#include "config/VizunConfig.hpp"
 #include "graphics/base/VulkanBase.hpp"
 #include "utils/Logger.hpp"
-#include "utils/VulkanUtils.hpp"
 
 namespace vz {
 VulkanBase* VizunEngine::m_vulkanBase = nullptr;
+VmaAllocator VizunEngine::m_vmaAllocator = nullptr;
 VulkanEngineConfig VizunEngine::m_vulkanEngineConfig;
 
 
@@ -39,11 +42,19 @@ void VizunEngine::initializeVizunEngine(const VulkanEngineConfig& vulkanEngineCo
     if (!m_vulkanBase->createVulkanBase()) {
         VZ_LOG_CRITICAL("Could not create vulkan base");
     }
+    if(!initVMA()) {
+        VZ_LOG_CRITICAL("Could not initialize VMA");
+    }
     VZ_LOG_INFO("Successfully initialized vizun engine");
 }
 VulkanBase& VizunEngine::getVulkanBase() {
     return *m_vulkanBase;
 }
+
+VmaAllocator& VizunEngine::getVMAAllocator() {
+    return m_vmaAllocator;
+}
+
 const VulkanEngineConfig& VizunEngine::getVulkanEngineConfig() {
     return m_vulkanEngineConfig;
 }
@@ -53,7 +64,8 @@ bool VizunEngine::initGLFW() {
     else if(glfwPlatformSupported(GLFW_PLATFORM_X11)) glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11);
     else if(glfwPlatformSupported(GLFW_PLATFORM_WAYLAND)) glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_WAYLAND);
     else {
-        VZ_LOG_CRITICAL("Error: could not find acceptable platform for GLFW\n");
+        VZ_LOG_ERROR("Error: could not find acceptable platform for GLFW\n");
+        return false;
     }
     VZ_LOG_INFO("GLFW Version: {}", glfwGetVersionString());
     if (!glfwInit()) {
@@ -62,6 +74,21 @@ bool VizunEngine::initGLFW() {
         VZ_LOG_CRITICAL("Could not initialize GLFW because: {}",error);
     }
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    return true;
+}
+
+bool VizunEngine::initVMA() {
+    VZ_ASSERT(m_vulkanBase != nullptr,"Cannot init vma because the vulkan base is null")
+    VmaAllocatorCreateInfo allocatorInfo = {};
+    allocatorInfo.physicalDevice = m_vulkanBase->physicalDevice;
+    allocatorInfo.device = m_vulkanBase->device;
+    allocatorInfo.instance = m_vulkanBase->instance;
+    allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_2;
+    auto res = vmaCreateAllocator(&allocatorInfo, &m_vmaAllocator);
+    if(res != VK_SUCCESS) {
+        VZ_LOG_ERROR("Could not create vma allocator because {}",static_cast<int>(res));
+        return false;
+    }
     return true;
 }
 } // namespace vz

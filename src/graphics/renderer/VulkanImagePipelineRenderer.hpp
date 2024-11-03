@@ -9,6 +9,10 @@
 
 
 namespace vz {
+class Image;
+}
+
+namespace vz {
 class VulkanGraphicsPipeline;
 
 class VulkanImagePipelineRenderer : public VulkanGraphicsPipelineRenderer{
@@ -22,8 +26,8 @@ public:
 private:
     FRAMES(UniformBuffer) m_uniformBuffers;
     FRAMES(StorageBuffer) m_transformBuffers;
-    std::vector<RenderTarget*> m_renderTargets;
-    std::unordered_map<uint64_t,std::vector<RenderTarget*>> m_renderTargetsPerCommoner;
+    std::vector<Image*> m_renderTargets;
+    std::unordered_map<uint64_t,std::vector<Image*>> m_renderTargetsPerCommoner;
     std::shared_ptr<VulkanGraphicsPipeline> m_pipeline;
     VulkanGraphicsPipelineUniformBufferDescriptor m_ubDesc = VulkanGraphicsPipelineUniformBufferDescriptor(0);
     VulkanGraphicsPipelineImageDescriptor m_imageDesc = VulkanGraphicsPipelineImageDescriptor(1);

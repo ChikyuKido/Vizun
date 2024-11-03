@@ -2,6 +2,7 @@
 #ifndef IMAGE_HPP
 #define IMAGE_HPP
 #include "RenderTarget.hpp"
+#include "Transform.hpp"
 #include "graphics/resources/VulkanBuffer.hpp"
 #include "graphics/resources/VulkanImage.hpp"
 
@@ -10,10 +11,10 @@
 
 namespace vz {
 
-class Image : public RenderTarget{
+class Image : public RenderTarget, public Transform{
 public:
     explicit Image(const std::string& imagePath);
-    void draw(const vk::CommandBuffer& commandBuffer,
+    void drawIndexed(const vk::CommandBuffer& commandBuffer,
               const VulkanGraphicsPipeline& pipeline,
               uint32_t currentFrame,uint32_t instances) override;
     void prepareCommoner(const std::vector<RenderTarget*>& targets) override;
@@ -29,11 +30,11 @@ protected:
     void updateTransform() override {
         const auto tempScale = m_scale;
         m_scale = m_scale * m_size;
-        RenderTarget::updateTransform();
+        Transform::updateTransform();
         m_scale = tempScale;
     }
 private:
-    static const std::vector<Vertex> m_vertices;
+    static const std::vector<ImageVertex> m_vertices;
     static const std::vector<uint16_t> m_indices;
     static VertexIndexBuffer m_viBuffer;
 

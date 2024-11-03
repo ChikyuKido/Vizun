@@ -1,6 +1,7 @@
 
 
 #include "Image.hpp"
+#include "data/ImageVertex.hpp"
 
 #include "graphics/resources/VulkanImage.hpp"
 #include "graphics/renderer/VulkanRenderer.hpp"
@@ -9,7 +10,7 @@
 
 namespace vz {
 
-const std::vector<Vertex> Image::m_vertices = {
+const std::vector<ImageVertex> Image::m_vertices = {
     {{0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
     {{1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
     {{1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
@@ -32,7 +33,7 @@ Image::Image(const std::string& imagePath) {
     }
 }
 
-void Image::draw(const vk::CommandBuffer& commandBuffer, const VulkanGraphicsPipeline&, const uint32_t,const uint32_t instances) {
+void Image::drawIndexed(const vk::CommandBuffer& commandBuffer, const VulkanGraphicsPipeline&, const uint32_t,const uint32_t instances) {
     const vk::Buffer vertexBuffers[] = {m_viBuffer.getBuffer()};
     constexpr vk::DeviceSize offsets[] = {0};
     commandBuffer.bindVertexBuffers(0,1,vertexBuffers,offsets);

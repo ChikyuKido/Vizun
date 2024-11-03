@@ -3,6 +3,7 @@
 
 #include "Camera.hpp"
 #include "VulkanRenderer.hpp"
+#include "data/ImageVertex.hpp"
 #include "graphics/pipeline/VulkanGraphicsPipeline.hpp"
 #include "targets/Image.hpp"
 #include <complex>
@@ -24,8 +25,8 @@ VulkanImagePipelineRenderer::VulkanImagePipelineRenderer(const std::shared_ptr<V
     pushConstantRangeTransformOffset.size = 4;
 
     VulkanGraphicsPipelineConfig defaultConf;
-    defaultConf.vertexInputAttributes = Vertex::getAttributeDescriptions();
-    defaultConf.vertexInputBindingDescription = Vertex::getBindingDescritption();
+    defaultConf.vertexInputAttributes = ImageVertex::getAttributeDescriptions();
+    defaultConf.vertexInputBindingDescription = ImageVertex::getBindingDescritption();
     defaultConf.dynamicStates = {vk::DynamicState::eScissor, vk::DynamicState::eViewport};
     defaultConf.descriptors = {
         &m_ubDesc, &m_imageDesc, &m_transformDesc
@@ -77,7 +78,7 @@ void VulkanImagePipelineRenderer::prepare(uint32_t currentFrame) {
     std::vector<RenderTarget*> uniqueRenderTargets;
     for (auto* call : m_renderTargets) {
         if (!m_renderTargetsPerCommoner.contains(call->getCommoner())) {
-            m_renderTargetsPerCommoner[call->getCommoner()] = std::vector<RenderTarget*>();
+            m_renderTargetsPerCommoner[call->getCommoner()] = std::vector<Image*>();
             uniqueRenderTargets.push_back(call);
         }
         m_renderTargetsPerCommoner[call->getCommoner()].push_back(call);
@@ -96,11 +97,12 @@ void VulkanImagePipelineRenderer::prepare(uint32_t currentFrame) {
 
 void VulkanImagePipelineRenderer::queue(RenderTarget& target) {
     VZ_ASSERT(typeid(target) == typeid(Image),"VulkanImagePipeline only supports images")
-    m_renderTargets.push_back(&target);
+    m_renderTargets.push_back(static_cast<Image*>(&target));
 }
 
 void VulkanImagePipelineRenderer::display(vk::CommandBuffer& commandBuffer,uint32_t currentFrame) {
     std::vector<glm::mat4> transforms;
+    transforms.reserve(m_renderTargets.size());
     for (auto& t : m_renderTargets) {
         transforms.push_back(t->getTransform());
     }
@@ -111,7 +113,7 @@ void VulkanImagePipelineRenderer::display(vk::CommandBuffer& commandBuffer,uint3
     for (auto [commoner,calls] : m_renderTargetsPerCommoner) {
         calls[0]->useCommoner(m_renderer,*m_pipeline);
         commandBuffer.pushConstants(m_pipeline->pipelineLayout,vk::ShaderStageFlagBits::eVertex,4,sizeof(uint32_t),&lastTransformSize);
-        calls[0]->draw(commandBuffer,*m_pipeline,currentFrame,calls.size());
+        calls[0]->drawIndexed(commandBuffer,*m_pipeline,currentFrame,calls.size());
         lastTransformSize = lastTransformSize+calls.size();
     }
 
