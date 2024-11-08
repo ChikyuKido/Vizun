@@ -1,5 +1,4 @@
 #include "VulkanImage.hpp"
-
 #include "core/VizunEngine.hpp"
 #include "graphics/base/VulkanBase.hpp"
 #include "VulkanBuffer.hpp"
@@ -9,7 +8,6 @@
 #include <stb_image.h>
 
 namespace vz {
-#pragma region VulkanImage
 bool VulkanImage::createImage(const uint32_t width,
                               const uint32_t height,
                               const vk::Format format,
@@ -151,5 +149,4 @@ bool VulkanImage::createTextureSampler() {
     VK_RESULT_ASSIGN_SHARED(m_sampler,vb.device.createSampler(samplerInfo),vk::Sampler)
     return true;
 }
-#pragma endregion
 } // namespace vz

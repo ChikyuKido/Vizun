@@ -4,17 +4,15 @@
 #include "VulkanGraphicsPipelineRenderer.hpp"
 #include <typeinfo>
 #include "graphics/pipeline/VulkanGraphicsPipelineDescriptor.hpp"
+#include "graphics/resources/StorageBuffer.hpp"
+#include "graphics/resources/UniformBuffer.hpp"
 #include <memory>
 #include <vector>
 
 
 namespace vz {
 class Image;
-}
-
-namespace vz {
 class VulkanGraphicsPipeline;
-
 class VulkanImagePipelineRenderer : public VulkanGraphicsPipelineRenderer{
 public:
     VulkanImagePipelineRenderer(const std::shared_ptr<VulkanRenderPass>& renderPass,VulkanRenderer& renderer);

@@ -8,7 +8,10 @@
 #include <optional>
 #include <vulkan/vulkan.hpp>
 
-
+/**
+ * Checks if the result is success if not throws a critical error
+ * @param call the vulkan result value from a call
+ */
 #define VKF(call) \
 { \
 auto result = call; \
@@ -17,11 +20,28 @@ VZ_LOG_CRITICAL("{}:{} - Failed to execute call: {}. Error Code: {}", __FILE__, 
 }\
 }
 
+/**
+ * Checks if the result is success if not throws an error
+ * @param call the vulkan result value from a call
+ */
 #define VKA(call) \
 { \
 auto result = call; \
 if(result != vk::Result::eSuccess) { \
-VZ_LOG_ERROR("{}:{} - Failed to execute call: {}. Error Code: {}", __FILE__, __LINE__, extractFunctionName(#call),static_cast<int>(result));; \
+VZ_LOG_ERROR("{}:{} - Failed to execute call: {}. Error Code: {}", __FILE__, __LINE__, extractFunctionName(#call),static_cast<int>(result)); \
+}\
+}
+
+/**
+ * Checks if the result is success if not throws an error and returns false
+ * @param call the vulkan result value from a call
+ */
+#define VKA_RETURN(call) \
+{ \
+auto result = call; \
+if(result != vk::Result::eSuccess) { \
+VZ_LOG_ERROR("{}:{} - Failed to execute call: {}. Error Code: {}", __FILE__, __LINE__, extractFunctionName(#call),static_cast<int>(result)); \
+return false; \
 }\
 }
 

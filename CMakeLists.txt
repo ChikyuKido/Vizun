@@ -13,7 +13,7 @@ option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 option(VIZUN_BUILD_EXAMPLES "Build the Vizun example programs" ON)
 option(VIZUN_ENABLE_VALIDATION_LAYER "Enables the validation layer for vulkan" ON)
 set(VIZUN_BUILD_EXAMPLES ON)
-set(VIZUN_ENABLE_VALIDATION_LAYER OFF)
+set(VIZUN_ENABLE_VALIDATION_LAYER ON)
 set(VIZUN_ENABLE_ASSERT ON)
 
 find_package(Vulkan REQUIRED)
@@ -62,8 +62,6 @@ set(SOURCE_FILES
         src/utils/Events.cpp
         src/utils/Events.hpp
         src/data/ImageVertex.hpp
-        src/graphics/resources/VulkanBuffer.cpp
-        src/graphics/resources/VulkanBuffer.hpp
         src/graphics/resources/VulkanImage.cpp
         src/graphics/resources/VulkanImage.hpp
         src/graphics/renderer/VulkanRenderer.cpp
@@ -92,6 +90,14 @@ set(SOURCE_FILES
         src/graphics/renderer/targets/Transform.hpp
         src/data/Vertex.hpp
         src/data/Color.hpp
+        src/graphics/resources/VulkanBuffer.cpp
+        src/graphics/resources/VulkanBuffer.hpp
+        src/graphics/resources/VertexIndexBuffer.cpp
+        src/graphics/resources/VertexIndexBuffer.hpp
+        src/graphics/resources/UniformBuffer.cpp
+        src/graphics/resources/UniformBuffer.hpp
+        src/graphics/resources/StorageBuffer.cpp
+        src/graphics/resources/StorageBuffer.hpp
 )
 add_library(Vizun ${SOURCE_FILES})
 

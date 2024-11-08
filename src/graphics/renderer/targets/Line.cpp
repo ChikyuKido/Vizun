@@ -2,6 +2,7 @@
 #include "Line.hpp"
 
 #include "config/VizunConfig.hpp"
+#include "graphics/resources/VertexIndexBuffer.hpp"
 #include "graphics/resources/VulkanBuffer.hpp"
 #include "utils/Logger.hpp"
 

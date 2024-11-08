@@ -99,12 +99,11 @@ void RenderWindow::createWindow() {
 }
 
 void RenderWindow::initVulkan() {
-    static VulkanBase& vb = VizunEngine::getVulkanBase();
     if(!createSurface()) {
         VZ_LOG_CRITICAL("Could not create window surface");
     }
-    if(!vb.createLateVulkanBase(m_surface)) {
-        VZ_LOG_CRITICAL("Could not create late vulkan base");
+    if(!VizunEngine::isLateInitialized()) {
+        VizunEngine::lateInitializeVizunEngine(m_surface);
     }
     if(!m_vulkanSwapchain->createSwapchain(this)) {
         VZ_LOG_CRITICAL("Could not create swapchain");
@@ -123,6 +122,7 @@ void RenderWindow::recreateWindow() {
     destroyWindow();
     createWindow();
 }
+
 bool RenderWindow::createSurface() {
     const static VulkanBase& vb = VizunEngine::getVulkanBase();
     VkSurfaceKHR tempSurface;

@@ -1,6 +1,6 @@
-
+#include "graphics/resources/StorageBuffer.hpp"
+#include "graphics/resources/UniformBuffer.hpp"
 #include "VulkanImagePipelineRenderer.hpp"
-
 #include "Camera.hpp"
 #include "VulkanRenderer.hpp"
 #include "data/ImageVertex.hpp"
@@ -42,10 +42,10 @@ VulkanImagePipelineRenderer::VulkanImagePipelineRenderer(const std::shared_ptr<V
         VZ_LOG_CRITICAL("Could not create graphics pipeline");
     }
     for (auto& uniformBuffer : m_uniformBuffers) {
-        uniformBuffer.createBuffer(sizeof(CameraObject));
+        uniformBuffer.createUniformBuffer(sizeof(CameraObject));
     }
     for (auto& transformBuffer : m_transformBuffers) {
-        transformBuffer.createBuffer(sizeof(glm::mat4) * TRANSFORM_BUFFER_SIZE);
+        transformBuffer.createStorageBuffer(sizeof(glm::mat4) * TRANSFORM_BUFFER_SIZE);
     }
     for (int i = 0; i < FRAMES_IN_FLIGHT; ++i) {
         m_ubDesc.updateUniformBuffer(m_uniformBuffers, i);
@@ -64,14 +64,13 @@ VulkanImagePipelineRenderer::~VulkanImagePipelineRenderer() {
 
 void VulkanImagePipelineRenderer::prepare(uint32_t currentFrame) {
     const auto camera = m_renderer.getCamera().getCameraObject();
-    m_uniformBuffers[currentFrame].uploadData(&camera,sizeof(camera));
+    m_uniformBuffers[currentFrame].uploadData(&camera);
 
     auto& transformBuffer = m_transformBuffers[currentFrame];
     if(m_renderTargets.size() * sizeof(glm::mat4) > transformBuffer.getBufferSize()) {
         const uint64_t newBufferSize = (m_renderTargets.size()+TRANSFORM_BUFFER_SIZE)*sizeof(glm::mat4);
         VZ_LOG_DEBUG("Transform buffer to small to hold {} transform resize it to: {}",m_renderTargets.size(),newBufferSize/sizeof(glm::mat4));
         transformBuffer.resizeBuffer(newBufferSize);
-        transformBuffer.mapData();
     }
     m_transformDesc.updateStorageBuffer(transformBuffer,currentFrame);
 

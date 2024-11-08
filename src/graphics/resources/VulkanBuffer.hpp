@@ -1,87 +1,40 @@
-#ifndef VERTEXBUFFER_HPP
-#define VERTEXBUFFER_HPP
-#include <cstdint>
+#ifndef VULKANBUFFER_HPP
+#define VULKANBUFFER_HPP
+
+#include <memory>
 #include <vulkan/vulkan.hpp>
-
-
-struct ImageVertex;
+#include <vk_mem_alloc.h>
 
 namespace vz {
-
-class VulkanBase;
 class VulkanBuffer {
 public:
-    bool createBuffer(uint64_t size,vk::BufferUsageFlags usageFlagBits,vk::MemoryPropertyFlags memoryPropertyBits);
-    bool mapData();
-    bool uploadData(const void* data,uint32_t size) const;
-    bool uploadData(const void* data) const;
-    bool unmapData();
-    void uploadDataInstant(const void* data,uint32_t size);
-    void uploadDataInstant(const void* data);
-    bool copyBuffer(const VulkanBuffer& srcBuffer) const;
-    void cleanup();
-    bool resizeBuffer(uint64_t size);
+    void createBuffer(uint64_t size,vk::BufferUsageFlags usageFlagBits,bool uploadDirectly);
+    void uploadData(const void* data) const;
+    void uploadData(const void* data,uint64_t size) const;
+    void copyBuffer(const VulkanBuffer& src) const;
+    void copyBuffer(const VulkanBuffer& src,uint64_t srcSize) const;
+    void resizeBuffer(uint64_t newSize);
+    void cleanup() const;
+    void mapMemory();
+    void unmapMemory();
+    void uploadDataDirectly(const void* data) const;
+    void uploadDataDirectly(const void* data,uint64_t size) const;
     [[nodiscard]] const vk::Buffer& getBuffer() const;
-    [[nodiscard]] const vk::DeviceMemory& getBufferMemory() const;
     [[nodiscard]] size_t getBufferSize() const;
     [[nodiscard]] const void* getMappedData() const;
-
+    [[nodiscard]] bool isCreated() const;
 
 protected:
+    bool m_created = false;
+    bool m_uploadDirectly = true;
+    bool m_isMemoryMapped = false;
+    void* m_mappedMemory = nullptr;
+    vk::BufferUsageFlags m_usageFlags;
+    uint64_t m_bufferSize = 0;
+    std::unique_ptr<VulkanBuffer> m_stagingBuffer = nullptr;
+    VmaAllocation m_allocation = nullptr;
     vk::Buffer m_buffer;
-    vk::DeviceMemory m_bufferMemory;
-    void* m_mappedData{nullptr};
-    uint64_t m_size = -1;
-    vk::BufferUsageFlags m_usageFlagBits;
-    vk::MemoryPropertyFlags m_memoryPropertyBits;
-};
-
-class VertexBuffer : public VulkanBuffer{
-public:
-    bool createBuffer(const std::vector<ImageVertex>& vertices);
-
-};
-class IndexBuffer : public VulkanBuffer {
-public:
-    bool createBuffer(const std::vector<uint32_t>& indices);
-    bool createBuffer(const std::vector<uint16_t>& indices);
-    [[nodiscard]] size_t getIndicesCount() const;
-    [[nodiscard]] vk::IndexType getIndexType() const;
-private:
-    size_t m_indicesCount = 0;
-    vk::IndexType m_indexType = vk::IndexType::eNoneKHR;
-    bool createBuffer( size_t indicesSize,const void* indicesData,vk::IndexType type);
-};
-class VertexIndexBuffer : public VulkanBuffer {
-public:
-    bool createBuffer(const std::vector<ImageVertex>& vertices, const std::vector<uint32_t>& indices);
-    bool createBuffer(const std::vector<ImageVertex>& vertices, const std::vector<uint16_t>& indices);
-    [[nodiscard]] size_t getVerticesCount() const;
-    [[nodiscard]] size_t getIndicesCount() const;
-    [[nodiscard]] size_t getIndicesOffsetSize() const;
-    [[nodiscard]] vk::IndexType getIndexType() const;
-
-private:
-    size_t m_verticesCount = 0;
-    size_t m_indicesCount = 0;
-    size_t m_indicesOffset = 0;
-
-    vk::IndexType m_indexType = vk::IndexType::eNoneKHR;
-
-    bool createBuffer(const std::vector<ImageVertex>& vertices,size_t indicesSize,
-                      const void* indicesData,vk::IndexType type);
-};
-class UniformBuffer : public VulkanBuffer {
-public:
-    bool createBuffer(size_t size);
-};
-class StorageBuffer : public VulkanBuffer {
-public:
-    bool createBuffer(size_t size);
 };
 }
 
-
-
-
-#endif //VERTEXBUFFER_HPP
+#endif

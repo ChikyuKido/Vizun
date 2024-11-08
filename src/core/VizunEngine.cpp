@@ -1,18 +1,23 @@
-
 #define VMA_IMPLEMENTATION
+#define VMA_VULKAN_VERSION 1002000
+#include "vk_mem_alloc.h"
 #include "VizunEngine.hpp"
 
 #include "config/VizunConfig.hpp"
 #include "graphics/base/VulkanBase.hpp"
 #include "utils/Logger.hpp"
+#include "utils/VulkanUtils.hpp"
 
 namespace vz {
+bool VizunEngine::m_wasInitialized = false;
+bool VizunEngine::m_wasLateInitialized = false;
 VulkanBase* VizunEngine::m_vulkanBase = nullptr;
 VmaAllocator VizunEngine::m_vmaAllocator = nullptr;
 VulkanEngineConfig VizunEngine::m_vulkanEngineConfig;
 
 
 void VizunEngine::initializeVizunEngine(const VulkanEngineConfig& vulkanEngineConfig) {
+    VZ_ASSERT(!m_wasInitialized, "VizunEngine already initialized");
     m_vulkanEngineConfig = vulkanEngineConfig;
     m_vulkanBase = new VulkanBase(&m_vulkanEngineConfig);
     if(!initGLFW()) {
@@ -42,11 +47,23 @@ void VizunEngine::initializeVizunEngine(const VulkanEngineConfig& vulkanEngineCo
     if (!m_vulkanBase->createVulkanBase()) {
         VZ_LOG_CRITICAL("Could not create vulkan base");
     }
+
+    VZ_LOG_INFO("Successfully initialized vizun engine");
+    m_wasInitialized = true;
+}
+
+void VizunEngine::lateInitializeVizunEngine(vk::SurfaceKHR& surface) {
+    VZ_ASSERT(!m_wasLateInitialized, "VizunEngine already late initialized");
+    VZ_ASSERT(m_vulkanBase != nullptr,"Vulkan base not initialized yet");
+    if(!m_vulkanBase->createLateVulkanBase(surface)) {
+        VZ_LOG_CRITICAL("Could not create late vulkan base");
+    }
     if(!initVMA()) {
         VZ_LOG_CRITICAL("Could not initialize VMA");
     }
-    VZ_LOG_INFO("Successfully initialized vizun engine");
+    m_wasLateInitialized = true;
 }
+
 VulkanBase& VizunEngine::getVulkanBase() {
     return *m_vulkanBase;
 }
@@ -58,6 +75,15 @@ VmaAllocator& VizunEngine::getVMAAllocator() {
 const VulkanEngineConfig& VizunEngine::getVulkanEngineConfig() {
     return m_vulkanEngineConfig;
 }
+
+bool VizunEngine::isLateInitialized() {
+    return m_wasLateInitialized;
+}
+
+bool VizunEngine::isInitialized() {
+    return m_wasInitialized;
+}
+
 bool VizunEngine::initGLFW() {
     if(glfwPlatformSupported(GLFW_PLATFORM_WIN32)) glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_WIN32);
     else if(glfwPlatformSupported(GLFW_PLATFORM_COCOA)) glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_COCOA);

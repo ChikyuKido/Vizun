@@ -3,13 +3,12 @@
 #define IMAGE_HPP
 #include "RenderTarget.hpp"
 #include "Transform.hpp"
-#include "graphics/resources/VulkanBuffer.hpp"
-#include "graphics/resources/VulkanImage.hpp"
-
-#include <memory>
+#include "data/ImageVertex.hpp"
+#include "graphics/resources/VertexIndexBuffer.hpp"
 
 
 namespace vz {
+class VulkanImage;
 
 class Image : public RenderTarget, public Transform{
 public:

@@ -1,10 +1,9 @@
-
-
 #include "Image.hpp"
 #include "data/ImageVertex.hpp"
 
 #include "graphics/resources/VulkanImage.hpp"
 #include "graphics/renderer/VulkanRenderer.hpp"
+#include "graphics/resources/VertexIndexBuffer.hpp"
 #include "resource_loader/ResourceLoader.hpp"
 #include <iostream>
 
@@ -29,7 +28,8 @@ Image::Image(const std::string& imagePath) {
     }
     if (m_viBuffer.getBuffer() == VK_NULL_HANDLE) {
         VZ_LOG_DEBUG("Image does not have a default vertex index buffer. Create one");
-        m_viBuffer.createBuffer(m_vertices, m_indices);
+        m_viBuffer.createVertexIndexBuffer(m_vertices.data(),sizeof(ImageVertex),m_vertices.size(),
+            m_indices.data(),vk::IndexType::eUint16,m_indices.size());
     }
 }
 

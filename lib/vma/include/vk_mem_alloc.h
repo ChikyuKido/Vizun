@@ -11107,6 +11107,7 @@ VkResult VmaBlockVector::Allocate(
     }
 
     {
+
         VmaMutexLockWrite lock(m_Mutex, m_hAllocator->m_UseMutex);
         for (allocIndex = 0; allocIndex < allocationCount; ++allocIndex)
         {

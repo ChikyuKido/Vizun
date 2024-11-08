@@ -1,7 +1,8 @@
 #ifndef IMAGELOADER_HPP
 #define IMAGELOADER_HPP
-#include "Loader.hpp"
+
 #include "graphics/resources/VulkanBuffer.hpp"
+#include "Loader.hpp"
 #include "graphics/resources/VulkanImage.hpp"
 #include "utils/Logger.hpp"
 #include <ranges>
@@ -21,7 +22,6 @@ public:
         stbi_uc* pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
         const vk::DeviceSize imageSize = texWidth * texHeight * 4;
         if (!pixels) {
-
             VZ_LOG_ERROR("failed to load texture image");
             return false;
         }
@@ -29,8 +29,8 @@ public:
         VulkanBuffer stagingBuffer;
         stagingBuffer.createBuffer(imageSize,
                                       vk::BufferUsageFlagBits::eTransferSrc,
-                                      vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
-        stagingBuffer.uploadDataInstant(pixels,imageSize);
+                                      true);
+        stagingBuffer.uploadDataDirectly(pixels,imageSize);
         stbi_image_free(pixels);
         if(!image->createImage(texWidth,texHeight,vk::Format::eR8G8B8A8Srgb,vk::ImageTiling::eOptimal,
             vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled, vk::MemoryPropertyFlagBits::eDeviceLocal)) {

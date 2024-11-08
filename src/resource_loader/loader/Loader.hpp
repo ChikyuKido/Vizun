@@ -3,8 +3,6 @@
 #include <string>
 #include <unordered_map>
 
-
-
 namespace vz {
 template <typename T>
 class Loader {

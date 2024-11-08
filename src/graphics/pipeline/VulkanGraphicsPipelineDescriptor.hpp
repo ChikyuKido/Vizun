@@ -3,14 +3,14 @@
 #define VULAKNGRAPHICSPIPELINEDESCRIPTOR_HPP
 
 #include "core/VizunEngine.hpp"
-#include "graphics/resources/VulkanBuffer.hpp"
 #include "graphics/resources/VulkanImage.hpp"
 #include "config/VizunConfig.hpp"
 #include "resource_loader/ResourceLoader.hpp"
-#include "utils/Logger.hpp"
 
 
 namespace vz {
+class UniformBuffer;
+class StorageBuffer;
 class VulkanGraphicsPipeline;
 class VulkanImage;
 class VulkanGraphicsPipelineDescriptor {

@@ -1,12 +1,10 @@
-//
-// Created by kido on 9/7/24.
-//
 
 #include "VulkanGraphicsPipelineDescriptor.hpp"
-
 #include "VulkanGraphicsPipeline.hpp"
 #include "graphics/resources/VulkanImage.hpp"
 #include "config/VizunConfig.hpp"
+#include "graphics/resources/StorageBuffer.hpp"
+#include "graphics/resources/UniformBuffer.hpp"
 #include "utils/Logger.hpp"
 
 namespace vz {
@@ -31,7 +29,7 @@ void VulkanGraphicsPipelineUniformBufferDescriptor::updateUniformBuffer(const st
     }
 
     std::vector<vk::WriteDescriptorSet> descriptors;
-    for (auto b : uniformBuffer) {
+    for (const auto& b : uniformBuffer) {
         vk::DescriptorBufferInfo bufferInfo;
         bufferInfo.buffer = b.getBuffer();
         bufferInfo.offset = 0;
