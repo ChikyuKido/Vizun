@@ -1,8 +1,9 @@
 #define VMA_IMPLEMENTATION
-#define VMA_VULKAN_VERSION 1002000
-#include "vk_mem_alloc.h"
-#include "VizunEngine.hpp"
+#define VMA_VULKAN_VERSION 1003000
 
+#include "vk_mem_alloc.h"
+
+#include "VizunEngine.hpp"
 #include "config/VizunConfig.hpp"
 #include "graphics/base/VulkanBase.hpp"
 #include "utils/Logger.hpp"
@@ -107,9 +108,10 @@ bool VizunEngine::initVMA() {
     VZ_ASSERT(m_vulkanBase != nullptr,"Cannot init vma because the vulkan base is null")
     VmaAllocatorCreateInfo allocatorInfo = {};
     allocatorInfo.physicalDevice = m_vulkanBase->physicalDevice;
+    allocatorInfo.flags = VMA_ALLOCATOR_CREATE_KHR_DEDICATED_ALLOCATION_BIT;
     allocatorInfo.device = m_vulkanBase->device;
     allocatorInfo.instance = m_vulkanBase->instance;
-    allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_2;
+    allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_3;
     auto res = vmaCreateAllocator(&allocatorInfo, &m_vmaAllocator);
     if(res != VK_SUCCESS) {
         VZ_LOG_ERROR("Could not create vma allocator because {}",static_cast<int>(res));
@@ -117,4 +119,4 @@ bool VizunEngine::initVMA() {
     }
     return true;
 }
-} // namespace vz
+}

@@ -14,7 +14,7 @@ public:
     void copyBuffer(const VulkanBuffer& src) const;
     void copyBuffer(const VulkanBuffer& src,uint64_t srcSize) const;
     void resizeBuffer(uint64_t newSize);
-    void cleanup() const;
+    void cleanup();
     void mapMemory();
     void unmapMemory();
     void uploadDataDirectly(const void* data) const;
@@ -32,7 +32,8 @@ protected:
     vk::BufferUsageFlags m_usageFlags;
     uint64_t m_bufferSize = 0;
     std::unique_ptr<VulkanBuffer> m_stagingBuffer = nullptr;
-    VmaAllocation m_allocation = nullptr;
+    // VmaAllocation m_allocation = nullptr;
+    vk::DeviceMemory m_memory;
     vk::Buffer m_buffer;
 };
 }

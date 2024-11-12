@@ -35,7 +35,7 @@ set(GLFW_BUILD_X11 ON)
 set(GLFW_BUILD_WAYLAND OFF)
 add_subdirectory(lib/glfw)
 
-add_subdirectory(lib/vma)
+add_subdirectory(lib/vma SYSTEM)
 
 
 

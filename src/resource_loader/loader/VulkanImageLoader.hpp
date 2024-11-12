@@ -30,7 +30,7 @@ public:
         stagingBuffer.createBuffer(imageSize,
                                       vk::BufferUsageFlagBits::eTransferSrc,
                                       true);
-        stagingBuffer.uploadDataDirectly(pixels,imageSize);
+        stagingBuffer.uploadData(pixels,imageSize);
         stbi_image_free(pixels);
         if(!image->createImage(texWidth,texHeight,vk::Format::eR8G8B8A8Srgb,vk::ImageTiling::eOptimal,
             vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled, vk::MemoryPropertyFlagBits::eDeviceLocal)) {

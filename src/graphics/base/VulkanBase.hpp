@@ -32,6 +32,7 @@ VZ_LOG_ERROR("{}:{} - Failed to execute call: {}. Error Code: {}", __FILE__, __L
 }\
 }
 
+
 /**
  * Checks if the result is success if not throws an error and returns false
  * @param call the vulkan result value from a call

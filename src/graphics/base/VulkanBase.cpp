@@ -49,7 +49,7 @@ bool VulkanBase::createInstance() {
     applicationInfo.applicationVersion = m_vulkanConfig->instanceConfig.applicationVersion;
     applicationInfo.pEngineName = "Vizun";
     applicationInfo.engineVersion = VK_MAKE_VERSION(0, 0, 1);
-    applicationInfo.apiVersion = VK_API_VERSION_1_2;
+    applicationInfo.apiVersion = VK_API_VERSION_1_3;
 
     vk::InstanceCreateInfo instanceInfo;
     instanceInfo.pApplicationInfo = &applicationInfo;
