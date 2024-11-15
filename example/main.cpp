@@ -3,6 +3,7 @@
 #include "graphics/renderer/targets/Image.hpp"
 #include "graphics/renderer/targets/Line.hpp"
 #include "graphics/renderer/targets/Rectangle.hpp"
+#include "graphics/resources/Font.hpp"
 #include "graphics/window/RenderWindow.hpp"
 #include "resource_loader/ResourceLoader.hpp"
 #include "utils/Events.hpp"
@@ -29,6 +30,8 @@ int main() {
 
     vz::ResourceLoader::loadVulkanImage("rsc/texts/slime-move-forward1.png");
 
+    vz::Font font;
+    font.loadFont("rsc/fonts/Arial.ttf",32);
 
     std::vector<vz::Image> imgs;
     vz::Line line;

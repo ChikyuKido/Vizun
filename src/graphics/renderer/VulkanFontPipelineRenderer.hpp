@@ -1,21 +1,19 @@
+#ifndef VULKANFONTPIPELINERENDERER_HPP
+#define VULKANFONTPIPELINERENDERER_HPP
 
-#ifndef VULKANIMAGEPIPELINERENDERER_HPP
-#define VULKANIMAGEPIPELINERENDERER_HPP
 #include "VulkanGraphicsPipelineRenderer.hpp"
 #include "graphics/pipeline/VulkanGraphicsPipelineDescriptor.hpp"
 #include "graphics/resources/StorageBuffer.hpp"
 #include "graphics/resources/UniformBuffer.hpp"
+#include "targets/Text.hpp"
 #include <memory>
 #include <vector>
-
-
 namespace vz {
-class Image;
-class VulkanGraphicsPipeline;
-class VulkanImagePipelineRenderer : public VulkanGraphicsPipelineRenderer{
+
+class VulkanFontPipelineRenderer : public VulkanGraphicsPipelineRenderer {
 public:
-    VulkanImagePipelineRenderer(const std::shared_ptr<VulkanRenderPass>& renderPass,VulkanRenderer& renderer);
-    ~VulkanImagePipelineRenderer() override;
+    VulkanFontPipelineRenderer(const std::shared_ptr<VulkanRenderPass>& renderPass,VulkanRenderer& renderer);
+    ~VulkanFontPipelineRenderer() override;
     void prepare(uint32_t currentFrame) override;
     void queue(RenderTarget& target) override;
     void display(vk::CommandBuffer& commandBuffer,uint32_t currentFrame) override;
@@ -23,14 +21,13 @@ public:
 private:
     FRAMES(UniformBuffer) m_uniformBuffers;
     FRAMES(StorageBuffer) m_transformBuffers;
-    std::vector<Image*> m_renderTargets;
-    std::unordered_map<uint64_t,std::vector<Image*>> m_renderTargetsPerCommoner;
+    std::vector<Text*> m_renderTargets;
+    std::unordered_map<uint64_t,std::vector<Text*>> m_renderTargetsPerCommoner;
     std::shared_ptr<VulkanGraphicsPipeline> m_pipeline;
     VulkanGraphicsPipelineUniformBufferDescriptor m_ubDesc = VulkanGraphicsPipelineUniformBufferDescriptor(0);
-    VulkanGraphicsPipelineImageDescriptor m_imageDesc = VulkanGraphicsPipelineImageDescriptor(1);
+    VulkanGraphicsPipelineImageDescriptor m_fontDesc = VulkanGraphicsPipelineImageDescriptor(1);
     VulkanGraphicsPipelineStorageBufferDescriptor m_transformDesc = VulkanGraphicsPipelineStorageBufferDescriptor(2,false);
 };
 }
 
-
-#endif //VULKANIMAGEPIPELINERENDERER_HPP
+#endif

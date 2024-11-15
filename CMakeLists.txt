@@ -20,6 +20,7 @@ find_package(Vulkan REQUIRED)
 
 include_directories(src)
 include_directories(lib/stb_image)
+include_directories(lib/stb_truetype)
 include_directories(lib/glm)
 include_directories(${Vulkan_INCLUDE_DIR})
 
@@ -100,6 +101,15 @@ set(SOURCE_FILES
         src/graphics/resources/StorageBuffer.hpp
         src/graphics/renderer/targets/Rectangle.cpp
         src/graphics/renderer/targets/Rectangle.hpp
+        src/graphics/renderer/targets/Text.cpp
+        src/graphics/renderer/targets/Text.hpp
+        src/graphics/resources/Font.cpp
+        src/graphics/resources/Font.hpp
+        src/utils/FileUtil.cpp
+        src/utils/FileUtil.hpp
+        src/data/FontVertex.hpp
+        src/graphics/renderer/VulkanFontPipelineRenderer.cpp
+        src/graphics/renderer/VulkanFontPipelineRenderer.hpp
 )
 add_library(Vizun ${SOURCE_FILES})
 
