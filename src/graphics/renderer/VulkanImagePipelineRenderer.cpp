@@ -63,6 +63,7 @@ VulkanImagePipelineRenderer::~VulkanImagePipelineRenderer() {
 }
 
 void VulkanImagePipelineRenderer::prepare(uint32_t currentFrame) {
+    if(m_renderTargets.size() == 0) return;
     const auto camera = m_renderer.getCamera().getCameraObject();
     m_uniformBuffers[currentFrame].uploadData(&camera);
 
@@ -100,6 +101,7 @@ void VulkanImagePipelineRenderer::queue(RenderTarget& target) {
 }
 
 void VulkanImagePipelineRenderer::display(vk::CommandBuffer& commandBuffer,uint32_t currentFrame) {
+    if(m_renderTargets.size() == 0) return;
     std::vector<glm::mat4> transforms;
     transforms.reserve(m_renderTargets.size());
     for (auto& t : m_renderTargets) {

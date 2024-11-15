@@ -8,7 +8,7 @@ namespace vz {
 void VertexIndexBuffer::createVertexIndexBuffer(uint8_t vertexSize,uint32_t vertexAmount,vk::IndexType indexType,uint32_t indexAmount) {
     uint32_t indexSize = indexType == vk::IndexType::eUint32 ? sizeof(uint32_t) : indexType == vk::IndexType::eUint16 ? sizeof(uint16_t) : -1;
     VZ_ASSERT(indexSize != -1,"Index type is not supported");
-    VulkanBuffer::createBuffer((vertexSize*vertexAmount)+(indexSize*indexAmount),vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eIndexBuffer,false);
+    VulkanBuffer::createBuffer((vertexSize*vertexAmount)+(indexSize*indexAmount),vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eIndexBuffer,true);
     m_vertexSize = vertexSize;
     m_vertexMaxCount = vertexAmount;
     m_indexSize = indexSize;

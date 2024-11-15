@@ -15,6 +15,7 @@ public:
     ~Line() override;
     void setLineWidth(float width);
     void addPoint(int x,int y);
+    void setColor(Color c);
 protected:
     static std::unordered_map<int,VertexIndexBuffer> m_viBuffer;
     std::vector<Vertex> m_verticies;
@@ -30,7 +31,6 @@ private:
     void prepareCommoner(const std::vector<Line*>& targets);
     int getMaxCommoners() override;
     int getCommoner() override;
-    void useCommoner(VulkanRenderer& renderer, VulkanGraphicsPipeline& pipeline) override;
     size_t getPipelineRendererHashcode() override;
 };
 }

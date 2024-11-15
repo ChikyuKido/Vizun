@@ -14,7 +14,7 @@ VulkanLinePipelineRenderer::VulkanLinePipelineRenderer(const std::shared_ptr<Vul
     VulkanGraphicsPipelineConfig defaultConf;
     defaultConf.vertexInputAttributes = Vertex::getAttributeDescriptions();
     defaultConf.vertexInputBindingDescription = Vertex::getBindingDescritption();
-    defaultConf.dynamicStates = {vk::DynamicState::eScissor, vk::DynamicState::eViewport};
+    defaultConf.dynamicStates = {vk::DynamicState::eScissor, vk::DynamicState::eViewport,vk::DynamicState::eLineWidth};
     defaultConf.descriptors = {
         &m_ubDesc
     };
