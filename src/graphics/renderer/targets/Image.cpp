@@ -59,6 +59,18 @@ void Image::useCommoner(VulkanRenderer& renderer,VulkanGraphicsPipeline& pipelin
     renderer.getCurrentCmdBuffer().pushConstants(pipeline.pipelineLayout,vk::ShaderStageFlagBits::eFragment,0,sizeof(m_commonerUseId),&m_commonerUseId);
 }
 
+void Image::updateTransform() {
+    const auto tempScale = m_scale;
+    m_scale = m_scale * m_size;
+    Transform::updateTransform();
+    m_scale = tempScale;
+}
+
+size_t Image::getPipelineRendererHashcode() {
+    static const size_t hashcode = typeid(VulkanImagePipelineRenderer).hash_code();
+    return hashcode;
+}
+
 void Image::setSize(float x, float y) {
     setSize({x,y});
 }

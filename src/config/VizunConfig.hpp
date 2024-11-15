@@ -17,7 +17,7 @@
     std::array<type,FRAMES_IN_FLIGHT>
 
 #ifndef VIZUN_ENABLE_ASSERT
-    #define VZ_ASSERT(condition, message) ((void)0)
+    #define VZ_ASSERT(condition, message) ((void)0);
 #else
     #define VZ_ASSERT(condition, message) \
     if (!(condition)) { \

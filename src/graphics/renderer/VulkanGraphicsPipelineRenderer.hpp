@@ -35,11 +35,10 @@ public:
      */
     virtual void display(vk::CommandBuffer& commandBuffer,uint32_t currentFrame) = 0;
     /**
-     * Checks if a render target is valid in this pipeline
-     * @param type the type of the renderTarget
-     * @return if the renderTarget type is valid in this pipeline
+     * The hashcode is used for the proper assignment of render targets to this pipeline
+     * @return the hashcode of the class which derives from this one
      */
-    virtual bool filter(const std::type_info& type) = 0;
+    virtual size_t getPipelineRenderHashcode() = 0;
 protected:
     const std::shared_ptr<VulkanRenderPass>& m_renderPass;
     VulkanRenderer& m_renderer;

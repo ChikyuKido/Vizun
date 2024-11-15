@@ -1,6 +1,7 @@
 
 #ifndef RENDERTARGET_HPP
 #define RENDERTARGET_HPP
+#include "graphics/renderer/VulkanGraphicsPipelineRenderer.hpp"
 #include <cstdint>
 #include <vector>
 
@@ -18,8 +19,7 @@ public:
     virtual int getMaxCommoners() {return -1;}
     virtual int getCommoner() {return -1;}
     virtual void useCommoner(VulkanRenderer& renderer,VulkanGraphicsPipeline& pipeline) {};
-
-
+    virtual size_t getPipelineRendererHashcode() = 0;
 };
 }
 

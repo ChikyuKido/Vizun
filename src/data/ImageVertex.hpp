@@ -1,5 +1,5 @@
-#ifndef VERTEX_HPP
-#define VERTEX_HPP
+#ifndef IMAGEVERTEX_HPP
+#define IMAGEVERTEX_HPP
 
 #include <vector>
 #include <vulkan/vulkan.hpp>

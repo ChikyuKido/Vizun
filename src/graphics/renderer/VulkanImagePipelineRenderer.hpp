@@ -20,7 +20,7 @@ public:
     void prepare(uint32_t currentFrame) override;
     void queue(RenderTarget& target) override;
     void display(vk::CommandBuffer& commandBuffer,uint32_t currentFrame) override;
-    bool filter(const std::type_info& type) override;
+    size_t getPipelineRenderHashcode() override;
 private:
     FRAMES(UniformBuffer) m_uniformBuffers;
     FRAMES(StorageBuffer) m_transformBuffers;

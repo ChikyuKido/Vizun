@@ -3,32 +3,35 @@
 #include "RenderTarget.hpp"
 #include "data/Color.hpp"
 #include "data/Vertex.hpp"
+#include "graphics/renderer/VulkanLinePipelineRenderer.hpp"
 
 
 namespace vz {
 class VertexIndexBuffer;
 class Line : public RenderTarget {
+    friend VulkanLinePipelineRenderer;
 public:
     Line();
     ~Line() override;
-    void drawIndexed(const vk::CommandBuffer& commandBuffer,
-        const VulkanGraphicsPipeline& pipeline,
-        uint32_t currentFrame,
-        uint32_t instances) override;
-    void prepareCommoner(const std::vector<RenderTarget*>& targets) override;
-    int getMaxCommoners() override;
-    int getCommoner() override;
-    void useCommoner(VulkanRenderer& renderer, VulkanGraphicsPipeline& pipeline) override;
-    void setWidth(float width);
+    void setLineWidth(float width);
     void addPoint(int x,int y);
-    void setFilled(bool filled);
-private:
-    static VertexIndexBuffer m_viBuffer;
+protected:
+    static std::unordered_map<int,VertexIndexBuffer> m_viBuffer;
     std::vector<Vertex> m_verticies;
     std::vector<uint16_t> m_indicies;
     float m_lineWidth = 1.0f;
-    bool m_filled = false;
     Color m_color = {{1.0f,1.0f,1.0f}};
+private:
+    void drawIndexed(const vk::CommandBuffer& commandBuffer,
+       const VulkanGraphicsPipeline& pipeline,
+       uint32_t currentFrame,
+       uint32_t instances) override;
+    void prepareCommoner(const std::vector<RenderTarget*>& targets) override;
+    void prepareCommoner(const std::vector<Line*>& targets);
+    int getMaxCommoners() override;
+    int getCommoner() override;
+    void useCommoner(VulkanRenderer& renderer, VulkanGraphicsPipeline& pipeline) override;
+    size_t getPipelineRendererHashcode() override;
 };
 }
 

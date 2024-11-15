@@ -2,6 +2,7 @@
 #include "VulkanRenderer.hpp"
 
 #include "VulkanImagePipelineRenderer.hpp"
+#include "VulkanLinePipelineRenderer.hpp"
 #include "graphics/renderer/targets/RenderTarget.hpp"
 #include "graphics/window/RenderWindow.hpp"
 #include "core/VizunEngine.hpp"
@@ -40,7 +41,9 @@ VulkanRenderer::VulkanRenderer(const VulkanRendererConfig& config, RenderWindow*
         VZ_LOG_CRITICAL("Failed to create frame buffers for renderer");
     }
     auto imagePipelineRenderer = std::make_shared<VulkanImagePipelineRenderer>(m_renderPass,*this);
+    auto linePipelineRenderer = std::make_shared<VulkanLinePipelineRenderer>(m_renderPass,*this);
     m_pipelines.push_back(std::move(imagePipelineRenderer));
+    m_pipelines.push_back(std::move(linePipelineRenderer));
 }
 
 void VulkanRenderer::begin() {
@@ -93,11 +96,11 @@ void VulkanRenderer::begin() {
     m_commandBuffers[m_currentFrame].setScissor(0, 1, &scissor);
 }
 void VulkanRenderer::draw(RenderTarget& renderTarget) {
-    auto& type = typeid(renderTarget);
     bool found = false;
     std::shared_ptr<VulkanGraphicsPipelineRenderer> pipeline = nullptr;
+    size_t hashcode = renderTarget.getPipelineRendererHashcode();
     for (const auto& p : m_pipelines) {
-        if(p->filter(type)) {
+        if(hashcode == p->getPipelineRenderHashcode()) {
             found = true;
             pipeline = p;
             break;

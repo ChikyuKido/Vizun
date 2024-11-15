@@ -10,9 +10,9 @@ void VertexIndexBuffer::createVertexIndexBuffer(uint8_t vertexSize,uint32_t vert
     VZ_ASSERT(indexSize != -1,"Index type is not supported");
     VulkanBuffer::createBuffer((vertexSize*vertexAmount)+(indexSize*indexAmount),vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eIndexBuffer,false);
     m_vertexSize = vertexSize;
-    m_vertexAmount = vertexAmount;
+    m_vertexMaxCount = vertexAmount;
     m_indexSize = indexSize;
-    m_indexAmount = indexAmount;
+    m_indexMaxCount = indexAmount;
     m_indexType = indexType;
 }
 
@@ -23,18 +23,16 @@ void VertexIndexBuffer::createVertexIndexBuffer(const void* vertexData,
     vk::IndexType indexType,
     uint32_t indexAmount) {
     createVertexIndexBuffer(vertexSize,vertexAmount,indexType,indexAmount);
-    updateData(vertexData,vertexSize,vertexAmount,indexData,indexAmount);
+    updateData(vertexData,vertexAmount,indexData,indexAmount);
 }
 
 void VertexIndexBuffer::updateData(const void* vertexData,
-                                   const uint8_t vertexSize,
                                    const uint32_t vertexAmount,
                                    const void* indexData,
                                    const uint32_t indexAmount) {
-    m_vertexSize = vertexSize;
-    m_vertexAmount = vertexAmount;
-    m_indexAmount = indexAmount;
-    const uint32_t vertexDataSize = vertexSize * vertexAmount;
+    m_vertexCount = vertexAmount;
+    m_indexCount = indexAmount;
+    const uint32_t vertexDataSize = m_vertexSize * vertexAmount;
     const uint32_t indexDataSize = m_indexSize * indexAmount;
     const uint32_t totalSize = vertexDataSize + indexDataSize;
     void* combinedData = malloc(totalSize);
@@ -44,18 +42,22 @@ void VertexIndexBuffer::updateData(const void* vertexData,
     free(combinedData);
 }
 
-void VertexIndexBuffer::resizeBuffer(uint64_t verticesSize, uint64_t indicesSize) {
-    VulkanBuffer::resizeBuffer(verticesSize+indicesSize);
+void VertexIndexBuffer::resizeBuffer(uint64_t vertexCount, uint64_t indexCount) {
+    VulkanBuffer::resizeBuffer(m_vertexSize*vertexCount+indexCount*m_indexSize);
+}
+
+bool VertexIndexBuffer::bufferBigEnough(uint64_t vertexCount, uint64_t indexCount) const {
+    return m_bufferSize >= (vertexCount*m_vertexSize+m_indexSize*indexCount);
 }
 
 [[nodiscard]] size_t VertexIndexBuffer::getVerticesCount() const {
-    return m_vertexAmount;
+    return m_vertexCount;
 };
 [[nodiscard]] size_t VertexIndexBuffer::getIndicesCount() const {
-    return m_indexAmount;
+    return m_indexCount;
 };
 [[nodiscard]] size_t VertexIndexBuffer::getIndicesOffsetSize() const {
-    return m_vertexAmount * m_vertexSize;
+    return m_vertexCount * m_vertexSize;
 };
 
 [[nodiscard]] vk::IndexType VertexIndexBuffer::getIndexType() const {

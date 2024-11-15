@@ -1,6 +1,8 @@
 #include "core/VizunEngine.hpp"
 
 #include "graphics/renderer/targets/Image.hpp"
+#include "graphics/renderer/targets/Line.hpp"
+#include "graphics/renderer/targets/Rectangle.hpp"
 #include "graphics/window/RenderWindow.hpp"
 #include "resource_loader/ResourceLoader.hpp"
 #include "utils/Events.hpp"
@@ -21,7 +23,7 @@ int main() {
     spdlog::set_level(spdlog::level::debug);
 
     vz::VulkanRenderWindowConfig vulkanConfig;
-    vulkanConfig.vulkanSwapchainConfig.presentMode = vk::PresentModeKHR::eFifo;
+    vulkanConfig.vulkanSwapchainConfig.presentMode = vk::PresentModeKHR::eImmediate;
 
     vz::RenderWindow renderWindow(800,600,"Vizun",vulkanConfig);
 
@@ -29,6 +31,14 @@ int main() {
 
 
     std::vector<vz::Image> imgs;
+    std::vector<vz::Rectangle> rects;
+    for (uint32_t i = 0; i < 800/15; i++) {
+        for (uint32_t j = 0; j < 600/15; j++) {
+            rects.push_back({{i*15,j*15},{13,13}});
+        }
+    }
+    VZ_LOG_INFO(rects.size());
+
     for (int i = 0; i < 1; ++i) {
         vz::Image img("rsc/texts/slime-move-forward1.png");
         img.setSize(12,12);
@@ -41,6 +51,10 @@ int main() {
         glfwPollEvents();
         for (float i = 0; i < imgs.size(); ++i) {
             renderWindow.draw(imgs[i]);
+        }
+        // renderWindow.draw(line);
+        for (float i = 0; i < rects.size(); ++i) {
+            renderWindow.draw(rects[i]);
         }
         renderWindow.display();
         frames++;

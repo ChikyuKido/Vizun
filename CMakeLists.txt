@@ -13,8 +13,8 @@ option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 option(VIZUN_BUILD_EXAMPLES "Build the Vizun example programs" ON)
 option(VIZUN_ENABLE_VALIDATION_LAYER "Enables the validation layer for vulkan" ON)
 set(VIZUN_BUILD_EXAMPLES ON)
-set(VIZUN_ENABLE_VALIDATION_LAYER ON)
-set(VIZUN_ENABLE_ASSERT ON)
+set(VIZUN_ENABLE_VALIDATION_LAYER OFF)
+set(VIZUN_ENABLE_ASSERT OFF)
 
 find_package(Vulkan REQUIRED)
 
@@ -98,6 +98,8 @@ set(SOURCE_FILES
         src/graphics/resources/UniformBuffer.hpp
         src/graphics/resources/StorageBuffer.cpp
         src/graphics/resources/StorageBuffer.hpp
+        src/graphics/renderer/targets/Rectangle.cpp
+        src/graphics/renderer/targets/Rectangle.hpp
 )
 add_library(Vizun ${SOURCE_FILES})
 

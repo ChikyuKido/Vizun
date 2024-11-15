@@ -108,7 +108,7 @@ void VulkanBuffer::uploadData(const void* data,const  uint64_t size) const {
 }
 
 void VulkanBuffer::copyBuffer(const VulkanBuffer& src) const {
-    copyBuffer(src,m_bufferSize);
+    copyBuffer(src,src.m_bufferSize);
 }
 
 void VulkanBuffer::copyBuffer(const VulkanBuffer& src, const uint64_t srcSize) const {

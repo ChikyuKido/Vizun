@@ -120,8 +120,9 @@ void VulkanImagePipelineRenderer::display(vk::CommandBuffer& commandBuffer,uint3
     m_renderTargetsPerCommoner.clear();
 }
 
-bool VulkanImagePipelineRenderer::filter(const std::type_info& type) {
-    static const std::type_info& imageType = typeid(Image);
-    return type == imageType;
+
+size_t VulkanImagePipelineRenderer::getPipelineRenderHashcode() {
+    static const size_t hashcode = typeid(VulkanImagePipelineRenderer).hash_code();
+    return hashcode;
 }
 }

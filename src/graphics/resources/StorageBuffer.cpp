@@ -9,6 +9,4 @@ void StorageBuffer::createStorageBuffer(uint64_t size, const void* data) {
     createStorageBuffer(size);
     uploadData(data);
 }
-
-
 } // vz
