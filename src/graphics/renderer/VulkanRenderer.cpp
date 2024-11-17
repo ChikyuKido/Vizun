@@ -1,6 +1,7 @@
 
 #include "VulkanRenderer.hpp"
 
+#include "VulkanFontPipelineRenderer.hpp"
 #include "VulkanImagePipelineRenderer.hpp"
 #include "VulkanLinePipelineRenderer.hpp"
 #include "graphics/renderer/targets/RenderTarget.hpp"
@@ -42,8 +43,12 @@ VulkanRenderer::VulkanRenderer(const VulkanRendererConfig& config, RenderWindow*
     }
     auto imagePipelineRenderer = std::make_shared<VulkanImagePipelineRenderer>(m_renderPass,*this);
     auto linePipelineRenderer = std::make_shared<VulkanLinePipelineRenderer>(m_renderPass,*this);
+    auto fontPipelineRenderer = std::make_shared<VulkanFontPipelineRenderer>(m_renderPass,*this);
     m_pipelines.push_back(std::move(imagePipelineRenderer));
     m_pipelines.push_back(std::move(linePipelineRenderer));
+    m_pipelines.push_back(std::move(fontPipelineRenderer));
+
+    m_camera.setPosition({-5.0f,0.f});
 }
 
 void VulkanRenderer::begin() {

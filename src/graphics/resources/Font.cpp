@@ -68,6 +68,10 @@ CharacterUV Font::getCharacterUV(char c) const {
     return m_characters[c-32];
 }
 
+const VulkanImage* Font::getImage() const {
+    return &m_image;
+}
+
 void Font::createImage() {
     VulkanBuffer stagingBuffer;
     stagingBuffer.createBuffer(m_atlasWidth*m_atlasHeight,

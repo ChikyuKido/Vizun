@@ -2,10 +2,10 @@
 #define VULKANFONTPIPELINERENDERER_HPP
 
 #include "VulkanGraphicsPipelineRenderer.hpp"
+#include "targets/Text.hpp"
 #include "graphics/pipeline/VulkanGraphicsPipelineDescriptor.hpp"
 #include "graphics/resources/StorageBuffer.hpp"
 #include "graphics/resources/UniformBuffer.hpp"
-#include "targets/Text.hpp"
 #include <memory>
 #include <vector>
 namespace vz {

@@ -15,6 +15,7 @@ bool VulkanImage::createImage(const uint32_t width,
                               const vk::ImageUsageFlags usage,
                               const vk::MemoryPropertyFlags properties) {
     static VulkanBase& vb = VizunEngine::getVulkanBase();
+    m_format = format;
     vk::ImageCreateInfo imageInfo;
     imageInfo.imageType = vk::ImageType::e2D;
     imageInfo.extent.width = width;
@@ -120,7 +121,7 @@ bool VulkanImage::createImageView() {
     vk::ImageViewCreateInfo createInfo;
     createInfo.image = *m_image;
     createInfo.viewType = vk::ImageViewType::e2D;
-    createInfo.format = vk::Format::eR8G8B8A8Srgb;
+    createInfo.format = m_format;
     createInfo.subresourceRange = {vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1};
     VK_RESULT_ASSIGN_SHARED(m_imageView, vb.device.createImageView(createInfo), vk::ImageView)
     assert(m_imageView);

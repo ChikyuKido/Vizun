@@ -1,10 +1,7 @@
-//
-// Created by kido on 11/15/24.
-//
 
 #include "VulkanFontPipelineRenderer.hpp"
-
 #include "Camera.hpp"
+#include "VulkanRenderer.hpp"
 #include "data/FontVertex.hpp"
 #include "graphics/pipeline/VulkanGraphicsPipeline.hpp"
 
@@ -58,16 +55,30 @@ VulkanFontPipelineRenderer::~VulkanFontPipelineRenderer() {
 }
 
 void VulkanFontPipelineRenderer::prepare(uint32_t currentFrame) {
-
+    const auto camera = m_renderer.getCamera().getCameraObject();
+    m_uniformBuffers[currentFrame].uploadData(&camera);
+    std::vector<const VulkanImage*> images;
+    for (auto m : m_renderTargets) {
+        images.push_back(m->getFont()->getImage());
+    }
+    m_fontDesc.updateImage(images,currentFrame);
 }
 
 void VulkanFontPipelineRenderer::queue(RenderTarget& target) {
+    m_renderTargets.push_back(static_cast<Text*>(&target));
 }
 
 void VulkanFontPipelineRenderer::display(vk::CommandBuffer& commandBuffer, uint32_t currentFrame) {
-
+    m_pipeline->bindPipeline(commandBuffer);
+    m_pipeline->bindDescriptorSet(commandBuffer,currentFrame,{});
+    for (auto m : m_renderTargets) {
+        m->drawIndexed(commandBuffer,*m_pipeline,currentFrame,1);
+    }
+    m_renderTargets.clear();
 }
 
 size_t VulkanFontPipelineRenderer::getPipelineRenderHashcode() {
+    static const size_t hashcode = typeid(VulkanFontPipelineRenderer).hash_code();
+    return hashcode;
 }
 } // vz

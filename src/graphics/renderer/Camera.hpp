@@ -55,21 +55,21 @@ private:
     glm::mat4 m_viewProj = glm::mat4{1.0f};
 
     void updateViewMatrix() {
-        // glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(position, 0.0f))
-        //                     * glm::rotate(glm::mat4(1.0f), glm::radians(rotation), glm::vec3(0.0f, 0.0f, 1.0f))
-        //                     * glm::scale(glm::mat4(1.0f), glm::vec3(scale, scale, 1.0f));
-        //
-        // view = glm::inverse(transform);
-        view = glm::lookAt(
-glm::vec3(0.0f, 0.0f, 0.0f), // Camera position
-glm::vec3(0.0f, 0.0f, 0.0f), // Look at origin
-glm::vec3(0.0f, 1.0f, 0.0f)  // Up direction
-);
+        glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(m_position, 0.0f))
+                            * glm::rotate(glm::mat4(1.0f), glm::radians(m_rotation), glm::vec3(0.0f, 0.0f, 1.0f))
+                            * glm::scale(glm::mat4(1.0f), glm::vec3(m_scale, m_scale, 1.0f));
+
+        view = glm::inverse(transform);
+
+//         view = glm::lookAt(
+// glm::vec3(0.0f, 0.0f, 0.0f), // Camera position
+// glm::vec3(0.0f, 0.0f, 0.0f), // Look at origin
+// glm::vec3(0.0f, 1.0f, 0.0f)  // Up direction
+// );
         updateViewProjMatrix();
     }
 
     void updateViewProjMatrix() {
-        view = glm::mat4(1.0f);
         m_viewProj = m_projection * view;
     }
 };

@@ -3,6 +3,7 @@
 #include "graphics/renderer/targets/Image.hpp"
 #include "graphics/renderer/targets/Line.hpp"
 #include "graphics/renderer/targets/Rectangle.hpp"
+#include "graphics/renderer/targets/Text.hpp"
 #include "graphics/resources/Font.hpp"
 #include "graphics/window/RenderWindow.hpp"
 #include "resource_loader/ResourceLoader.hpp"
@@ -33,6 +34,10 @@ int main() {
     vz::Font font;
     font.loadFont("rsc/fonts/Arial.ttf",32);
 
+    vz::Text text;
+    text.setFont(&font);
+    text.setText("Hello World!");
+
     std::vector<vz::Image> imgs;
     vz::Line line;
     line.addPoint(200,200);
@@ -62,6 +67,7 @@ int main() {
         // renderWindow.draw(line);
         // renderWindow.draw(line2);
         // renderWindow.draw(line3);
+        renderWindow.draw(text);
         renderWindow.display();
         frames++;
         if (std::chrono::steady_clock::now() >= next_time_point) {

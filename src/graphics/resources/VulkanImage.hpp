@@ -33,6 +33,7 @@ public:
 protected:
     bool createImageView();
     bool createTextureSampler();
+    vk::Format m_format;
     std::shared_ptr<vk::Image> m_image;
     std::shared_ptr<vk::ImageView> m_imageView;
     std::shared_ptr<vk::DeviceMemory> m_imageMemory;

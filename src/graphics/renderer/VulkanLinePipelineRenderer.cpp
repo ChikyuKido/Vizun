@@ -57,7 +57,7 @@ void VulkanLinePipelineRenderer::prepare(uint32_t currentFrame) {
 }
 
 void VulkanLinePipelineRenderer::queue(RenderTarget& target) {
-    VZ_ASSERT(dynamic_cast<const Line*>(target) != nullptr,"VulkanLinePipeline only supports lines or derived classes")
+    VZ_ASSERT(dynamic_cast<Line*>(&target) != nullptr,"VulkanLinePipeline only supports lines or derived classes")
     m_renderTargets.push_back(static_cast<Line*>(&target));
 }
 
