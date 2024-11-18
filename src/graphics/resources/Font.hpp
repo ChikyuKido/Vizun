@@ -6,19 +6,21 @@
 #include <vector>
 
 namespace vz {
-struct CharacterUV {
+struct CharacterInfo {
     float u0; // top
     float v0; // left
     float u1; // bottom
     float v1; // right
+    float width;
+    float height;
 };
 class Font {
 public:
     void loadFont(const std::string& filePath,uint32_t size);
-    CharacterUV getCharacterUV(char c) const;
+    CharacterInfo getCharacterUV(char c) const;
     const VulkanImage* getImage() const;
 private:
-    std::vector<CharacterUV> m_characters;
+    std::vector<CharacterInfo> m_characters;
     VulkanImage m_image;
     uint8_t* m_bitmap;
     uint32_t m_fontSize = 0;

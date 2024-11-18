@@ -48,7 +48,7 @@ VulkanRenderer::VulkanRenderer(const VulkanRendererConfig& config, RenderWindow*
     m_pipelines.push_back(std::move(linePipelineRenderer));
     m_pipelines.push_back(std::move(fontPipelineRenderer));
 
-    m_camera.setPosition({-5.0f,0.f});
+    m_camera.setPosition({-5.0f,-100.f});
 }
 
 void VulkanRenderer::begin() {

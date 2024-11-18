@@ -9,9 +9,6 @@
 #include <vector>
 
 namespace vz {
-struct CharacterInfo {
-    int x, y, width, height, xOffset, yOffset, xAdvance;
-};
 void Font::loadFont(const std::string& filePath,u_int32_t size) {
     m_fontSize = size;
     std::vector<uint8_t> fontBuffer = FileUtil::readFileAsBytes(filePath);
@@ -50,11 +47,13 @@ void Font::loadFont(const std::string& filePath,u_int32_t size) {
                 m_bitmap[((yOffset + y) * m_atlasWidth) + (xOffset + x)] = glyphBitmap[y * width + x];
             }
         }
-        m_characters.push_back(CharacterUV{
+        m_characters.push_back(CharacterInfo{
                 static_cast<float>(xOffset) / m_atlasWidth,
                 static_cast<float>(yOffset) / m_atlasHeight,
                 static_cast<float>(xOffset + width) / m_atlasWidth,
-                static_cast<float>(yOffset + height) / m_atlasHeight
+                static_cast<float>(yOffset + height) / m_atlasHeight,
+                static_cast<float>(width),
+                static_cast<float>(height),
             });
         xOffset += width;
         maxRowHeight = std::max(maxRowHeight, height);
@@ -64,7 +63,7 @@ void Font::loadFont(const std::string& filePath,u_int32_t size) {
     createImage();
 }
 
-CharacterUV Font::getCharacterUV(char c) const {
+CharacterInfo Font::getCharacterUV(char c) const {
     return m_characters[c-32];
 }
 

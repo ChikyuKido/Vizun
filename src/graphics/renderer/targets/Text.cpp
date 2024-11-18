@@ -9,19 +9,19 @@ namespace vz {
 
 
 Text::Text() {
-    m_viBuffer.createVertexIndexBuffer(sizeof(FontVertex),256,vk::IndexType::eUint16,5);
+    m_viBuffer.createVertexIndexBuffer(sizeof(FontVertex),256,vk::IndexType::eUint16,256*1.5);
 }
 
 void Text::setText(const std::string& text) {
     m_vertices.clear();
     m_indices.clear();
-    m_vertices.resize(4);
-    m_indices.resize(6);
+    m_vertices.resize(4*text.size());
+    m_indices.resize(6*text.size());
     m_text = text;
-    // for(size_t i=0;i<m_text.size();i++) {
-        addCharacterToVertices(m_font->getCharacterUV('H'),0);
-        // addCharacterToVertices(m_font->getCharacterUV('A'),1);
-    // }
+    float lastX = 0.0f;
+    for(size_t i=0;i<m_text.size();i++) {
+        addCharacterToVertices(m_font->getCharacterUV(m_text[i]),i,lastX);
+    }
     m_viBuffer.updateData(m_vertices.data(),m_vertices.size(),m_indices.data(),m_indices.size());
 }
 
@@ -65,11 +65,17 @@ size_t Text::getPipelineRendererHashcode() {
     return hashcode;
 }
 
-void Text::addCharacterToVertices(CharacterUV characterUV,uint32_t position) {
-    m_vertices[position*4] = {{0.0f, 0.0f}, {characterUV.u1, characterUV.v0}};
-    m_vertices[position*4+1] = {{10.0f, 0.0f}, {characterUV.u0, characterUV.v0}};
-    m_vertices[position*4+2] = {{10.0f, 10.0f},{characterUV.u0, characterUV.v1}};
-    m_vertices[position*4+3] = {{0.0f, 10.0f},{characterUV.u1, characterUV.v1}};
+void Text::addCharacterToVertices(CharacterInfo characterUV,uint32_t position,float& lastX) {
+
+    float left = lastX;
+    float right = lastX+characterUV.width;
+    float top = 0;
+    float bottom = -characterUV.height;
+    lastX += characterUV.width;
+    m_vertices[position*4] = {{left, top}, {characterUV.u0, characterUV.v1}}; // bottom left
+    m_vertices[position*4+1] = {{right, top}, {characterUV.u1, characterUV.v1}}; // top left
+    m_vertices[position*4+2] = {{right, bottom},{characterUV.u1, characterUV.v0}}; // top right
+    m_vertices[position*4+3] = {{left, bottom},{characterUV.u0, characterUV.v0}}; // bottom right
 
     uint16_t indicesStart = position*4;
     m_indices[position*6] = indicesStart;

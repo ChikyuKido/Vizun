@@ -32,15 +32,15 @@ int main() {
     vz::ResourceLoader::loadVulkanImage("rsc/texts/slime-move-forward1.png");
 
     vz::Font font;
-    font.loadFont("rsc/fonts/Arial.ttf",32);
+    font.loadFont("rsc/fonts/Arial.ttf",64);
 
     vz::Text text;
     text.setFont(&font);
-    text.setText("Hello World!");
+    text.setText("Hello World! WOOHOHOOHHOHwuhdgrfs");
 
     std::vector<vz::Image> imgs;
     vz::Line line;
-    line.addPoint(200,200);
+    line.addPoint(0,0);
     line.addPoint(400,200);
     line.setColor({{0.5f,1.0f,0.2f}});
     vz::Line line2;
@@ -64,7 +64,7 @@ int main() {
         for (float i = 0; i < imgs.size(); ++i) {
             renderWindow.draw(imgs[i]);
         }
-        // renderWindow.draw(line);
+        renderWindow.draw(line);
         // renderWindow.draw(line2);
         // renderWindow.draw(line3);
         renderWindow.draw(text);

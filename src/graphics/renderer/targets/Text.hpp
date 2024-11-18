@@ -34,7 +34,7 @@ private:
     int getCommoner() override;
     void useCommoner(VulkanRenderer& renderer, VulkanGraphicsPipeline& pipeline) override;
     size_t getPipelineRendererHashcode() override;
-    void addCharacterToVertices(CharacterUV characterUV,uint32_t position);
+    void addCharacterToVertices(CharacterInfo characterUV,uint32_t position,float& lastX);
 
 
 };
