@@ -33,10 +33,17 @@ int main() {
 
     vz::Font font;
     font.loadFont("rsc/fonts/Arial.ttf",64);
+    vz::Font font2;
+    font2.loadFont("rsc/fonts/calibri.ttf",64);
 
     vz::Text text;
     text.setFont(&font);
     text.setText("Hello World! WOOHOHOOHHOHwuhdgrfs");
+
+    vz::Text text2;
+    text2.setY(500);
+    text2.setFont(&font2);
+    text2.setText("tesdf");
 
     std::vector<vz::Image> imgs;
     vz::Line line;
@@ -68,6 +75,7 @@ int main() {
         // renderWindow.draw(line2);
         // renderWindow.draw(line3);
         renderWindow.draw(text);
+        renderWindow.draw(text2);
         renderWindow.display();
         frames++;
         if (std::chrono::steady_clock::now() >= next_time_point) {

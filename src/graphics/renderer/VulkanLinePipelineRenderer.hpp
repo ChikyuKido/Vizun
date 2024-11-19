@@ -8,7 +8,6 @@
 #include "config/VizunConfig.hpp"
 #include "graphics/pipeline/VulkanGraphicsPipelineDescriptor.hpp"
 #include "graphics/resources/UniformBuffer.hpp"
-#include <typeindex>
 
 namespace vz {
 class Line;

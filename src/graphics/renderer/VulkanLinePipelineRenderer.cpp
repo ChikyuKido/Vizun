@@ -51,7 +51,7 @@ void VulkanLinePipelineRenderer::prepare(uint32_t currentFrame) {
         }
         m_renderTargetsPerCommoner[call->getCommoner()].push_back(call);
     }
-    for (const auto & [commoner,targets] : m_renderTargetsPerCommoner) {
+    for (const auto& targets : m_renderTargetsPerCommoner | std::views::values) {
         targets[0]->prepareCommoner(targets);
     }
 }
@@ -64,7 +64,7 @@ void VulkanLinePipelineRenderer::queue(RenderTarget& target) {
 void VulkanLinePipelineRenderer::display(vk::CommandBuffer& commandBuffer, uint32_t currentFrame) {
     m_pipeline->bindPipeline(commandBuffer);
     m_pipeline->bindDescriptorSet(commandBuffer,currentFrame,{});
-    for (const auto & [commoner,targets] : m_renderTargetsPerCommoner) {
+    for (const auto& targets : m_renderTargetsPerCommoner | std::views::values) {
         targets[0]->drawIndexed(commandBuffer,*m_pipeline,currentFrame,1);
     }
     m_renderTargets.clear();

@@ -90,9 +90,6 @@ void VulkanBuffer::uploadData(const void* data) const {
 
 void VulkanBuffer::uploadData(const void* data,const  uint64_t size) const {
     VZ_ASSERT(data != nullptr, "Data cannot be nullptr");
-    if(size == 12) {
-        VZ_LOG_INFO("t");
-    }
     VZ_ASSERT(m_bufferSize >= size,"Buffer is to small upload data of size " + std::to_string(size));
     // static const VmaAllocator allocator = VizunEngine::getVMAAllocator();
     static VulkanBase& vb = VizunEngine::getVulkanBase();
