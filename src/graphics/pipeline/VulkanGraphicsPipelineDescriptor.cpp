@@ -50,7 +50,7 @@ void VulkanGraphicsPipelineUniformBufferDescriptor::updateUniformBuffer(const st
 VulkanGraphicsPipelineImageDescriptor::VulkanGraphicsPipelineImageDescriptor(
     const int binding) : VulkanGraphicsPipelineDescriptor(binding,MAX_IMAGES_IN_SHADER,vk::DescriptorType::eCombinedImageSampler,vk::ShaderStageFlagBits::eFragment) {}
 
-void VulkanGraphicsPipelineImageDescriptor::updateImage(const std::vector<const VulkanImage*>& images,const int currentFrame) const {
+void VulkanGraphicsPipelineImageDescriptor::updateImage(const std::vector<const VulkanImage*>& images,const int currentFrame) {
     assert(MAX_IMAGES_IN_SHADER>images.size());
     if(m_graphicsPipeline == nullptr) {
         VZ_LOG_CRITICAL("Image descriptor was not assigned to a graphics pipeline!");

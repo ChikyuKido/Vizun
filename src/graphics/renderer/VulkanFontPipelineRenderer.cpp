@@ -57,16 +57,16 @@ VulkanFontPipelineRenderer::~VulkanFontPipelineRenderer() {
 void VulkanFontPipelineRenderer::prepare(uint32_t currentFrame) {
     const auto camera = m_renderer.getCamera().getCameraObject();
     m_uniformBuffers[currentFrame].uploadData(&camera);
-    std::vector<const VulkanImage*> images;
-    for (auto m : m_renderTargets) {
-        images.push_back(m->getFont()->getImage());
+    for (auto *m : m_renderTargets) {
         if (!m_renderTargetsPerCommoner.contains(m->getCommoner())) {
             m_renderTargetsPerCommoner[m->getCommoner()] = std::vector<Text*>();
         }
         m_renderTargetsPerCommoner[m->getCommoner()].push_back(m);
     }
     int id = 0;
-    for (auto texts : std::ranges::views::values(m_renderTargetsPerCommoner)) {
+    std::vector<const VulkanImage*> images;
+    for (auto texts : std::views::values(m_renderTargetsPerCommoner)) {
+        images.push_back(texts[0]->getFont()->getImage());
         texts[0]->prepareCommoner(texts,id++);
     }
     m_fontDesc.updateImage(images,currentFrame);
@@ -79,9 +79,9 @@ void VulkanFontPipelineRenderer::queue(RenderTarget& target) {
 void VulkanFontPipelineRenderer::display(vk::CommandBuffer& commandBuffer, uint32_t currentFrame) {
     m_pipeline->bindPipeline(commandBuffer);
     m_pipeline->bindDescriptorSet(commandBuffer,currentFrame,{});
-    for (auto m : m_renderTargets) {
-        m->useCommoner(m_renderer,*m_pipeline);
-        m->drawIndexed(commandBuffer,*m_pipeline,currentFrame,1);
+    for (const auto &m : std::views::values(m_renderTargetsPerCommoner)) {
+        m[0]->useCommoner(m_renderer,*m_pipeline);
+        m[0]->drawIndexed(commandBuffer,*m_pipeline,currentFrame,1);
     }
     m_renderTargets.clear();
     m_renderTargetsPerCommoner.clear();
@@ -91,4 +91,4 @@ size_t VulkanFontPipelineRenderer::getPipelineRenderHashcode() {
     static const size_t hashcode = typeid(VulkanFontPipelineRenderer).hash_code();
     return hashcode;
 }
-} // vz
+}

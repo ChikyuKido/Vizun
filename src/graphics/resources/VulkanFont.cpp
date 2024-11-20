@@ -1,6 +1,6 @@
 #define STB_TRUETYPE_IMPLEMENTATION
 #include <stb_truetype.h>
-#include "Font.hpp"
+#include "VulkanFont.hpp"
 
 #include "VulkanBuffer.hpp"
 #include "utils/FileUtil.hpp"
@@ -9,7 +9,7 @@
 #include <vector>
 
 namespace vz {
-void Font::loadFont(const std::string& filePath,u_int32_t size) {
+void VulkanFont::loadFont(const std::string& filePath,u_int32_t size) {
     m_fontSize = size;
     std::vector<uint8_t> fontBuffer = FileUtil::readFileAsBytes(filePath);
     stbtt_fontinfo font;
@@ -63,15 +63,15 @@ void Font::loadFont(const std::string& filePath,u_int32_t size) {
     createImage();
 }
 
-CharacterInfo Font::getCharacterUV(char c) const {
+CharacterInfo VulkanFont::getCharacterUV(char c) const {
     return m_characters[c-32];
 }
 
-const VulkanImage* Font::getImage() const {
+const VulkanImage* VulkanFont::getImage() const {
     return &m_image;
 }
 
-void Font::createImage() {
+void VulkanFont::createImage() {
     VulkanBuffer stagingBuffer;
     stagingBuffer.createBuffer(m_atlasWidth*m_atlasHeight,
                                   vk::BufferUsageFlagBits::eTransferSrc,

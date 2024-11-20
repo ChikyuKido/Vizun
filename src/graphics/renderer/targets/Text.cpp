@@ -9,9 +9,6 @@ namespace vz {
 
 std::unordered_map<int,VertexIndexBuffer> Text::m_viBuffer;
 
-
-Text::Text() {}
-
 void Text::setText(const std::string& text) {
     if(m_text == text) return;
 
@@ -19,7 +16,7 @@ void Text::setText(const std::string& text) {
     recalculateVertices();
 }
 
-void Text::setFont(const Font* font) {
+void Text::setFont(const VulkanFont* font) {
     m_font = font;
     recalculateVertices();
 }
@@ -29,7 +26,7 @@ void Text::setCharacterSpacing(float characterSpacing) {
     recalculateVertices();
 }
 
-const Font* Text::getFont() const {
+const VulkanFont* Text::getFont() const {
     return m_font;
 }
 
@@ -42,10 +39,6 @@ void Text::drawIndexed(const vk::CommandBuffer& commandBuffer,
     commandBuffer.bindVertexBuffers(0,1,vertexBuffers,offsets);
     commandBuffer.bindIndexBuffer(m_viBuffer[getCommoner()].getBuffer(),m_viBuffer[getCommoner()].getIndicesOffsetSize(),m_viBuffer[getCommoner()].getIndexType());
     commandBuffer.drawIndexed(m_viBuffer[getCommoner()].getIndicesCount(),instances,0,0,0);
-}
-
-void Text::prepareCommoner(const std::vector<RenderTarget*>& targets) {
-    VZ_LOG_CRITICAL("NOT IMPLEMENTED!!!");
 }
 
 void Text::prepareCommoner(const std::vector<Text*>& targets,int commonerUseId) {
@@ -103,17 +96,21 @@ size_t Text::getPipelineRendererHashcode() {
     return hashcode;
 }
 
-void Text::addCharacterToVertices(CharacterInfo characterUV,uint32_t position,float& lastX) {
+void Text::addCharacterToVertices(CharacterInfo characterInfo,uint32_t position,float& lastX) {
     float left = lastX;
-    float right = lastX+characterUV.width;
-    float top = y;
-    float bottom = -characterUV.height+y;
-    lastX += characterUV.width+m_characterSpacing;
-    m_vertices[position*4] = {{left, top}, {characterUV.u0, characterUV.v1}}; // bottom left
-    m_vertices[position*4+1] = {{right, top}, {characterUV.u1, characterUV.v1}}; // top left
-    m_vertices[position*4+2] = {{right, bottom},{characterUV.u1, characterUV.v0}}; // top right
-    m_vertices[position*4+3] = {{left, bottom},{characterUV.u0, characterUV.v0}}; // bottom right
+    float right = lastX+characterInfo.width;
+    float top = 0;
+    float bottom = -characterInfo.height;
+    lastX += characterInfo.width+m_characterSpacing;
+    glm::vec4 bottomLeft = m_transform * glm::vec4(left, bottom, 0.0f, 1.0f); // Apply transform
+    glm::vec4 topLeft = m_transform * glm::vec4(left, top, 0.0f, 1.0f);       // Apply transform
+    glm::vec4 topRight = m_transform * glm::vec4(right, top, 0.0f, 1.0f);     // Apply transform
+    glm::vec4 bottomRight = m_transform * glm::vec4(right, bottom, 0.0f, 1.0f); // Apply transform
 
+    m_vertices[position*4] = {{topLeft.x, topLeft.y}, {characterInfo.u0, characterInfo.v1}}; // bottom left
+    m_vertices[position*4+1] = {{topRight.x, topRight.y}, {characterInfo.u1, characterInfo.v1}}; // top left
+    m_vertices[position*4+2] = {{bottomRight.x, bottomRight.y},{characterInfo.u1, characterInfo.v0}}; // top right
+    m_vertices[position*4+3] = {{bottomLeft.x, bottomLeft.y},{characterInfo.u0, characterInfo.v0}}; // bottom right
     uint16_t indicesStart = position*4;
     m_indices[position*6] = indicesStart;
     m_indices[position*6+1] = indicesStart+1;
@@ -134,5 +131,10 @@ void Text::recalculateVertices() {
     for(size_t i=0;i<m_text.size();i++) {
         addCharacterToVertices(m_font->getCharacterUV(m_text[i]),i,lastX);
     }
+}
+
+void Text::updateTransform() {
+    Transform::updateTransform();
+    recalculateVertices();
 }
 }

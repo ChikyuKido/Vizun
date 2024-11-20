@@ -14,7 +14,7 @@ struct CharacterInfo {
     float width;
     float height;
 };
-class Font {
+class VulkanFont {
 public:
     void loadFont(const std::string& filePath,uint32_t size);
     CharacterInfo getCharacterUV(char c) const;

@@ -52,7 +52,7 @@ public:
 class VulkanGraphicsPipelineImageDescriptor : public VulkanGraphicsPipelineDescriptor {
 public:
     VulkanGraphicsPipelineImageDescriptor(int binding);
-    void updateImage(const std::vector<const VulkanImage*>& images,int currentFrame) const;
+    void updateImage(const std::vector<const VulkanImage*>& images,int currentFrame);
 private:
     VulkanImage* getEmptyImage() const {
         static VulkanImage* img = nullptr;

@@ -4,7 +4,7 @@
 #include "graphics/renderer/targets/Line.hpp"
 #include "graphics/renderer/targets/Rectangle.hpp"
 #include "graphics/renderer/targets/Text.hpp"
-#include "graphics/resources/Font.hpp"
+#include "graphics/resources/VulkanFont.hpp"
 #include "graphics/window/RenderWindow.hpp"
 #include "resource_loader/ResourceLoader.hpp"
 #include "utils/Events.hpp"
@@ -30,20 +30,12 @@ int main() {
     vz::RenderWindow renderWindow(800,600,"Vizun",vulkanConfig);
 
     vz::ResourceLoader::loadVulkanImage("rsc/texts/slime-move-forward1.png");
+    vz::ResourceLoader::loadVulkanFont("rsc/fonts/Arial.ttf",64);
 
-    vz::Font font;
-    font.loadFont("rsc/fonts/Arial.ttf",64);
-    vz::Font font2;
-    font2.loadFont("rsc/fonts/calibri.ttf",64);
 
     vz::Text text;
-    text.setFont(&font);
+    text.setFont(vz::ResourceLoader::getVulkanFont("rsc/fonts/Arial.ttf",64));
     text.setText("Hello World! WOOHOHOOHHOHwuhdgrfs");
-
-    vz::Text text2;
-    text2.setY(500);
-    text2.setFont(&font2);
-    text2.setText("tesdf");
 
     std::vector<vz::Image> imgs;
     vz::Line line;
@@ -65,6 +57,7 @@ int main() {
         imgs.push_back(img);
     }
     uint32_t frames = 0;
+    float rot = 0.0f;
     auto next_time_point = std::chrono::steady_clock::now() + std::chrono::seconds(1);
     while(!renderWindow.shouldWindowClose()) {
         glfwPollEvents();
@@ -75,7 +68,9 @@ int main() {
         // renderWindow.draw(line2);
         // renderWindow.draw(line3);
         renderWindow.draw(text);
-        renderWindow.draw(text2);
+        rot += 0.1f;
+        text.setRotation(rot);
+
         renderWindow.display();
         frames++;
         if (std::chrono::steady_clock::now() >= next_time_point) {

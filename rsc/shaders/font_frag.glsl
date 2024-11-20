@@ -10,9 +10,9 @@ layout(push_constant) uniform PushConstants {
 
 
 void main() {
-    vec4 texColor = texture(texSampler[0], fragTexCoord);
-//    if (texColor.a < 0.01) {
-//        discard;
-//    }
+    vec4 texColor = texture(texSampler[pushConstants.textureIndex], fragTexCoord);
+    if (texColor.a < 0.01) {
+        discard;
+    }
     outColor = texColor;
 }
