@@ -2,6 +2,7 @@
 #define TEXT_HPP
 #include "RenderTarget.hpp"
 #include "Transform.hpp"
+#include "data/Color.hpp"
 #include "data/FontVertex.hpp"
 #include "graphics/resources/VulkanFont.hpp"
 #include "graphics/resources/VertexIndexBuffer.hpp"
@@ -21,6 +22,11 @@ public:
      */
     void setText(const std::string& text);
     /**
+     * Sets the new color
+     * @param color the new color
+     */
+    void setColor(const Color& color);
+    /**
      * Sets the font for this text
      * @param font the font for this text
      */
@@ -34,6 +40,7 @@ public:
 private:
     static std::unordered_map<int,VertexIndexBuffer> m_viBuffer;
     std::string m_text;
+    Color m_color = Color(255,255,255);
     int m_commonerUseId;
     float m_characterSpacing = 2.0f;
     const VulkanFont* m_font = nullptr;

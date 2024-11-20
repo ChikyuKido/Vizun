@@ -95,6 +95,15 @@ public:
     }
 
     /**
+     * Set a new scale using individual x and y values.
+     * @param x The x scale.
+     * @param y The y scale.
+     */
+    void setScale(const float x, const float y) {
+        m_scale = glm::vec2(x, y);
+        updateTransform();
+    }
+    /**
      * Set a new scale.
      * @param scale The new scale as glm::vec2.
      */
@@ -102,6 +111,7 @@ public:
         m_scale = scale;
         updateTransform();
     }
+
 
     /**
      * Reset the transformation to its default state.
@@ -129,9 +139,6 @@ protected:
         m_transform = glm::scale(m_transform, glm::vec3(m_scale, 1.0f));
     }
 };
-
-#endif // TRANSFORM_H
-
 }
 
 #endif //TRANSFORM_HPP

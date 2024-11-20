@@ -16,6 +16,11 @@ void Text::setText(const std::string& text) {
     recalculateVertices();
 }
 
+void Text::setColor(const Color& color) {
+    m_color = color;
+    recalculateVertices();
+}
+
 void Text::setFont(const VulkanFont* font) {
     m_font = font;
     recalculateVertices();
@@ -107,10 +112,10 @@ void Text::addCharacterToVertices(CharacterInfo characterInfo,uint32_t position,
     glm::vec4 topRight = m_transform * glm::vec4(right, top, 0.0f, 1.0f);     // Apply transform
     glm::vec4 bottomRight = m_transform * glm::vec4(right, bottom, 0.0f, 1.0f); // Apply transform
 
-    m_vertices[position*4] = {{topLeft.x, topLeft.y}, {characterInfo.u0, characterInfo.v1}}; // bottom left
-    m_vertices[position*4+1] = {{topRight.x, topRight.y}, {characterInfo.u1, characterInfo.v1}}; // top left
-    m_vertices[position*4+2] = {{bottomRight.x, bottomRight.y},{characterInfo.u1, characterInfo.v0}}; // top right
-    m_vertices[position*4+3] = {{bottomLeft.x, bottomLeft.y},{characterInfo.u0, characterInfo.v0}}; // bottom right
+    m_vertices[position*4] = {{topLeft.x, topLeft.y},{m_color.color.x,m_color.color.y,m_color.color.z},{characterInfo.u0, characterInfo.v1}}; // bottom left
+    m_vertices[position*4+1] = {{topRight.x, topRight.y},{m_color.color.x,m_color.color.y,m_color.color.z}, {characterInfo.u1, characterInfo.v1}}; // top left
+    m_vertices[position*4+2] = {{bottomRight.x, bottomRight.y},{m_color.color.x,m_color.color.y,m_color.color.z},{characterInfo.u1, characterInfo.v0}}; // top right
+    m_vertices[position*4+3] = {{bottomLeft.x, bottomLeft.y},{m_color.color.x,m_color.color.y,m_color.color.z},{characterInfo.u0, characterInfo.v0}}; // bottom right
     uint16_t indicesStart = position*4;
     m_indices[position*6] = indicesStart;
     m_indices[position*6+1] = indicesStart+1;

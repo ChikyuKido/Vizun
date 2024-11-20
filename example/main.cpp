@@ -36,6 +36,7 @@ int main() {
     vz::Text text;
     text.setFont(vz::ResourceLoader::getVulkanFont("rsc/fonts/Arial.ttf",64));
     text.setText("Hello World! WOOHOHOOHHOHwuhdgrfs");
+    text.setColor(Color(211,23,145));
 
     std::vector<vz::Image> imgs;
     vz::Line line;
@@ -57,7 +58,6 @@ int main() {
         imgs.push_back(img);
     }
     uint32_t frames = 0;
-    float rot = 0.0f;
     auto next_time_point = std::chrono::steady_clock::now() + std::chrono::seconds(1);
     while(!renderWindow.shouldWindowClose()) {
         glfwPollEvents();
@@ -68,8 +68,7 @@ int main() {
         // renderWindow.draw(line2);
         // renderWindow.draw(line3);
         renderWindow.draw(text);
-        rot += 0.1f;
-        text.setRotation(rot);
+
 
         renderWindow.display();
         frames++;
