@@ -85,23 +85,31 @@ void VulkanBuffer::createBuffer(uint64_t size,
 }
 
 void VulkanBuffer::uploadData(const void* data) const {
-    uploadData(data,m_bufferSize);
+    uploadData(data,m_bufferSize,0);
 }
 
 void VulkanBuffer::uploadData(const void* data,const  uint64_t size) const {
+    uploadData(data,size,0);
+}
+
+void VulkanBuffer::uploadData(const void* data, uint64_t size, uint64_t start) const {
     VZ_ASSERT(data != nullptr, "Data cannot be nullptr");
     VZ_ASSERT(m_bufferSize >= size,"Buffer is to small upload data of size " + std::to_string(size));
+    VZ_ASSERT(m_bufferSize >= (start+size),"Buffer is to small to update data of size "+ std::to_string(size) +" and start of " + std::to_string(start))
     // static const VmaAllocator allocator = VizunEngine::getVMAAllocator();
     static VulkanBase& vb = VizunEngine::getVulkanBase();
     if(m_uploadDirectly) {
         void* mappedData;
         // vmaMapMemory(allocator, m_allocation, &mappedData);
-        // memcpy(mappedData, data, size);
+        // memcpy(static_cast<uint8_t*>(mappedData)+start, data, size);
         // vmaUnmapMemory(allocator, m_allocation);
         VKF(vb.device.mapMemory(m_memory,0,m_bufferSize,{},&mappedData));
-        memcpy(mappedData,data,size);
+        memcpy(static_cast<uint8_t*>(mappedData)+start,data,size);
         vb.device.unmapMemory(m_memory);
     }else {
+        if(start != 0) {
+            VZ_LOG_CRITICAL("Start is not valid in not directly uploading buffers");
+        }
         m_stagingBuffer->uploadData(data, size);
         copyBuffer(*m_stagingBuffer,size);
     }

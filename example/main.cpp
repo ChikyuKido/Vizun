@@ -43,14 +43,6 @@ int main() {
     line.addPoint(0,0);
     line.addPoint(400,200);
     line.setColor({{0.5f,1.0f,0.2f}});
-    vz::Line line2;
-    line2.setLineWidth(3.0f);
-    line2.addPoint(200,300);
-    line2.addPoint(400,300);
-    vz::Line line3;
-    line3.addPoint(200,400);
-    line3.addPoint(400,400);
-    line3.setColor(Color(122,55,200));
     for (int i = 0; i < 1; ++i) {
         vz::Image img("rsc/texts/slime-move-forward1.png");
         img.setSize(12,12);
@@ -65,9 +57,8 @@ int main() {
             renderWindow.draw(imgs[i]);
         }
         renderWindow.draw(line);
-        // renderWindow.draw(line2);
-        // renderWindow.draw(line3);
         renderWindow.draw(text);
+
 
 
         renderWindow.display();

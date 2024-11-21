@@ -52,36 +52,37 @@ void Text::prepareCommoner(const std::vector<Text*>& targets,int commonerUseId) 
     size_t totalVertices = 0;
     size_t totalIndices = 0;
 
-    for (const auto& l : targets) {
-        totalVertices += l->m_vertices.size();
-        totalIndices += l->m_indices.size();
+    for (const auto& t : targets) {
+        totalVertices += t->m_vertices.size();
+        totalIndices += t->m_indices.size();
     }
+
 
     vertices.reserve(totalVertices);
     indices.reserve(totalIndices);
     size_t actualVertexSize = 0;
     for (const auto& t : targets) {
         t->m_commonerUseId = commonerUseId;
-        for (const auto& vertex : t->m_vertices) {
-            vertices.push_back(vertex);
+        vertices.insert(vertices.end(), t->m_vertices.begin(), t->m_vertices.end());
+        for (auto &i : t->m_indices) {
+            i += actualVertexSize;
         }
-        for (const uint16_t index : t->m_indices) {
-            indices.push_back(index+actualVertexSize);
-        }
+        indices.insert(indices.end(), t->m_indices.begin(), t->m_indices.end());
         actualVertexSize += t->m_vertices.size();
     }
 
+
     if(!m_viBuffer[getCommoner()].isCreated()) {
-        m_viBuffer[getCommoner()].createVertexIndexBuffer(sizeof(FontVertex),512,vk::IndexType::eUint16,512*1.5);
+        m_viBuffer[getCommoner()].createVertexIndexBuffer(sizeof(FontVertex),totalVertices + 512,vk::IndexType::eUint16,totalIndices +512*1.5);
     }
 
-    if(!m_viBuffer[getCommoner()].bufferBigEnough(vertices.size(),indices.size())) {
-        uint64_t newVertexCount = vertices.size() + 512;
-        uint64_t newIndexCount = indices.size() + 512*1.5;
+    if(!m_viBuffer[getCommoner()].bufferBigEnough(totalVertices,totalIndices)) {
+        uint64_t newVertexCount = totalVertices + 512;
+        uint64_t newIndexCount = totalIndices + 512*1.5;
         VZ_LOG_DEBUG("Buffer is too small resize it to hold {} vertices and {} indices",newVertexCount,newIndexCount);
         m_viBuffer[getCommoner()].resizeBuffer(newVertexCount,newIndexCount);
     }
-    m_viBuffer[getCommoner()].updateData(vertices.data(),vertices.size(),indices.data(),indices.size());
+     m_viBuffer[getCommoner()].updateData(vertices.data(),vertices.size(),indices.data(),indices.size());
 }
 
 int Text::getMaxCommoners() {

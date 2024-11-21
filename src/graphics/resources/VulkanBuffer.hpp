@@ -30,6 +30,13 @@ public:
      */
     void uploadData(const void* data,uint64_t size) const;
     /**
+     * Uploads the given data with the given size
+     * @param data the data to upload
+     * @param size the size to upload
+     * @param start the start where to copy from
+     */
+    void uploadData(const void* data,uint64_t size,uint64_t start) const;
+    /**
      * Copies the data of the source buffer to the current buffer. The size to copy is the size of the source buffer
      * @param src the source buffer to copy from
      */

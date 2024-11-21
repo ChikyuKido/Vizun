@@ -30,16 +30,14 @@ void VertexIndexBuffer::updateData(const void* vertexData,
                                    const uint32_t vertexAmount,
                                    const void* indexData,
                                    const uint32_t indexAmount) {
+    VZ_ASSERT(vertexAmount <= m_vertexMaxCount,"Can't upload "+vertexAmount+" vertices. Max is " + m_vertexMaxCount);
+    VZ_ASSERT(indexAmount <= m_indexMaxCount,"Can't upload "+indexAmount+" indices. Max is " + m_indexMaxCount);
     m_vertexCount = vertexAmount;
     m_indexCount = indexAmount;
     const uint32_t vertexDataSize = m_vertexSize * vertexAmount;
     const uint32_t indexDataSize = m_indexSize * indexAmount;
-    const uint32_t totalSize = vertexDataSize + indexDataSize;
-    void* combinedData = malloc(totalSize);
-    memcpy(combinedData,vertexData,vertexDataSize);
-    memcpy(static_cast<uint8_t*>(combinedData)+vertexDataSize,indexData,indexDataSize);
-    VulkanBuffer::uploadData(combinedData,totalSize);
-    free(combinedData);
+    VulkanBuffer::uploadData(vertexData,vertexDataSize);
+    VulkanBuffer::uploadData(indexData,indexDataSize,getIndicesOffsetSize());
 }
 
 void VertexIndexBuffer::resizeBuffer(uint64_t vertexCount, uint64_t indexCount) {
@@ -57,7 +55,7 @@ bool VertexIndexBuffer::bufferBigEnough(uint64_t vertexCount, uint64_t indexCoun
     return m_indexCount;
 };
 [[nodiscard]] size_t VertexIndexBuffer::getIndicesOffsetSize() const {
-    return m_vertexCount * m_vertexSize;
+    return m_vertexMaxCount * m_vertexSize;
 };
 
 [[nodiscard]] vk::IndexType VertexIndexBuffer::getIndexType() const {
