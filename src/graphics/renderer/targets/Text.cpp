@@ -4,6 +4,7 @@
 #include "data/FontVertex.hpp"
 #include "graphics/renderer/VulkanFontPipelineRenderer.hpp"
 #include "graphics/renderer/VulkanRenderer.hpp"
+#include "utils/Logger.hpp"
 
 namespace vz {
 

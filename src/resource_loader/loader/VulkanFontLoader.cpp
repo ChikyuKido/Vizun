@@ -1,5 +1,6 @@
 #include "VulkanFontLoader.hpp"
 #include "graphics/resources/VulkanFont.hpp"
+#include "utils/Logger.hpp"
 
 namespace vz {
 bool VulkanFontLoader::load(const std::string& path, float size) {

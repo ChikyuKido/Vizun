@@ -4,6 +4,7 @@
 #include "VulkanRenderer.hpp"
 #include "data/FontVertex.hpp"
 #include "graphics/pipeline/VulkanGraphicsPipeline.hpp"
+#include "utils/Logger.hpp"
 #include <ranges>
 
 namespace vz {

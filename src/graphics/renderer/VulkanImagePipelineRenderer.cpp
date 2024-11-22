@@ -6,6 +6,7 @@
 #include "data/ImageVertex.hpp"
 #include "graphics/pipeline/VulkanGraphicsPipeline.hpp"
 #include "targets/Image.hpp"
+#include "utils/Logger.hpp"
 #include <complex>
 
 namespace vz {

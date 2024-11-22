@@ -5,6 +5,7 @@
 #include "graphics/renderer/VulkanRenderer.hpp"
 #include "graphics/resources/VertexIndexBuffer.hpp"
 #include "resource_loader/ResourceLoader.hpp"
+#include "utils/Logger.hpp"
 #include <iostream>
 
 namespace vz {

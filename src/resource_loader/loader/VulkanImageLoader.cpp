@@ -1,6 +1,7 @@
 #include "VulkanImageLoader.hpp"
 
 #include "graphics/resources/VulkanBuffer.hpp"
+#include "utils/Logger.hpp"
 #include <ranges>
 #include <stb_image.h>
 

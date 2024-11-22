@@ -5,6 +5,7 @@
 #include "data/Vertex.hpp"
 #include "graphics/pipeline/VulkanGraphicsPipeline.hpp"
 #include "targets/geometry/Line.hpp"
+#include "utils/Logger.hpp"
 #include <ranges>
 
 namespace vz {
