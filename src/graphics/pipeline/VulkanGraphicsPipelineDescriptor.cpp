@@ -51,11 +51,23 @@ VulkanGraphicsPipelineImageDescriptor::VulkanGraphicsPipelineImageDescriptor(
     const int binding) : VulkanGraphicsPipelineDescriptor(binding,MAX_IMAGES_IN_SHADER,vk::DescriptorType::eCombinedImageSampler,vk::ShaderStageFlagBits::eFragment) {}
 
 void VulkanGraphicsPipelineImageDescriptor::updateImage(const std::vector<const VulkanImage*>& images,const int currentFrame) {
-    assert(MAX_IMAGES_IN_SHADER>images.size());
+    VZ_ASSERT(MAX_IMAGES_IN_SHADER>images.size(),"Images exceeding the maximum allowed in the shader");
     if(m_graphicsPipeline == nullptr) {
         VZ_LOG_CRITICAL("Image descriptor was not assigned to a graphics pipeline!");
     }
+    if(images.size() == m_lastImages[currentFrame].size()) {
+        bool same = true;
+        for (int i = 0; i < images.size(); ++i) {
+            if(images[i] != m_lastImages[i][currentFrame]) {
+                same = false;
+            }
+        }
+        if(same) {
+            return;
+        }
+    }
 
+    m_lastImages[currentFrame] = images;
     std::vector<vk::WriteDescriptorSet> descriptors;
     std::array<vk::DescriptorImageInfo,MAX_IMAGES_IN_SHADER> imageInfos;
     for (size_t j = 0; j < MAX_IMAGES_IN_SHADER; j++) {

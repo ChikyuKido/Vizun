@@ -54,6 +54,8 @@ public:
     VulkanGraphicsPipelineImageDescriptor(int binding);
     void updateImage(const std::vector<const VulkanImage*>& images,int currentFrame);
 private:
+    std::unordered_map<uint32_t,std::vector<const VulkanImage*>> m_lastImages;
+
     VulkanImage* getEmptyImage() const {
         static VulkanImage* img = nullptr;
         if(img == nullptr) {

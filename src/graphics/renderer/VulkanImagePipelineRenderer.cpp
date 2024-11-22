@@ -26,7 +26,7 @@ VulkanImagePipelineRenderer::VulkanImagePipelineRenderer(const std::shared_ptr<V
 
     VulkanGraphicsPipelineConfig defaultConf;
     defaultConf.vertexInputAttributes = ImageVertex::getAttributeDescriptions();
-    defaultConf.vertexInputBindingDescription = ImageVertex::getBindingDescritption();
+    defaultConf.vertexInputBindingDescription = ImageVertex::getBindingDescription();
     defaultConf.dynamicStates = {vk::DynamicState::eScissor, vk::DynamicState::eViewport};
     defaultConf.descriptors = {
         &m_ubDesc, &m_imageDesc, &m_transformDesc
@@ -45,7 +45,7 @@ VulkanImagePipelineRenderer::VulkanImagePipelineRenderer(const std::shared_ptr<V
         uniformBuffer.createUniformBuffer(sizeof(CameraObject));
     }
     for (auto& transformBuffer : m_transformBuffers) {
-        transformBuffer.createStorageBuffer(sizeof(glm::mat4) * TRANSFORM_BUFFER_SIZE);
+        transformBuffer.createStorageBuffer(sizeof(glm::mat4) * TRANSFORM_BUFFER_SIZE,true);
     }
     for (int i = 0; i < FRAMES_IN_FLIGHT; ++i) {
         m_ubDesc.updateUniformBuffer(m_uniformBuffers, i);
@@ -63,7 +63,7 @@ VulkanImagePipelineRenderer::~VulkanImagePipelineRenderer() {
 }
 
 void VulkanImagePipelineRenderer::prepare(uint32_t currentFrame) {
-    if(m_renderTargets.size() == 0) return;
+    if(m_renderTargets.empty()) return;
     const auto camera = m_renderer.getCamera().getCameraObject();
     m_uniformBuffers[currentFrame].uploadData(&camera);
 

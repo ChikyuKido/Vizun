@@ -108,10 +108,10 @@ void Text::addCharacterToVertices(CharacterInfo characterInfo,uint32_t position,
     float top = 0;
     float bottom = -characterInfo.height;
     lastX += characterInfo.width+m_characterSpacing;
-    glm::vec4 bottomLeft = m_transform * glm::vec4(left, bottom, 0.0f, 1.0f); // Apply transform
-    glm::vec4 topLeft = m_transform * glm::vec4(left, top, 0.0f, 1.0f);       // Apply transform
-    glm::vec4 topRight = m_transform * glm::vec4(right, top, 0.0f, 1.0f);     // Apply transform
-    glm::vec4 bottomRight = m_transform * glm::vec4(right, bottom, 0.0f, 1.0f); // Apply transform
+    glm::vec4 bottomLeft = m_transform * glm::vec4(left, bottom, 0.0f, 1.0f);
+    glm::vec4 topLeft = m_transform * glm::vec4(left, top, 0.0f, 1.0f);
+    glm::vec4 topRight = m_transform * glm::vec4(right, top, 0.0f, 1.0f);
+    glm::vec4 bottomRight = m_transform * glm::vec4(right, bottom, 0.0f, 1.0f);
 
     m_vertices[position*4] = {{topLeft.x, topLeft.y},{m_color.color.x,m_color.color.y,m_color.color.z},{characterInfo.u0, characterInfo.v1}}; // bottom left
     m_vertices[position*4+1] = {{topRight.x, topRight.y},{m_color.color.x,m_color.color.y,m_color.color.z}, {characterInfo.u1, characterInfo.v1}}; // top left

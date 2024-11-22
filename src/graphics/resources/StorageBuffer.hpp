@@ -6,8 +6,8 @@ namespace vz {
 
 class StorageBuffer : VulkanBuffer{
 public:
-    void createStorageBuffer(uint64_t size);
-    void createStorageBuffer(uint64_t size,const void* data);
+    void createStorageBuffer(uint64_t size,bool uploadDirectly);
+    void createStorageBuffer(uint64_t size,const void* data,bool uploadDirectly);
     using VulkanBuffer::getBuffer;
     using VulkanBuffer::getBufferSize;
     using VulkanBuffer::cleanup;

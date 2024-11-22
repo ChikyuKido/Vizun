@@ -10,7 +10,7 @@ struct ImageVertex {
     glm::vec3 color;
     glm::vec2 texCoord;
 
-    static vk::VertexInputBindingDescription getBindingDescritption() {
+    static vk::VertexInputBindingDescription getBindingDescription() {
         vk::VertexInputBindingDescription bindingDescription;
         bindingDescription.binding = 0;
         bindingDescription.stride = sizeof(ImageVertex);

@@ -86,9 +86,9 @@ set(SOURCE_FILES
         src/graphics/renderer/VulkanImagePipelineRenderer.hpp
         src/graphics/renderer/VulkanLinePipelineRenderer.cpp
         src/graphics/renderer/VulkanLinePipelineRenderer.hpp
-        src/graphics/renderer/targets/Line.cpp
-        src/graphics/renderer/targets/Line.hpp
-        src/graphics/renderer/targets/Transform.hpp
+        src/graphics/renderer/targets/geometry/Line.cpp
+        src/graphics/renderer/targets/geometry/Line.hpp
+        src/data/Transform.hpp
         src/data/Vertex.hpp
         src/data/Color.hpp
         src/graphics/resources/VulkanBuffer.cpp
@@ -99,8 +99,8 @@ set(SOURCE_FILES
         src/graphics/resources/UniformBuffer.hpp
         src/graphics/resources/StorageBuffer.cpp
         src/graphics/resources/StorageBuffer.hpp
-        src/graphics/renderer/targets/Rectangle.cpp
-        src/graphics/renderer/targets/Rectangle.hpp
+        src/graphics/renderer/targets/geometry/Rectangle.cpp
+        src/graphics/renderer/targets/geometry/Rectangle.hpp
         src/graphics/renderer/targets/Text.cpp
         src/graphics/renderer/targets/Text.hpp
         src/graphics/resources/VulkanFont.cpp

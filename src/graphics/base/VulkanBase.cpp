@@ -35,6 +35,9 @@ bool VulkanBase::createLateVulkanBase(vk::SurfaceKHR& surface) {
         return false;
     }
 
+    VkPhysicalDeviceProperties deviceProperties;
+    vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
+
     m_wasLateInitialized = true;
     return true;
 }

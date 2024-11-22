@@ -4,7 +4,7 @@
 #include "VulkanRenderer.hpp"
 #include "data/Vertex.hpp"
 #include "graphics/pipeline/VulkanGraphicsPipeline.hpp"
-#include "targets/Line.hpp"
+#include "targets/geometry/Line.hpp"
 
 namespace vz {
 VulkanLinePipelineRenderer::VulkanLinePipelineRenderer(const std::shared_ptr<VulkanRenderPass>& renderPass,

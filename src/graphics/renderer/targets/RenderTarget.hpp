@@ -22,7 +22,7 @@ public:
     virtual int getMaxCommoners() {return -1;}
     virtual int getCommoner() {return -1;}
     virtual void useCommoner(VulkanRenderer& renderer,VulkanGraphicsPipeline& pipeline) {
-        VZ_LOG_CRITICAL("PREPARE COMMONER NOT IMPLEMENTED");
+        VZ_LOG_CRITICAL("USE COMMONER NOT IMPLEMENTED");
     }
     virtual size_t getPipelineRendererHashcode() = 0;
 };

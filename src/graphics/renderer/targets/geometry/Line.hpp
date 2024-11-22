@@ -1,9 +1,9 @@
 #ifndef LINE_HPP
 #define LINE_HPP
-#include "RenderTarget.hpp"
 #include "data/Color.hpp"
 #include "data/Vertex.hpp"
 #include "graphics/renderer/VulkanLinePipelineRenderer.hpp"
+#include "graphics/renderer/targets/RenderTarget.hpp"
 
 
 namespace vz {

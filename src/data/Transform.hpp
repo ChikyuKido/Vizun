@@ -1,9 +1,9 @@
 #ifndef TRANSFORM_HPP
 #define TRANSFORM_HPP
 
-#include <glm/mat4x4.hpp>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+#include <../../lib/glm/glm/mat4x4.hpp>
+#include <../../lib/glm/glm/glm.hpp>
+#include <../../lib/glm/glm/gtc/matrix_transform.hpp>
 
 namespace vz {
 

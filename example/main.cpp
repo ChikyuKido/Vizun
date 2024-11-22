@@ -1,8 +1,8 @@
 #include "core/VizunEngine.hpp"
 
 #include "graphics/renderer/targets/Image.hpp"
-#include "graphics/renderer/targets/Line.hpp"
-#include "graphics/renderer/targets/Rectangle.hpp"
+#include "graphics/renderer/targets/geometry/Line.hpp"
+#include "graphics/renderer/targets/geometry/Rectangle.hpp"
 #include "graphics/renderer/targets/Text.hpp"
 #include "graphics/resources/VulkanFont.hpp"
 #include "graphics/window/RenderWindow.hpp"

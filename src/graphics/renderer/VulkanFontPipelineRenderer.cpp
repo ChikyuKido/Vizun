@@ -37,7 +37,7 @@ VulkanFontPipelineRenderer::VulkanFontPipelineRenderer(const std::shared_ptr<Vul
         uniformBuffer.createUniformBuffer(sizeof(CameraObject));
     }
     for (auto& transformBuffer : m_transformBuffers) {
-        transformBuffer.createStorageBuffer(sizeof(glm::mat4) * TRANSFORM_BUFFER_SIZE);
+        transformBuffer.createStorageBuffer(sizeof(glm::mat4) * TRANSFORM_BUFFER_SIZE,true);
     }
     for (int i = 0; i < FRAMES_IN_FLIGHT; ++i) {
         m_ubDesc.updateUniformBuffer(m_uniformBuffers, i);
