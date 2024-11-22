@@ -56,6 +56,31 @@ void VulkanImage::cleanup() const {
     vb.device.destroyImage(*m_image);
     vb.device.freeMemory(*m_imageMemory);
 }
+
+std::shared_ptr<vk::Image> VulkanImage::getImage() const {
+    return m_image;
+}
+
+std::shared_ptr<vk::ImageView> VulkanImage::getImageView() const {
+    return m_imageView;
+}
+
+std::shared_ptr<vk::DeviceMemory> VulkanImage::getImageMemory() const {
+    return m_imageMemory;
+}
+
+uint32_t VulkanImage::getHeight() const {
+    return m_height;
+}
+
+uint32_t VulkanImage::getWidth() const {
+    return m_width;
+}
+
+std::shared_ptr<vk::Sampler> VulkanImage::getSampler() const {
+    return m_sampler;
+}
+
 void VulkanImage::transitionImageLayout(const vk::ImageLayout oldLayout,
                                         const vk::ImageLayout newLayout) const {
     const vk::CommandBuffer commandBuffer = VulkanUtils::beginSingleTimeCommands();

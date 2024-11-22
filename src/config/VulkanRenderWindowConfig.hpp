@@ -3,7 +3,7 @@
 
 #include <cstdint>
 #include <vector>
-#include <vulkan/vulkan.hpp>
+#include "pch.h"
 
 namespace vz {
 class VulkanGraphicsPipelineDescriptor;

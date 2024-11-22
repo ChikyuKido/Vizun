@@ -1,7 +1,7 @@
 #ifndef TEXTURE_HPP
 #define TEXTURE_HPP
 #include <memory>
-#include <vulkan/vulkan.hpp>
+#include "pch.h"
 
 namespace vz {
 class VulkanBuffer;
@@ -10,24 +10,12 @@ class VulkanImage {
 public:
     bool createImage(uint32_t width,uint32_t height, vk::Format format, vk::ImageTiling tiling, vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties);
     void cleanup() const;
-    [[nodiscard]] std::shared_ptr<vk::Image> getImage() const {
-        return m_image;
-    }
-    [[nodiscard]] std::shared_ptr<vk::ImageView> getImageView() const {
-        return m_imageView;
-    }
-    [[nodiscard]] std::shared_ptr<vk::DeviceMemory> getImageMemory() const {
-        return m_imageMemory;
-    }
-    [[nodiscard]] uint32_t getHeight() const {
-        return m_height;
-    }
-    [[nodiscard]] uint32_t getWidth() const {
-        return m_width;
-    }
-    [[nodiscard]] std::shared_ptr<vk::Sampler> getSampler() const {
-        return m_sampler;
-    }
+    [[nodiscard]] std::shared_ptr<vk::Image> getImage() const;
+    [[nodiscard]] std::shared_ptr<vk::ImageView> getImageView() const;
+    [[nodiscard]] std::shared_ptr<vk::DeviceMemory> getImageMemory() const;
+    [[nodiscard]] uint32_t getHeight() const;
+    [[nodiscard]] uint32_t getWidth() const;
+    [[nodiscard]] std::shared_ptr<vk::Sampler> getSampler() const;
     void transitionImageLayout(vk::ImageLayout oldLayout,vk::ImageLayout newLayout) const;
     void copyBufferToImage(const VulkanBuffer& buffer) const;
 protected:

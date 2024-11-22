@@ -4,6 +4,7 @@
 #include "VulkanRenderer.hpp"
 #include "data/FontVertex.hpp"
 #include "graphics/pipeline/VulkanGraphicsPipeline.hpp"
+#include <ranges>
 
 namespace vz {
 VulkanFontPipelineRenderer::VulkanFontPipelineRenderer(const std::shared_ptr<VulkanRenderPass>& renderPass,

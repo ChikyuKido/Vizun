@@ -2,9 +2,8 @@
 
 #include "graphics/renderer/targets/Image.hpp"
 #include "graphics/renderer/targets/geometry/Line.hpp"
-#include "graphics/renderer/targets/geometry/Rectangle.hpp"
 #include "graphics/renderer/targets/Text.hpp"
-#include "graphics/resources/VulkanFont.hpp"
+#include <spdlog/spdlog.h>
 #include "graphics/window/RenderWindow.hpp"
 #include "resource_loader/ResourceLoader.hpp"
 #include "utils/Events.hpp"
@@ -58,8 +57,6 @@ int main() {
         }
         renderWindow.draw(line);
         renderWindow.draw(text);
-
-
 
         renderWindow.display();
         frames++;

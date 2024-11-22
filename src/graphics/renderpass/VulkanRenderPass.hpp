@@ -1,7 +1,7 @@
 #ifndef VULKANRENDERPASS_HPP
 #define VULKANRENDERPASS_HPP
 
-#include <vulkan/vulkan.hpp>
+#include "pch.h"
 
 namespace vz {
 struct VulkanRenderPassConfig;

@@ -1,9 +1,9 @@
 #ifndef VULKANUTILS_HPP
 #define VULKANUTILS_HPP
-
 #include <cstdint>
-#include <vulkan/vulkan.hpp>
-
+namespace vk {
+class CommandBuffer;
+}
 namespace vz {
 class VulkanUtils {
 public:

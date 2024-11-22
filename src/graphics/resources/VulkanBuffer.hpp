@@ -2,8 +2,7 @@
 #define VULKANBUFFER_HPP
 
 #include <memory>
-#include <vulkan/vulkan.hpp>
-#include <vk_mem_alloc.h>
+#include "pch.h"
 
 namespace vz {
 /**

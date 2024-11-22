@@ -1,9 +1,8 @@
 #ifndef VULKANSWAPCHAIN_HPP
 #define VULKANSWAPCHAIN_HPP
 
-
 #include <GLFW/glfw3.h>
-#include <vulkan/vulkan.hpp>
+#include "pch.h"
 
 namespace vz {
 class RenderWindow;

@@ -5,9 +5,7 @@ project(Vizun)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_EXTENSIONS OFF)
-#set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 option(VIZUN_BUILD_EXAMPLES "Build the Vizun example programs" ON)
@@ -111,10 +109,22 @@ set(SOURCE_FILES
         src/graphics/renderer/VulkanFontPipelineRenderer.cpp
         src/graphics/renderer/VulkanFontPipelineRenderer.hpp
         src/resource_loader/loader/VulkanFontLoader.hpp
+        src/pch.h
+        src/pch.cpp
+        src/resource_loader/loader/VulkanFontLoader.cpp
+        src/resource_loader/loader/VulkanImageLoader.cpp
 )
 add_library(Vizun ${SOURCE_FILES})
 
 target_link_libraries(Vizun PUBLIC glfw ${Vulkan_LIBRARIES} spdlog stdc++ GPUOpen::VulkanMemoryAllocator)
+
+target_precompile_headers(Vizun PRIVATE src/pch.h)
+
+if(MSVC)
+    target_compile_options(Vizun PRIVATE /Yupch.h /Fp${CMAKE_BINARY_DIR}/pch.pch)
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+    target_compile_options(Vizun PRIVATE -Winvalid-pch -fpch-preprocess)
+endif()
 
 add_custom_target(build_shaders ALL
         COMMAND "${PROJECT_SOURCE_DIR}/rsc/shaders/compile.sh"
@@ -126,7 +136,7 @@ add_definitions(-DVULKAN_HPP_NO_EXCEPTIONS -DVULKAN_HPP_NO_SMART_HANDLE -DVULKAN
 
 add_dependencies(Vizun build_shaders)
 
-
+set(CMAKE_CXX_FLAGS "-ftime-trace")
 #set(CMAKE_CXX_FLAGS "-O3 -march=native -flto -DNDEBUG -mavx2 -mfma -ffast-math -funroll-loops")
 
 

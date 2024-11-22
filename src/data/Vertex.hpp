@@ -1,7 +1,7 @@
 #ifndef VERTEX_HPP
 #define VERTEX_HPP
 #include <vector>
-#include <vulkan/vulkan.hpp>
+#include "pch.h"
 #include <glm/glm.hpp>
 
 struct Vertex {
