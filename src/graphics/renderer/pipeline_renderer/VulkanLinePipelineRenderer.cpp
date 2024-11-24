@@ -1,10 +1,10 @@
 
 #include "VulkanLinePipelineRenderer.hpp"
-#include "Camera.hpp"
-#include "VulkanRenderer.hpp"
 #include "data/GeometryVertex.hpp"
 #include "graphics/pipeline/VulkanGraphicsPipeline.hpp"
-#include "targets/geometry/Line.hpp"
+#include "graphics/renderer/Camera.hpp"
+#include "graphics/renderer/VulkanRenderer.hpp"
+#include "graphics/renderer/targets/geometry/Line.hpp"
 #include "utils/Logger.hpp"
 #include <ranges>
 

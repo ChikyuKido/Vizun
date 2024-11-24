@@ -1,8 +1,8 @@
 #ifndef VULKANFONTPIPELINERENDERER_HPP
 #define VULKANFONTPIPELINERENDERER_HPP
 
-#include "VulkanGraphicsPipelineRenderer.hpp"
-#include "targets/Text.hpp"
+#include "graphics/renderer/VulkanGraphicsPipelineRenderer.hpp"
+#include "graphics/renderer/targets/Text.hpp"
 #include "graphics/pipeline/VulkanGraphicsPipelineDescriptor.hpp"
 #include "graphics/resources/StorageBuffer.hpp"
 #include "graphics/resources/UniformBuffer.hpp"

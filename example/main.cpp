@@ -45,7 +45,6 @@ int main() {
     triangle.addPoint(125,150);
 
     vz::Rectangle rect({100,100},{200,200});
-    rect.setFill(true);
 
 
     std::vector<vz::Image> imgs;
@@ -60,10 +59,10 @@ int main() {
         img.setPosition(500,400);
         imgs.push_back(img);
     }
-    vz::Image img2("rsc/texts/img.jpg");
-    img2.setSize(400,200);
-    img2.setPosition(400,300);
-    imgs.push_back(img2);
+    // vz::Image img2("rsc/texts/img.jpg");
+    // img2.setSize(400,200);
+    // img2.setPosition(400,300);
+    // imgs.push_back(img2);
     uint32_t frames = 0;
     auto next_time_point = std::chrono::steady_clock::now() + std::chrono::seconds(1);
     while(!renderWindow.shouldWindowClose()) {
@@ -71,10 +70,10 @@ int main() {
         for (float i = 0; i < imgs.size(); ++i) {
             renderWindow.draw(imgs[i]);
         }
-        renderWindow.draw(line);
-        renderWindow.draw(text);
-        renderWindow.draw(triangle);
-        renderWindow.draw(rect);
+        // renderWindow.draw(line);
+        // renderWindow.draw(text);
+        // renderWindow.draw(triangle);
+        // renderWindow.draw(rect);
 
         renderWindow.display();
         frames++;

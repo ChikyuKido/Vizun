@@ -2,7 +2,7 @@
 #include "Text.hpp"
 
 #include "data/FontVertex.hpp"
-#include "graphics/renderer/VulkanFontPipelineRenderer.hpp"
+#include "graphics/renderer/pipeline_renderer/VulkanFontPipelineRenderer.hpp"
 #include "graphics/renderer/VulkanRenderer.hpp"
 #include "utils/Logger.hpp"
 

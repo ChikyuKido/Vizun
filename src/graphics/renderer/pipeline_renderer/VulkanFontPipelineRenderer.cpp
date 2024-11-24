@@ -1,9 +1,9 @@
 
 #include "VulkanFontPipelineRenderer.hpp"
-#include "Camera.hpp"
-#include "VulkanRenderer.hpp"
 #include "data/FontVertex.hpp"
 #include "graphics/pipeline/VulkanGraphicsPipeline.hpp"
+#include "graphics/renderer/Camera.hpp"
+#include "graphics/renderer/VulkanRenderer.hpp"
 #include "utils/Logger.hpp"
 #include <ranges>
 

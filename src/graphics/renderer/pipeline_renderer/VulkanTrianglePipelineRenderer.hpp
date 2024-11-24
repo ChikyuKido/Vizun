@@ -1,18 +1,17 @@
+#ifndef VULKANTRIANGLEPIPELINERENDERER_HPP
+#define VULKANTRIANGLEPIPELINERENDERER_HPP
 
-
-#ifndef VULKANLINEPIPELINERENDERER_HPP
-#define VULKANLINEPIPELINERENDERER_HPP
-#include "VulkanGraphicsPipelineRenderer.hpp"
+#include "graphics/renderer/VulkanGraphicsPipelineRenderer.hpp"
 #include "config/VizunConfig.hpp"
 #include "graphics/pipeline/VulkanGraphicsPipelineDescriptor.hpp"
 #include "graphics/resources/UniformBuffer.hpp"
 
 namespace vz {
-class Line;
-class VulkanLinePipelineRenderer : public VulkanGraphicsPipelineRenderer{
+class Triangle;
+class VulkanTrianglePipelineRender : public VulkanGraphicsPipelineRenderer{
 public:
-    VulkanLinePipelineRenderer(const std::shared_ptr<VulkanRenderPass>& renderPass, VulkanRenderer& renderer);
-    ~VulkanLinePipelineRenderer() override;
+    VulkanTrianglePipelineRender(const std::shared_ptr<VulkanRenderPass>& renderPass, VulkanRenderer& renderer);
+    ~VulkanTrianglePipelineRender() override;
     void prepare(uint32_t currentFrame) override;
     void queue(RenderTarget& target) override;
     void display(vk::CommandBuffer& commandBuffer, uint32_t currentFrame) override;
@@ -20,12 +19,10 @@ public:
 
 private:
     FRAMES(UniformBuffer) m_uniformBuffers;
-    std::vector<Line*> m_renderTargets;
-    std::unordered_map<uint64_t,std::vector<Line*>> m_renderTargetsPerCommoner;
+    std::vector<Triangle*> m_renderTargets;
     std::shared_ptr<VulkanGraphicsPipeline> m_pipeline;
     VulkanGraphicsPipelineUniformBufferDescriptor m_ubDesc = VulkanGraphicsPipelineUniformBufferDescriptor(0);
 };
 }
 
-
-#endif //VULKANLINEPIPELINERENDERER_HPP
+#endif

@@ -1,10 +1,10 @@
 #include "VulkanTrianglePipelineRenderer.hpp"
 
-#include "Camera.hpp"
-#include "VulkanRenderer.hpp"
 #include "data/GeometryVertex.hpp"
 #include "graphics/pipeline/VulkanGraphicsPipeline.hpp"
-#include "targets/geometry/Triangle.hpp"
+#include "graphics/renderer/Camera.hpp"
+#include "graphics/renderer/VulkanRenderer.hpp"
+#include "graphics/renderer/targets/geometry/Triangle.hpp"
 #include "utils/Logger.hpp"
 
 namespace vz {
@@ -46,6 +46,7 @@ VulkanTrianglePipelineRender::~VulkanTrianglePipelineRender() {
 }
 
 void VulkanTrianglePipelineRender::prepare(uint32_t currentFrame) {
+    if(m_renderTargets.size() == 0) return;
     const auto camera = m_renderer.getCamera().getCameraObject();
     m_uniformBuffers[currentFrame].uploadData(&camera);
     m_renderTargets[0]->prepareCommoner(m_renderTargets);
@@ -57,6 +58,7 @@ void VulkanTrianglePipelineRender::queue(RenderTarget& target) {
 }
 
 void VulkanTrianglePipelineRender::display(vk::CommandBuffer& commandBuffer, uint32_t currentFrame) {
+    if(m_renderTargets.size() == 0) return;
     m_pipeline->bindPipeline(commandBuffer);
     m_pipeline->bindDescriptorSet(commandBuffer,currentFrame,{});
     m_renderTargets[0]->drawIndexed(commandBuffer,*m_pipeline,currentFrame,1);

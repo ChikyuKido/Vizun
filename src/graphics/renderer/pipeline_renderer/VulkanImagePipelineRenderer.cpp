@@ -1,11 +1,11 @@
 #include "graphics/resources/StorageBuffer.hpp"
 #include "graphics/resources/UniformBuffer.hpp"
 #include "VulkanImagePipelineRenderer.hpp"
-#include "Camera.hpp"
-#include "VulkanRenderer.hpp"
 #include "data/ImageVertex.hpp"
 #include "graphics/pipeline/VulkanGraphicsPipeline.hpp"
-#include "targets/Image.hpp"
+#include "graphics/renderer/Camera.hpp"
+#include "graphics/renderer/VulkanRenderer.hpp"
+#include "graphics/renderer/targets/Image.hpp"
 #include "utils/Logger.hpp"
 #include <complex>
 #include <ranges>

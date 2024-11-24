@@ -1,7 +1,7 @@
 
 #include "Rectangle.hpp"
 
-#include "graphics/renderer/VulkanTrianglePipelineRenderer.hpp"
+#include "graphics/renderer/pipeline_renderer/VulkanTrianglePipelineRenderer.hpp"
 
 namespace vz {
 
@@ -51,7 +51,6 @@ void Rectangle::recalculateBounds() {
     // Use the last and first vertex to create the last line (Left line)
     m_indicies.push_back(3);
     m_indicies.push_back(0);
-
 }
 
 

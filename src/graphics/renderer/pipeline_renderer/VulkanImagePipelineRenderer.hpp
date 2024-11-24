@@ -1,7 +1,7 @@
 
 #ifndef VULKANIMAGEPIPELINERENDERER_HPP
 #define VULKANIMAGEPIPELINERENDERER_HPP
-#include "VulkanGraphicsPipelineRenderer.hpp"
+#include "graphics/renderer/VulkanGraphicsPipelineRenderer.hpp"
 #include "graphics/pipeline/VulkanGraphicsPipelineDescriptor.hpp"
 #include "graphics/resources/StorageBuffer.hpp"
 #include "graphics/resources/UniformBuffer.hpp"

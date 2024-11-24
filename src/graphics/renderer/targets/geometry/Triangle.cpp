@@ -1,7 +1,7 @@
 
 #include "Triangle.hpp"
 
-#include "graphics/renderer/VulkanTrianglePipelineRenderer.hpp"
+#include "graphics/renderer/pipeline_renderer/VulkanTrianglePipelineRenderer.hpp"
 #include "utils/Logger.hpp"
 
 namespace vz {

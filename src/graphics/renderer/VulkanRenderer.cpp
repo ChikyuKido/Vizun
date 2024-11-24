@@ -1,10 +1,10 @@
 
 #include "VulkanRenderer.hpp"
 
-#include "VulkanFontPipelineRenderer.hpp"
-#include "VulkanImagePipelineRenderer.hpp"
-#include "VulkanLinePipelineRenderer.hpp"
-#include "VulkanTrianglePipelineRenderer.hpp"
+#include "pipeline_renderer/VulkanFontPipelineRenderer.hpp"
+#include "pipeline_renderer/VulkanImagePipelineRenderer.hpp"
+#include "pipeline_renderer/VulkanLinePipelineRenderer.hpp"
+#include "pipeline_renderer/VulkanTrianglePipelineRenderer.hpp"
 #include "graphics/renderer/targets/RenderTarget.hpp"
 #include "graphics/window/RenderWindow.hpp"
 #include "core/VizunEngine.hpp"

@@ -80,10 +80,10 @@ set(SOURCE_FILES
         src/graphics/renderer/Camera.cpp
         src/graphics/renderer/Camera.hpp
         src/graphics/renderer/VulkanGraphicsPipelineRenderer.hpp
-        src/graphics/renderer/VulkanImagePipelineRenderer.cpp
-        src/graphics/renderer/VulkanImagePipelineRenderer.hpp
-        src/graphics/renderer/VulkanLinePipelineRenderer.cpp
-        src/graphics/renderer/VulkanLinePipelineRenderer.hpp
+        src/graphics/renderer/pipeline_renderer/VulkanImagePipelineRenderer.cpp
+        src/graphics/renderer/pipeline_renderer/VulkanImagePipelineRenderer.hpp
+        src/graphics/renderer/pipeline_renderer/VulkanLinePipelineRenderer.cpp
+        src/graphics/renderer/pipeline_renderer/VulkanLinePipelineRenderer.hpp
         src/graphics/renderer/targets/geometry/Line.cpp
         src/graphics/renderer/targets/geometry/Line.hpp
         src/data/Transform.hpp
@@ -106,15 +106,15 @@ set(SOURCE_FILES
         src/utils/FileUtil.cpp
         src/utils/FileUtil.hpp
         src/data/FontVertex.hpp
-        src/graphics/renderer/VulkanFontPipelineRenderer.cpp
-        src/graphics/renderer/VulkanFontPipelineRenderer.hpp
+        src/graphics/renderer/pipeline_renderer/VulkanFontPipelineRenderer.cpp
+        src/graphics/renderer/pipeline_renderer/VulkanFontPipelineRenderer.hpp
         src/resource_loader/loader/VulkanFontLoader.hpp
         src/pch.h
         src/pch.cpp
         src/resource_loader/loader/VulkanFontLoader.cpp
         src/resource_loader/loader/VulkanImageLoader.cpp
-        src/graphics/renderer/VulkanTrianglePipelineRenderer.cpp
-        src/graphics/renderer/VulkanTrianglePipelineRenderer.hpp
+        src/graphics/renderer/pipeline_renderer/VulkanTrianglePipelineRenderer.cpp
+        src/graphics/renderer/pipeline_renderer/VulkanTrianglePipelineRenderer.hpp
         src/graphics/renderer/targets/geometry/Triangle.cpp
         src/graphics/renderer/targets/geometry/Triangle.hpp
 )

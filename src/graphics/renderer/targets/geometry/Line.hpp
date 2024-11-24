@@ -2,7 +2,7 @@
 #define LINE_HPP
 #include "data/Color.hpp"
 #include "data/GeometryVertex.hpp"
-#include "graphics/renderer/VulkanLinePipelineRenderer.hpp"
+#include "graphics/renderer/pipeline_renderer/VulkanLinePipelineRenderer.hpp"
 #include "graphics/renderer/targets/RenderTarget.hpp"
 
 
