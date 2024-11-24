@@ -13,11 +13,14 @@ public:
     void setY(float y);
     void setWidth(float width);
     void setHeight(float height);
+
 private:
     glm::vec2 m_pos;
     glm::vec2 m_bounds;
 
     void recalculateBounds();
+    size_t getPipelineRendererHashcode() override;
+
 };
 
 }

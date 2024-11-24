@@ -1,6 +1,8 @@
 
 #include "Rectangle.hpp"
 
+#include "graphics/renderer/VulkanTrianglePipelineRenderer.hpp"
+
 namespace vz {
 
 Rectangle::Rectangle(glm::vec2 pos, glm::vec2 bounds) {
@@ -49,6 +51,12 @@ void Rectangle::recalculateBounds() {
     // Use the last and first vertex to create the last line (Left line)
     m_indicies.push_back(3);
     m_indicies.push_back(0);
+
 }
 
+
+size_t Rectangle::getPipelineRendererHashcode() {
+    static const size_t line = typeid(VulkanLinePipelineRenderer).hash_code();
+    return line;
+}
 }

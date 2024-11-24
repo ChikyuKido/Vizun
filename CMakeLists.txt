@@ -87,7 +87,7 @@ set(SOURCE_FILES
         src/graphics/renderer/targets/geometry/Line.cpp
         src/graphics/renderer/targets/geometry/Line.hpp
         src/data/Transform.hpp
-        src/data/Vertex.hpp
+        src/data/GeometryVertex.hpp
         src/data/Color.hpp
         src/graphics/resources/VulkanBuffer.cpp
         src/graphics/resources/VulkanBuffer.hpp
@@ -113,6 +113,10 @@ set(SOURCE_FILES
         src/pch.cpp
         src/resource_loader/loader/VulkanFontLoader.cpp
         src/resource_loader/loader/VulkanImageLoader.cpp
+        src/graphics/renderer/VulkanTrianglePipelineRenderer.cpp
+        src/graphics/renderer/VulkanTrianglePipelineRenderer.hpp
+        src/graphics/renderer/targets/geometry/Triangle.cpp
+        src/graphics/renderer/targets/geometry/Triangle.hpp
 )
 add_library(Vizun ${SOURCE_FILES})
 

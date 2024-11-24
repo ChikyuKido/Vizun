@@ -3,6 +3,8 @@
 #include "graphics/renderer/targets/Image.hpp"
 #include "graphics/renderer/targets/geometry/Line.hpp"
 #include "graphics/renderer/targets/Text.hpp"
+#include "graphics/renderer/targets/geometry/Rectangle.hpp"
+#include "graphics/renderer/targets/geometry/Triangle.hpp"
 #include <spdlog/spdlog.h>
 #include "graphics/window/RenderWindow.hpp"
 #include "resource_loader/ResourceLoader.hpp"
@@ -35,8 +37,16 @@ int main() {
 
     vz::Text text;
     text.setFont(vz::ResourceLoader::getVulkanFont("rsc/fonts/Arial.ttf",64));
-    text.setText("Hello World! WOOHOHOOHHOHwuhdgrfs");
+    text.setText("Hello World!");
     text.setColor(Color(211,23,145));
+    vz::Triangle triangle;
+    triangle.addPoint(100,100);
+    triangle.addPoint(150,100);
+    triangle.addPoint(125,150);
+
+    vz::Rectangle rect({100,100},{200,200});
+    rect.setFill(true);
+
 
     std::vector<vz::Image> imgs;
     vz::Line line;
@@ -63,6 +73,8 @@ int main() {
         }
         renderWindow.draw(line);
         renderWindow.draw(text);
+        renderWindow.draw(triangle);
+        renderWindow.draw(rect);
 
         renderWindow.display();
         frames++;

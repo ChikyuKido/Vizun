@@ -2,7 +2,7 @@
 #include "VulkanLinePipelineRenderer.hpp"
 #include "Camera.hpp"
 #include "VulkanRenderer.hpp"
-#include "data/Vertex.hpp"
+#include "data/GeometryVertex.hpp"
 #include "graphics/pipeline/VulkanGraphicsPipeline.hpp"
 #include "targets/geometry/Line.hpp"
 #include "utils/Logger.hpp"
@@ -14,8 +14,8 @@ VulkanLinePipelineRenderer::VulkanLinePipelineRenderer(const std::shared_ptr<Vul
     m_pipeline = std::make_shared<VulkanGraphicsPipeline>();
 
     VulkanGraphicsPipelineConfig defaultConf;
-    defaultConf.vertexInputAttributes = Vertex::getAttributeDescriptions();
-    defaultConf.vertexInputBindingDescription = Vertex::getBindingDescritption();
+    defaultConf.vertexInputAttributes = GeometryVertex::getAttributeDescriptions();
+    defaultConf.vertexInputBindingDescription = GeometryVertex::getBindingDescription();
     defaultConf.dynamicStates = {vk::DynamicState::eScissor, vk::DynamicState::eViewport,vk::DynamicState::eLineWidth};
     defaultConf.descriptors = {
         &m_ubDesc

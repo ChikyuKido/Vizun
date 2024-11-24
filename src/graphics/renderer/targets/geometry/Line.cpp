@@ -39,7 +39,7 @@ void Line::prepareCommoner(const std::vector<RenderTarget*>& targets) {
 }
 
 void Line::prepareCommoner(const std::vector<Line*>& lines) {
-    std::vector<Vertex> vertices;
+    std::vector<GeometryVertex> vertices;
     std::vector<uint16_t> indices;
     size_t totalVertices = 0;
     size_t totalIndices = 0;
@@ -63,7 +63,7 @@ void Line::prepareCommoner(const std::vector<Line*>& lines) {
     }
 
     if(!m_viBuffer[getCommoner()].isCreated()) {
-        m_viBuffer[getCommoner()].createVertexIndexBuffer(sizeof(Vertex),1024,vk::IndexType::eUint16,2048);
+        m_viBuffer[getCommoner()].createVertexIndexBuffer(sizeof(GeometryVertex),1024,vk::IndexType::eUint16,2048);
     }
 
     if(!m_viBuffer[getCommoner()].bufferBigEnough(vertices.size(),indices.size())) {

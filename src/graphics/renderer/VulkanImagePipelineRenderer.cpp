@@ -8,6 +8,7 @@
 #include "targets/Image.hpp"
 #include "utils/Logger.hpp"
 #include <complex>
+#include <ranges>
 
 namespace vz {
 
@@ -106,7 +107,7 @@ void VulkanImagePipelineRenderer::display(vk::CommandBuffer& commandBuffer,uint3
     std::vector<glm::mat4> transforms;
     transforms.reserve(m_renderTargets.size());
     // add the transform in the order they then get rendered
-    for (auto& [_,r] : m_renderTargetsPerCommoner) {
+    for (auto& r : m_renderTargetsPerCommoner | std::views::values) {
         for (auto& t : r) {
             transforms.push_back(t->getTransform());
         }
@@ -115,7 +116,7 @@ void VulkanImagePipelineRenderer::display(vk::CommandBuffer& commandBuffer,uint3
     m_pipeline->bindPipeline(commandBuffer);
     m_pipeline->bindDescriptorSet(commandBuffer,currentFrame,{});
     uint64_t lastTransformSize = 0;
-    for (auto [commoner,calls] : m_renderTargetsPerCommoner) {
+    for (auto calls : m_renderTargetsPerCommoner | std::views::values) {
         calls[0]->useCommoner(m_renderer,*m_pipeline);
         commandBuffer.pushConstants(m_pipeline->pipelineLayout,vk::ShaderStageFlagBits::eVertex,4,sizeof(uint32_t),&lastTransformSize);
         calls[0]->drawIndexed(commandBuffer,*m_pipeline,currentFrame,calls.size());
