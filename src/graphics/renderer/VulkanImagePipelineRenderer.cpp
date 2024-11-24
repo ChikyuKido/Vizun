@@ -105,8 +105,11 @@ void VulkanImagePipelineRenderer::display(vk::CommandBuffer& commandBuffer,uint3
     if(m_renderTargets.size() == 0) return;
     std::vector<glm::mat4> transforms;
     transforms.reserve(m_renderTargets.size());
-    for (auto& t : m_renderTargets) {
-        transforms.push_back(t->getTransform());
+    // add the transform in the order they then get rendered
+    for (auto& [_,r] : m_renderTargetsPerCommoner) {
+        for (auto& t : r) {
+            transforms.push_back(t->getTransform());
+        }
     }
     m_transformBuffers[currentFrame].uploadData(transforms.data(),transforms.size() * sizeof(glm::mat4));
     m_pipeline->bindPipeline(commandBuffer);
@@ -122,7 +125,6 @@ void VulkanImagePipelineRenderer::display(vk::CommandBuffer& commandBuffer,uint3
     m_renderTargets.clear();
     m_renderTargetsPerCommoner.clear();
 }
-
 
 size_t VulkanImagePipelineRenderer::getPipelineRenderHashcode() {
     static const size_t hashcode = typeid(VulkanImagePipelineRenderer).hash_code();

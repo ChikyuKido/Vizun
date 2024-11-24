@@ -29,6 +29,7 @@ int main() {
     vz::RenderWindow renderWindow(800,600,"Vizun",vulkanConfig);
 
     vz::ResourceLoader::loadVulkanImage("rsc/texts/slime-move-forward1.png");
+    vz::ResourceLoader::loadVulkanImage("rsc/texts/img.jpg");
     vz::ResourceLoader::loadVulkanFont("rsc/fonts/Arial.ttf",64);
 
 
@@ -42,12 +43,17 @@ int main() {
     line.addPoint(0,0);
     line.addPoint(400,200);
     line.setColor({{0.5f,1.0f,0.2f}});
+
     for (int i = 0; i < 1; ++i) {
         vz::Image img("rsc/texts/slime-move-forward1.png");
         img.setSize(12,12);
-        img.setPosition(400,300);
+        img.setPosition(500,400);
         imgs.push_back(img);
     }
+    vz::Image img2("rsc/texts/img.jpg");
+    img2.setSize(400,200);
+    img2.setPosition(400,300);
+    imgs.push_back(img2);
     uint32_t frames = 0;
     auto next_time_point = std::chrono::steady_clock::now() + std::chrono::seconds(1);
     while(!renderWindow.shouldWindowClose()) {
