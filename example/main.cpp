@@ -45,7 +45,7 @@ int main() {
     triangle.addPoint(125,150);
 
     vz::Rectangle rect({100,100},{200,200});
-
+    rect.setFill(true);
 
     std::vector<vz::Image> imgs;
     vz::Line line;
@@ -65,16 +65,16 @@ int main() {
     // imgs.push_back(img2);
     uint32_t frames = 0;
     auto next_time_point = std::chrono::steady_clock::now() + std::chrono::seconds(1);
+    float i = 0;
     while(!renderWindow.shouldWindowClose()) {
         glfwPollEvents();
-        for (float i = 0; i < imgs.size(); ++i) {
-            renderWindow.draw(imgs[i]);
-        }
+        // for (float i = 0; i < imgs.size(); ++i) {
+        //     renderWindow.draw(imgs[i]);
+        // }
         // renderWindow.draw(line);
         // renderWindow.draw(text);
         // renderWindow.draw(triangle);
-        // renderWindow.draw(rect);
-
+        renderWindow.draw(*rect.getRenderTarget());
         renderWindow.display();
         frames++;
         if (std::chrono::steady_clock::now() >= next_time_point) {

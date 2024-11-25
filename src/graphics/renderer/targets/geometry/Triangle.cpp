@@ -9,9 +9,6 @@ VertexIndexBuffer Triangle::m_viBuffer;
 Triangle::Triangle() {
 }
 
-Triangle::~Triangle() {
-}
-
 void Triangle::addPoint(int x, int y) {
     m_vertices.push_back({{x,y},m_color.color});
     m_indices.push_back(m_vertices.size()-1);
@@ -19,6 +16,9 @@ void Triangle::addPoint(int x, int y) {
 
 void Triangle::setColor(Color c) {
     m_color = c;
+    for (auto& v : m_vertices) {
+        v.color = c.color;
+    }
 }
 
 void Triangle::drawIndexed(const vk::CommandBuffer& commandBuffer,
@@ -32,7 +32,7 @@ void Triangle::drawIndexed(const vk::CommandBuffer& commandBuffer,
     commandBuffer.drawIndexed(m_viBuffer.getIndicesCount(),1,0,0,0);
 }
 
-void Triangle::prepareCommoner(const std::vector<Triangle*>& targets) {
+void Triangle::prepareCommoner(const std::vector<Triangle*>& targets) const {
     std::vector<GeometryVertex> vertices;
     std::vector<uint16_t> indices;
     size_t totalVertices = 0;

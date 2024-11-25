@@ -27,7 +27,6 @@ private:
        const VulkanGraphicsPipeline& pipeline,
        uint32_t currentFrame,
        uint32_t instances) override;
-    void prepareCommoner(const std::vector<RenderTarget*>& targets) override;
     void prepareCommoner(const std::vector<Line*>& targets);
     int getMaxCommoners() override;
     int getCommoner() override;

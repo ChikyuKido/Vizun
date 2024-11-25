@@ -15,7 +15,6 @@ class Triangle : public RenderTarget{
     friend VulkanTrianglePipelineRender;
 public:
     Triangle();
-    ~Triangle() override;
     void addPoint(int x,int y);
     void setColor(Color c);
 protected:
@@ -28,7 +27,7 @@ private:
        const VulkanGraphicsPipeline& pipeline,
        uint32_t currentFrame,
        uint32_t instances) override;
-    void prepareCommoner(const std::vector<Triangle*>& targets);
+    void prepareCommoner(const std::vector<Triangle*>& targets) const;
     size_t getPipelineRendererHashcode() override;
 };
 

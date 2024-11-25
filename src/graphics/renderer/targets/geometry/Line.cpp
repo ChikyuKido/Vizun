@@ -29,15 +29,6 @@ void Line::drawIndexed(const vk::CommandBuffer& commandBuffer,
     commandBuffer.drawIndexed(m_viBuffer[getCommoner()].getIndicesCount(),1,0,0,0);
 }
 
-void Line::prepareCommoner(const std::vector<RenderTarget*>& targets) {
-    std::vector<Line*> lineVec;
-    lineVec.resize(targets.size());
-    for (const auto& target : targets) {
-        lineVec.push_back(static_cast<Line*>(target));
-    }
-    prepareCommoner(lineVec);
-}
-
 void Line::prepareCommoner(const std::vector<Line*>& lines) {
     std::vector<GeometryVertex> vertices;
     std::vector<uint16_t> indices;
