@@ -29,9 +29,14 @@ int main() {
     vulkanConfig.vulkanSwapchainConfig.presentMode = vk::PresentModeKHR::eImmediate;
 
     vz::RenderWindow renderWindow(800,600,"Vizun",vulkanConfig);
-
+    vz::ResourceLoader::m_imageLoader.startLoading();
     vz::ResourceLoader::loadVulkanImage("rsc/texts/slime-move-forward1.png");
-    vz::ResourceLoader::loadVulkanImage("rsc/texts/img.jpg");
+    vz::ResourceLoader::loadVulkanImage("rsc/texts/slime-move-forward2.png");
+    vz::ResourceLoader::loadVulkanImage("rsc/texts/slime-move-forward3.png");
+    vz::ResourceLoader::loadVulkanImage("rsc/texts/slime-move-forward4.png");
+    vz::ResourceLoader::loadVulkanImage("rsc/texts/slime-move-forward5.png");
+    vz::ResourceLoader::m_imageLoader.stopLoading();
+
     vz::ResourceLoader::loadVulkanFont("rsc/fonts/Arial.ttf",64);
 
 
@@ -44,8 +49,8 @@ int main() {
     triangle.addPoint(150,100);
     triangle.addPoint(125,150);
 
-    vz::Rectangle rect({100,100},{200,200});
-    rect.setFill(true);
+    // vz::Rectangle rect({100,100},{200,200});
+    // rect.setFill(true);
 
     std::vector<vz::Image> imgs;
     vz::Line line;
@@ -55,8 +60,8 @@ int main() {
 
     for (int i = 0; i < 1; ++i) {
         vz::Image img("rsc/texts/slime-move-forward1.png");
-        img.setSize(12,12);
-        img.setPosition(500,400);
+        img.setSize(512,512);
+        img.setPosition(0,0);
         imgs.push_back(img);
     }
     // vz::Image img2("rsc/texts/img.jpg");
@@ -68,13 +73,13 @@ int main() {
     float i = 0;
     while(!renderWindow.shouldWindowClose()) {
         glfwPollEvents();
-        // for (float i = 0; i < imgs.size(); ++i) {
-        //     renderWindow.draw(imgs[i]);
-        // }
+        for (float i = 0; i < imgs.size(); ++i) {
+            renderWindow.draw(imgs[i]);
+        }
         // renderWindow.draw(line);
         // renderWindow.draw(text);
         // renderWindow.draw(triangle);
-        renderWindow.draw(*rect.getRenderTarget());
+        // renderWindow.draw(*rect.getRenderTarget());
         renderWindow.display();
         frames++;
         if (std::chrono::steady_clock::now() >= next_time_point) {

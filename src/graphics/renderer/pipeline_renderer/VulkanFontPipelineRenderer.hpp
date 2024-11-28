@@ -4,8 +4,8 @@
 #include "graphics/renderer/VulkanGraphicsPipelineRenderer.hpp"
 #include "graphics/renderer/targets/Text.hpp"
 #include "graphics/pipeline/VulkanGraphicsPipelineDescriptor.hpp"
-#include "graphics/resources/StorageBuffer.hpp"
-#include "graphics/resources/UniformBuffer.hpp"
+#include "graphics/resources/buffer/StorageBuffer.hpp"
+#include "graphics/resources/buffer/UniformBuffer.hpp"
 #include <memory>
 #include <vector>
 namespace vz {

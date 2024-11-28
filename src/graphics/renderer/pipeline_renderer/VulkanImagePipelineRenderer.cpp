@@ -1,5 +1,5 @@
-#include "graphics/resources/StorageBuffer.hpp"
-#include "graphics/resources/UniformBuffer.hpp"
+#include "graphics/resources/buffer/StorageBuffer.hpp"
+#include "graphics/resources/buffer/UniformBuffer.hpp"
 #include "VulkanImagePipelineRenderer.hpp"
 #include "data/ImageVertex.hpp"
 #include "graphics/pipeline/VulkanGraphicsPipeline.hpp"

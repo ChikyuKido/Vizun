@@ -1,13 +1,9 @@
-//
-// Created by kido on 11/24/24.
-//
-
 #ifndef TRIANGLE_HPP
 #define TRIANGLE_HPP
 #include "../RenderTarget.hpp"
 #include "data/Color.hpp"
 #include "data/GeometryVertex.hpp"
-#include "graphics/resources/VertexIndexBuffer.hpp"
+#include "graphics/resources/buffer/VertexIndexBuffer.hpp"
 
 namespace vz {
 class VulkanTrianglePipelineRender;

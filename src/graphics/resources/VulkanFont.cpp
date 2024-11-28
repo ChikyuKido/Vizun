@@ -2,10 +2,9 @@
 #include <stb_truetype.h>
 #include "VulkanFont.hpp"
 
-#include "VulkanBuffer.hpp"
+#include "buffer/VulkanBuffer.hpp"
 #include "utils/FileUtil.hpp"
 #include "utils/Logger.hpp"
-#include <iostream>
 #include <vector>
 
 namespace vz {

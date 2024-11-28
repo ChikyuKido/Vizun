@@ -5,7 +5,7 @@
 #include "data/Transform.hpp"
 #include "data/ImageVertex.hpp"
 #include "graphics/renderer/pipeline_renderer/VulkanImagePipelineRenderer.hpp"
-#include "graphics/resources/VertexIndexBuffer.hpp"
+#include "graphics/resources/buffer/VertexIndexBuffer.hpp"
 
 
 namespace vz {

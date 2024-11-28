@@ -4,7 +4,7 @@
 #include "graphics/renderer/VulkanGraphicsPipelineRenderer.hpp"
 #include "config/VizunConfig.hpp"
 #include "graphics/pipeline/VulkanGraphicsPipelineDescriptor.hpp"
-#include "graphics/resources/UniformBuffer.hpp"
+#include "graphics/resources/buffer/UniformBuffer.hpp"
 
 namespace vz {
 class Triangle;

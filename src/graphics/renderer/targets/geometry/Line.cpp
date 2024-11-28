@@ -2,10 +2,9 @@
 #include "Line.hpp"
 
 #include "config/VizunConfig.hpp"
-#include "graphics/resources/VertexIndexBuffer.hpp"
-#include "graphics/resources/VulkanBuffer.hpp"
+#include "graphics/resources/buffer/VertexIndexBuffer.hpp"
+#include "graphics/resources/buffer/VulkanBuffer.hpp"
 #include "utils/Logger.hpp"
-#include <iostream>
 
 namespace vz {
 std::unordered_map<int,VertexIndexBuffer> Line::m_viBuffer;

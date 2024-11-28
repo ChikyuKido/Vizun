@@ -1,7 +1,7 @@
 #include "VulkanImage.hpp"
 #include "core/VizunEngine.hpp"
 #include "graphics/base/VulkanBase.hpp"
-#include "VulkanBuffer.hpp"
+#include "buffer/VulkanBuffer.hpp"
 #include "utils/Logger.hpp"
 #include "utils/VulkanUtils.hpp"
 

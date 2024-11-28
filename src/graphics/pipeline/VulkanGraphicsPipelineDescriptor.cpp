@@ -3,8 +3,8 @@
 #include "VulkanGraphicsPipeline.hpp"
 #include "graphics/resources/VulkanImage.hpp"
 #include "config/VizunConfig.hpp"
-#include "graphics/resources/StorageBuffer.hpp"
-#include "graphics/resources/UniformBuffer.hpp"
+#include "graphics/resources/buffer/StorageBuffer.hpp"
+#include "graphics/resources/buffer/UniformBuffer.hpp"
 #include "utils/Logger.hpp"
 
 namespace vz {
@@ -50,6 +50,29 @@ void VulkanGraphicsPipelineUniformBufferDescriptor::updateUniformBuffer(const st
 VulkanGraphicsPipelineImageDescriptor::VulkanGraphicsPipelineImageDescriptor(
     const int binding) : VulkanGraphicsPipelineDescriptor(binding,MAX_IMAGES_IN_SHADER,vk::DescriptorType::eCombinedImageSampler,vk::ShaderStageFlagBits::eFragment) {}
 
+VulkanImage* VulkanGraphicsPipelineImageDescriptor::getEmptyImage() const {
+    static VulkanImage* img = nullptr;
+    if (img == nullptr) {
+        img = new VulkanImage;
+        uint8_t* data = new uint8_t[4];
+        VulkanBuffer stagingBuffer;
+        stagingBuffer.createBuffer(4,
+                                   vk::BufferUsageFlagBits::eTransferSrc,
+                                   true);
+        stagingBuffer.uploadData(data,4);
+        delete[] data;
+        if(!img->createImage(1,1,vk::Format::eR8G8B8A8Srgb,vk::ImageTiling::eOptimal,
+                             vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled, vk::MemoryPropertyFlagBits::eDeviceLocal)) {
+            delete img;
+            VZ_LOG_CRITICAL("Failed to create default img");
+                             }
+        img->transitionImageLayout(vk::ImageLayout::eUndefined,vk::ImageLayout::eTransferDstOptimal);
+        img->copyBufferToImage(stagingBuffer);
+        img->transitionImageLayout(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
+        stagingBuffer.cleanup();
+    }
+    return img;
+}
 void VulkanGraphicsPipelineImageDescriptor::updateImage(const std::vector<const VulkanImage*>& images,const int currentFrame) {
     VZ_ASSERT(MAX_IMAGES_IN_SHADER>images.size(),"Images exceeding the maximum allowed in the shader");
     if(m_graphicsPipeline == nullptr) {
@@ -95,6 +118,7 @@ void VulkanGraphicsPipelineImageDescriptor::updateImage(const std::vector<const 
 }
 #pragma endregion
 #pragma region StorageDescriptor
+
 VulkanGraphicsPipelineStorageBufferDescriptor::VulkanGraphicsPipelineStorageBufferDescriptor(const int binding,const bool dynamic):
     VulkanGraphicsPipelineDescriptor(binding,1,dynamic ? vk::DescriptorType::eStorageBufferDynamic : vk::DescriptorType::eStorageBuffer,vk::ShaderStageFlagBits::eVertex) {
 }

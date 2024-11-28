@@ -19,6 +19,7 @@ find_package(Vulkan REQUIRED)
 include_directories(src)
 include_directories(lib/stb_image)
 include_directories(lib/stb_truetype)
+include_directories(lib/stb_rect_pack)
 include_directories(lib/glm)
 include_directories(${Vulkan_INCLUDE_DIR})
 
@@ -89,14 +90,14 @@ set(SOURCE_FILES
         src/data/Transform.hpp
         src/data/GeometryVertex.hpp
         src/data/Color.hpp
-        src/graphics/resources/VulkanBuffer.cpp
-        src/graphics/resources/VulkanBuffer.hpp
-        src/graphics/resources/VertexIndexBuffer.cpp
-        src/graphics/resources/VertexIndexBuffer.hpp
-        src/graphics/resources/UniformBuffer.cpp
-        src/graphics/resources/UniformBuffer.hpp
-        src/graphics/resources/StorageBuffer.cpp
-        src/graphics/resources/StorageBuffer.hpp
+        src/graphics/resources/buffer/VulkanBuffer.cpp
+        src/graphics/resources/buffer/VulkanBuffer.hpp
+        src/graphics/resources/buffer/VertexIndexBuffer.cpp
+        src/graphics/resources/buffer/VertexIndexBuffer.hpp
+        src/graphics/resources/buffer/UniformBuffer.cpp
+        src/graphics/resources/buffer/UniformBuffer.hpp
+        src/graphics/resources/buffer/StorageBuffer.cpp
+        src/graphics/resources/buffer/StorageBuffer.hpp
         src/graphics/renderer/targets/geometry/Rectangle.cpp
         src/graphics/renderer/targets/geometry/Rectangle.hpp
         src/graphics/renderer/targets/Text.cpp
@@ -117,6 +118,8 @@ set(SOURCE_FILES
         src/graphics/renderer/pipeline_renderer/VulkanTrianglePipelineRenderer.hpp
         src/graphics/renderer/targets/geometry/Triangle.cpp
         src/graphics/renderer/targets/geometry/Triangle.hpp
+        src/graphics/resources/VulkanTexture.cpp
+        src/graphics/resources/VulkanTexture.hpp
 )
 add_library(Vizun ${SOURCE_FILES})
 

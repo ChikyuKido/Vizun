@@ -5,7 +5,9 @@
 #include "core/VizunEngine.hpp"
 #include "graphics/resources/VulkanImage.hpp"
 #include "config/VizunConfig.hpp"
+#include "graphics/resources/buffer/VulkanBuffer.hpp"
 #include "resource_loader/ResourceLoader.hpp"
+#include "utils/Logger.hpp"
 
 
 namespace vz {
@@ -56,17 +58,7 @@ public:
 private:
     std::unordered_map<uint32_t,std::vector<const VulkanImage*>> m_lastImages;
 
-    VulkanImage* getEmptyImage() const {
-        static VulkanImage* img = nullptr;
-        if(img == nullptr) {
-            img = ResourceLoader::getVulkanImage("rsc/texts/1x1.png");
-            if(img == nullptr) {
-                ResourceLoader::loadVulkanImage("rsc/texts/1x1.png");
-            }
-            img = ResourceLoader::getVulkanImage("rsc/texts/1x1.png");
-        }
-        return img;
-    }
+    VulkanImage* getEmptyImage() const;
 };
 class VulkanGraphicsPipelineStorageBufferDescriptor : public VulkanGraphicsPipelineDescriptor {
 public:

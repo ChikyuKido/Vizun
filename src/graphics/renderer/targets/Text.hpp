@@ -1,11 +1,11 @@
 #ifndef TEXT_HPP
 #define TEXT_HPP
 #include "RenderTarget.hpp"
-#include "../../../data/Transform.hpp"
+#include "data/Transform.hpp"
 #include "data/Color.hpp"
 #include "data/FontVertex.hpp"
 #include "graphics/resources/VulkanFont.hpp"
-#include "graphics/resources/VertexIndexBuffer.hpp"
+#include "graphics/resources/buffer/VertexIndexBuffer.hpp"
 
 namespace vz {
 class VulkanFontPipelineRenderer;
