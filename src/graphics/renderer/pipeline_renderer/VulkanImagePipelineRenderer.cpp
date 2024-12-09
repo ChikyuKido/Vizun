@@ -16,16 +16,6 @@ VulkanImagePipelineRenderer::VulkanImagePipelineRenderer(const std::shared_ptr<V
     VulkanGraphicsPipelineRenderer(renderPass,renderer) {
     m_pipeline = std::make_shared<VulkanGraphicsPipeline>();
 
-    vk::PushConstantRange pushConstantRangeTextureIndex{};
-    pushConstantRangeTextureIndex.stageFlags = vk::ShaderStageFlagBits::eFragment;
-    pushConstantRangeTextureIndex.offset = 0;
-    pushConstantRangeTextureIndex.size = 4;
-
-    vk::PushConstantRange pushConstantRangeTransformOffset{};
-    pushConstantRangeTransformOffset.stageFlags = vk::ShaderStageFlagBits::eVertex;
-    pushConstantRangeTransformOffset.offset = 4;
-    pushConstantRangeTransformOffset.size = 4;
-
     VulkanGraphicsPipelineConfig defaultConf;
     defaultConf.vertexInputAttributes = ImageVertex::getAttributeDescriptions();
     defaultConf.vertexInputBindingDescription = ImageVertex::getBindingDescription();
@@ -37,8 +27,6 @@ VulkanImagePipelineRenderer::VulkanImagePipelineRenderer(const std::shared_ptr<V
     defaultConf.polygonMode = vk::PolygonMode::eFill;
     defaultConf.fragShaderPath = "rsc/shaders/default_frag.spv";
     defaultConf.vertShaderPath = "rsc/shaders/default_vert.spv";
-    defaultConf.pushConstants.push_back(pushConstantRangeTextureIndex);
-    defaultConf.pushConstants.push_back(pushConstantRangeTransformOffset);
 
     if (!m_pipeline->createGraphicsPipeline(*renderPass, defaultConf)) {
         VZ_LOG_CRITICAL("Could not create graphics pipeline");
@@ -77,23 +65,17 @@ void VulkanImagePipelineRenderer::prepare(uint32_t currentFrame) {
     }
     m_transformDesc.updateStorageBuffer(transformBuffer,currentFrame);
 
-    std::vector<RenderTarget*> uniqueRenderTargets;
     for (auto* call : m_renderTargets) {
         if (!m_renderTargetsPerCommoner.contains(call->getCommoner())) {
             m_renderTargetsPerCommoner[call->getCommoner()] = std::vector<Image*>();
-            uniqueRenderTargets.push_back(call);
         }
         m_renderTargetsPerCommoner[call->getCommoner()].push_back(call);
     }
 
-    if (!uniqueRenderTargets.empty()) {
-        uniqueRenderTargets[0]->prepareCommoner(uniqueRenderTargets);
-        std::vector<const VulkanImage*> images;
-        for (RenderTarget* rt : uniqueRenderTargets) {
-            auto* imgRenderTarget = static_cast<Image*>(rt);
-            images.push_back(imgRenderTarget->getVulkanImage());
-        }
-        m_imageDesc.updateImage(images,currentFrame);
+    if (!m_renderTargetsPerCommoner.empty()) {
+        const auto& images = *std::views::values(m_renderTargetsPerCommoner).begin();
+        std::vector<const VulkanImage*> uniqueImages = images[0]->prepareCommoner(m_renderTargetsPerCommoner);
+        m_imageDesc.updateImage(uniqueImages,currentFrame);
     }
 }
 
@@ -106,23 +88,17 @@ void VulkanImagePipelineRenderer::display(vk::CommandBuffer& commandBuffer,uint3
     if(m_renderTargets.size() == 0) return;
     std::vector<glm::mat4> transforms;
     transforms.reserve(m_renderTargets.size());
-    // add the transform in the order they then get rendered
     for (auto& r : m_renderTargetsPerCommoner | std::views::values) {
         for (auto& t : r) {
             transforms.push_back(t->getTransform());
         }
     }
+
     m_transformBuffers[currentFrame].uploadData(transforms.data(),transforms.size() * sizeof(glm::mat4));
     m_pipeline->bindPipeline(commandBuffer);
     m_pipeline->bindDescriptorSet(commandBuffer,currentFrame,{});
-    uint64_t lastTransformSize = 0;
-    for (auto calls : m_renderTargetsPerCommoner | std::views::values) {
-        calls[0]->useCommoner(m_renderer,*m_pipeline);
-        commandBuffer.pushConstants(m_pipeline->pipelineLayout,vk::ShaderStageFlagBits::eVertex,4,sizeof(uint32_t),&lastTransformSize);
-        calls[0]->drawIndexed(commandBuffer,*m_pipeline,currentFrame,calls.size());
-        lastTransformSize = lastTransformSize+calls.size();
-    }
-
+    const auto& images = *std::views::values(m_renderTargetsPerCommoner).begin();
+    images[0]->drawIndexed(commandBuffer,*m_pipeline,currentFrame,1);
     m_renderTargets.clear();
     m_renderTargetsPerCommoner.clear();
 }

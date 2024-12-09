@@ -30,8 +30,8 @@ void VertexIndexBuffer::updateData(const void* vertexData,
                                    const uint32_t vertexAmount,
                                    const void* indexData,
                                    const uint32_t indexAmount) {
-    VZ_ASSERT(vertexAmount <= m_vertexMaxCount,"Can't upload "+vertexAmount+" vertices. Max is " + m_vertexMaxCount);
-    VZ_ASSERT(indexAmount <= m_indexMaxCount,"Can't upload "+indexAmount+" indices. Max is " + m_indexMaxCount);
+    VZ_ASSERT(vertexAmount <= m_vertexMaxCount,"Can't upload "+std::to_string(vertexAmount)+" vertices. Max is " + std::to_string(m_vertexMaxCount));
+    VZ_ASSERT(indexAmount <= m_indexMaxCount,"Can't upload "+std::to_string(indexAmount)+" indices. Max is " + std::to_string(m_indexMaxCount));
     m_vertexCount = vertexAmount;
     m_indexCount = indexAmount;
     const uint32_t vertexDataSize = m_vertexSize * vertexAmount;

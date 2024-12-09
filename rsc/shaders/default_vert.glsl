@@ -1,29 +1,34 @@
 #version 450
 
-layout(location = 0) in vec2 inPosition;
-layout(location = 1) in vec3 inColor;
-layout(location = 2) in vec2 inTexCoord;
+layout(location = 0) in vec2 inTexCoord;
+layout(location = 1) in uint inPackedData;
 
-layout(location = 0) out vec3 fragColor;
-layout(location = 1) out vec2 fragTexCoord;
+layout(location = 0) out vec2 fragTexCoord;
+layout(location = 1) out uint texIndex;
 
-layout(push_constant) uniform PushConstants {
-    layout(offset = 4) uint transformOffset;
-} pushConstants;
 
 layout(binding = 0) uniform UniformBufferObject {
     mat4 viewProj;
     mat4 view;
     mat4 proj;
 } ubo;
+
 layout(set = 0, binding = 2) readonly buffer StorageBuffer {
     mat4 transforms[];
 } trans;
 
+vec2[4] positions = vec2[4](
+    vec2(0.0f, 0.0f),
+    vec2(1.0f, 0.0f),
+    vec2(1.0f, 1.0f),
+    vec2(0.0f, 1.0f)
+);
 void main() {
-    mat4 modelMatrix = trans.transforms[gl_InstanceIndex+pushConstants.transformOffset];
-    gl_Position = ubo.viewProj * modelMatrix * vec4(inPosition, 0.0, 1.0);
-
-    fragColor = inColor;
+    uint texIndex = inPackedData & 0x000000FF;
+    uint posIndex = (inPackedData & 0x0000FF00)>>8;
+    uint transformIndex = (inPackedData & 0xFFFF0000)>>16;
+    mat4 modelMatrix = trans.transforms[transformIndex];
+    gl_Position = ubo.viewProj * modelMatrix * vec4(positions[posIndex], 0.0, 1.0);
+    texIndex = texIndex;
     fragTexCoord = inTexCoord;
 }

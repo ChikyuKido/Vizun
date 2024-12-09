@@ -67,7 +67,7 @@ bool VulkanImageLoader::createTextureAtlas() {
         }
         if(!failedPacks.empty()) {
             if(curAtlasWidth == MAX_TEXTURE_PACK_WIDTH) {
-                VZ_ASSERT(failed.size() != rects.size(),"Can't not texture pack the images to one image because its too big")
+                VZ_ASSERT(failedPacks.size() != rects.size(),"Can't not texture pack the images to one image because its too big")
                 break;
             }
             curAtlasWidth += MAX_TEXTURE_PACK_WIDTH/8;
@@ -120,12 +120,14 @@ void VulkanImageLoader::createImage(std::vector<LoadedPixelsData> images,int atl
     image->transitionImageLayout(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
     stagingBuffer.cleanup();
     m_images.push_back(image);
-    for (auto loadedPixels : images) {
+    for (const auto& loadedPixels : images) {
         delete[] loadedPixels.data;
-        m_data[loadedPixels.path] = new VulkanTexture(image,{static_cast<float>(loadedPixels.rect.x) / atlasWidth,
+        m_data[loadedPixels.path] = new VulkanTexture(image,{
                 static_cast<float>(loadedPixels.rect.y) / atlasHeight,
-                static_cast<float>(loadedPixels.rect.x + loadedPixels.rect.w) / atlasWidth,
-                static_cast<float>(loadedPixels.rect.y + loadedPixels.rect.h) / atlasHeight});
+                static_cast<float>(loadedPixels.rect.x) / atlasWidth,
+                static_cast<float>(loadedPixels.rect.y + loadedPixels.rect.h) / atlasHeight,
+                static_cast<float>(loadedPixels.rect.x + loadedPixels.rect.w) / atlasWidth}
+                );
     }
 }
 

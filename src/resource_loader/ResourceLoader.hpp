@@ -20,8 +20,8 @@ public:
         return m_fontLoader.get(path,size);
     }
     static VulkanImageLoader m_imageLoader;
-private:
     static VulkanFontLoader m_fontLoader;
+private:
     ResourceLoader() = default;
     ~ResourceLoader() = default;
 };

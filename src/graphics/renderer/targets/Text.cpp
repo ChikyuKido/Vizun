@@ -74,7 +74,7 @@ void Text::prepareCommoner(const std::vector<Text*>& targets,int commonerUseId) 
 
 
     if(!m_viBuffer[getCommoner()].isCreated()) {
-        m_viBuffer[getCommoner()].createVertexIndexBuffer(sizeof(FontVertex),totalVertices + 512,vk::IndexType::eUint16,totalIndices +512*1.5);
+        m_viBuffer[getCommoner()].createVertexIndexBuffer(sizeof(FontVertex),totalVertices + 512,vk::IndexType::eUint16,totalIndices +(512*1.5));
     }
 
     if(!m_viBuffer[getCommoner()].bufferBigEnough(totalVertices,totalIndices)) {

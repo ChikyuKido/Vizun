@@ -1,9 +1,11 @@
 
 #include "VulkanTexture.hpp"
 
+#include "resource_loader/ResourceLoader.hpp"
+
 namespace vz {
 VulkanTexture::VulkanTexture(std::string filePath) {
-
+    ResourceLoader::m_imageLoader.get(std::move(filePath));
 }
 
 VulkanTexture::VulkanTexture(VulkanImage* image, VulkanTextureRegion region) {

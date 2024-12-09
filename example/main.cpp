@@ -26,7 +26,7 @@ int main() {
     spdlog::set_level(spdlog::level::debug);
 
     vz::VulkanRenderWindowConfig vulkanConfig;
-    vulkanConfig.vulkanSwapchainConfig.presentMode = vk::PresentModeKHR::eImmediate;
+    vulkanConfig.vulkanSwapchainConfig.presentMode = vk::PresentModeKHR::eFifo;
 
     vz::RenderWindow renderWindow(800,600,"Vizun",vulkanConfig);
     vz::ResourceLoader::m_imageLoader.startLoading();
@@ -52,6 +52,7 @@ int main() {
     // vz::Rectangle rect({100,100},{200,200});
     // rect.setFill(true);
 
+
     std::vector<vz::Image> imgs;
     vz::Line line;
     line.addPoint(0,0);
@@ -60,9 +61,17 @@ int main() {
 
     for (int i = 0; i < 1; ++i) {
         vz::Image img("rsc/texts/slime-move-forward1.png");
-        img.setSize(512,512);
+        img.setSize(12,12);
         img.setPosition(0,0);
         imgs.push_back(img);
+        vz::Image img2("rsc/texts/slime-move-forward2.png");
+        img2.setSize(12,12);
+        img2.setPosition(12,0);
+        imgs.push_back(img2);
+        vz::Image img3("rsc/texts/slime-move-forward3.png");
+        img3.setSize(12,12);
+        img3.setPosition(24,0);
+        imgs.push_back(img3);
     }
     // vz::Image img2("rsc/texts/img.jpg");
     // img2.setSize(400,200);
@@ -74,7 +83,7 @@ int main() {
     while(!renderWindow.shouldWindowClose()) {
         glfwPollEvents();
         for (float i = 0; i < imgs.size(); ++i) {
-            renderWindow.draw(imgs[i]);
+             renderWindow.draw(imgs[i]);
         }
         // renderWindow.draw(line);
         // renderWindow.draw(text);
