@@ -90,16 +90,16 @@ bool VulkanImageLoader::createTextureAtlas() {
 
 void VulkanImageLoader::createImage(std::vector<LoadedPixelsData> images,int atlasWidth,int atlasHeight) {
     const vk::DeviceSize imageSize = atlasWidth * atlasHeight * 4;
-    uint8_t* pixels = new uint8_t[imageSize];
+    auto* pixels = new uint8_t[imageSize];
     std::fill_n(pixels, imageSize, 0);
-    for (auto loadedPixels : images) {
-        for (int y = 0; y < loadedPixels.rect.h; ++y) {
-            for (int x = 0; x < loadedPixels.rect.w; ++x) {
+    for (const auto& [data, rect, path] : images) {
+        for (int y = 0; y < rect.h; ++y) {
+            for (int x = 0; x < rect.w; ++x) {
                 // times 4 for rgba
-                int srcIndex = (x + y * loadedPixels.rect.w) * 4;
-                int dstIndex = ((loadedPixels.rect.x + x) + (loadedPixels.rect.y + y) * atlasWidth) * 4;
+                int srcIndex = (x + y * rect.w) * 4;
+                int dstIndex = ((rect.x + x) + (rect.y + y) * atlasWidth) * 4;
                 for (int c = 0; c < 4; ++c) {
-                    pixels[dstIndex + c] = loadedPixels.data[srcIndex + c];
+                    pixels[dstIndex + c] = data[srcIndex + c];
                 }
             }
         }

@@ -36,15 +36,12 @@ const VulkanFont* Text::getFont() const {
     return m_font;
 }
 
-void Text::drawIndexed(const vk::CommandBuffer& commandBuffer,
-                       const VulkanGraphicsPipeline& pipeline,
-                       uint32_t currentFrame,
-                       uint32_t instances) {
+void Text::draw(const vk::CommandBuffer& commandBuffer) {
     const vk::Buffer vertexBuffers[] = {m_viBuffer[getCommoner()].getBuffer()};
     constexpr vk::DeviceSize offsets[] = {0};
     commandBuffer.bindVertexBuffers(0,1,vertexBuffers,offsets);
     commandBuffer.bindIndexBuffer(m_viBuffer[getCommoner()].getBuffer(),m_viBuffer[getCommoner()].getIndicesOffsetSize(),m_viBuffer[getCommoner()].getIndexType());
-    commandBuffer.drawIndexed(m_viBuffer[getCommoner()].getIndicesCount(),instances,0,0,0);
+    commandBuffer.drawIndexed(m_viBuffer[getCommoner()].getIndicesCount(),1,0,0,0);
 }
 
 void Text::prepareCommoner(const std::vector<Text*>& targets,int commonerUseId) {
@@ -84,10 +81,6 @@ void Text::prepareCommoner(const std::vector<Text*>& targets,int commonerUseId) 
         m_viBuffer[getCommoner()].resizeBuffer(newVertexCount,newIndexCount);
     }
      m_viBuffer[getCommoner()].updateData(vertices.data(),vertices.size(),indices.data(),indices.size());
-}
-
-int Text::getMaxCommoners() {
-    return -1;
 }
 
 int Text::getCommoner() {

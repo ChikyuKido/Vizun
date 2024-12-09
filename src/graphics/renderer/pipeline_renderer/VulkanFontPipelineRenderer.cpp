@@ -6,6 +6,8 @@
 #include "graphics/renderer/VulkanRenderer.hpp"
 #include "utils/Logger.hpp"
 #include <ranges>
+#include "font_frag.h"
+#include "font_vert.h"
 
 namespace vz {
 VulkanFontPipelineRenderer::VulkanFontPipelineRenderer(const std::shared_ptr<VulkanRenderPass>& renderPass,
@@ -28,8 +30,8 @@ VulkanFontPipelineRenderer::VulkanFontPipelineRenderer(const std::shared_ptr<Vul
     };
     defaultConf.topology = vk::PrimitiveTopology::eTriangleList;
     defaultConf.polygonMode = vk::PolygonMode::eFill;
-    defaultConf.fragShaderPath = "rsc/shaders/font_frag.spv";
-    defaultConf.vertShaderPath = "rsc/shaders/font_vert.spv";
+    defaultConf.fragShaderContent = std::vector<char>(font_frag_data,font_frag_data+font_frag_data_len);
+    defaultConf.vertShaderContent = std::vector<char>(font_vert_data,font_vert_data+font_vert_data_len);
     defaultConf.pushConstants.push_back(pushConstantRangeTextureIndex);
 
     if (!m_pipeline->createGraphicsPipeline(*renderPass, defaultConf)) {
@@ -83,7 +85,7 @@ void VulkanFontPipelineRenderer::display(vk::CommandBuffer& commandBuffer, uint3
     m_pipeline->bindDescriptorSet(commandBuffer,currentFrame,{});
     for (const auto &m : std::views::values(m_renderTargetsPerCommoner)) {
         m[0]->useCommoner(m_renderer,*m_pipeline);
-        m[0]->drawIndexed(commandBuffer,*m_pipeline,currentFrame,1);
+        m[0]->draw(commandBuffer);
     }
     m_renderTargets.clear();
     m_renderTargetsPerCommoner.clear();

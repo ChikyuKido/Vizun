@@ -28,19 +28,15 @@ private:
     VulkanTexture* m_vulkanTexture = nullptr;
     int m_commonerUseId = 0;
 
-    void drawIndexed(const vk::CommandBuffer& commandBuffer,
-          const VulkanGraphicsPipeline& pipeline,
-          uint32_t currentFrame,uint32_t instances) override;
-    void prepareCommoner(const std::vector<RenderTarget*>& targets) override;
+    void draw(const vk::CommandBuffer& commandBuffer);
     /**
      * Adjust the texIndex for each image and packs all the image vertices into one vertexIndexBuffer
      * @param imagesPerCommoner the images seperated by the commoner
      * @return the unique images
      */
     std::vector<const VulkanImage*> prepareCommoner(std::unordered_map<uint64_t,std::vector<Image*>> imagesPerCommoner);
-    int getMaxCommoners() override;
-    int getCommoner() override;
-    void useCommoner(VulkanRenderer& renderer,VulkanGraphicsPipeline& pipeline) override;
+    int getCommoner();
+    void useCommoner(VulkanRenderer& renderer,VulkanGraphicsPipeline& pipeline);
     void updateTransform() override;
     size_t getPipelineRendererHashcode() override;
 

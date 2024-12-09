@@ -21,8 +21,8 @@ bool VulkanGraphicsPipeline::createGraphicsPipeline(const VulkanRenderPass& vulk
                                                     VulkanGraphicsPipelineConfig& pipelineConfig) {
     static VulkanBase& vb = VizunEngine::getVulkanBase();
     RETURN_FALSE_WITH_LOG(!createDescriptors(pipelineConfig),"Failed to create Descriptors")
-    auto vertShaderCode =  std::vector(pipelineConfig.vertShaderContent.begin(), pipelineConfig.vertShaderContent.end());
-    auto fragShaderCode =  std::vector(pipelineConfig.fragShaderContent.begin(), pipelineConfig.fragShaderContent.end());
+    auto vertShaderCode = pipelineConfig.vertShaderContent;
+    auto fragShaderCode =  pipelineConfig.fragShaderContent;
     if(vertShaderCode.empty()) {
         vertShaderCode = loadShaderContent(pipelineConfig.vertShaderPath);
     }

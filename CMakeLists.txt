@@ -2,21 +2,21 @@ cmake_minimum_required(VERSION 3.28)
 project(Vizun)
 
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
-set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_STANDARD 23)
+
 
 
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 option(VIZUN_BUILD_EXAMPLES "Build the Vizun example programs" ON)
 option(VIZUN_ENABLE_VALIDATION_LAYER "Enables the validation layer for vulkan" ON)
 set(VIZUN_BUILD_EXAMPLES ON)
-set(VIZUN_ENABLE_VALIDATION_LAYER ON)
-set(VIZUN_ENABLE_ASSERT ON)
+set(VIZUN_ENABLE_VALIDATION_LAYER OFF)
+set(VIZUN_ENABLE_ASSERT OFF)
 
 find_package(Vulkan REQUIRED)
 
 include_directories(src)
+include_directories(rsc/shaders/include)
 include_directories(lib/stb_image)
 include_directories(lib/stb_truetype)
 include_directories(lib/stb_rect_pack)

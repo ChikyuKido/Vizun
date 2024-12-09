@@ -19,27 +19,14 @@ Image::Image(const std::string& imagePath) {
         VZ_LOG_CRITICAL("Could not load image texture");
     }
     m_vertices = getImageVerticesForTexture(m_vulkanTexture);
-    std::cout << m_vulkanTexture->getRegion().u0 << std::endl;
-    std::cout << m_vulkanTexture->getRegion().u1 << std::endl;
-    std::cout << m_vulkanTexture->getRegion().v0 << std::endl;
-    std::cout << m_vulkanTexture->getRegion().v1 << std::endl;
 }
 
-void Image::drawIndexed(const vk::CommandBuffer& commandBuffer, const VulkanGraphicsPipeline&, const uint32_t,const uint32_t instances) {
+void Image::draw(const vk::CommandBuffer& commandBuffer) {
     const vk::Buffer vertexBuffers[] = {m_viBuffer.getBuffer()};
     constexpr vk::DeviceSize offsets[] = {0};
     commandBuffer.bindVertexBuffers(0,1,vertexBuffers,offsets);
     commandBuffer.bindIndexBuffer(m_viBuffer.getBuffer(),m_viBuffer.getIndicesOffsetSize(),m_viBuffer.getIndexType());
-    commandBuffer.drawIndexed(m_viBuffer.getIndicesCount(),instances,0,0,0);
-}
-void Image::prepareCommoner(const std::vector<RenderTarget*>& targets) {
-    std::vector<VulkanImage*> images;
-    int id = 0;
-    for (RenderTarget* rt : targets) {
-        auto* imgRenderTarget = static_cast<Image*>(rt);
-        images.push_back(imgRenderTarget->m_vulkanTexture->getImage());
-        imgRenderTarget->m_commonerUseId = id++;
-    }
+    commandBuffer.drawIndexed(m_viBuffer.getIndicesCount(),1,0,0,0);
 }
 
 std::vector<const VulkanImage*> Image::prepareCommoner(std::unordered_map<uint64_t, std::vector<Image*>> imagesPerCommoner) {
@@ -89,9 +76,6 @@ std::vector<const VulkanImage*> Image::prepareCommoner(std::unordered_map<uint64
     return uniqueImages;
 }
 
-int Image::getMaxCommoners() {
-    return MAX_IMAGES_IN_SHADER;
-}
 int Image::getCommoner() {
     return reinterpret_cast<int64_t>(m_vulkanTexture->getImage());
 }

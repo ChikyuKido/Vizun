@@ -23,13 +23,9 @@ protected:
     float m_lineWidth = 1.0f;
     Color m_color = {{1.0f,1.0f,1.0f}};
 private:
-    void drawIndexed(const vk::CommandBuffer& commandBuffer,
-       const VulkanGraphicsPipeline& pipeline,
-       uint32_t currentFrame,
-       uint32_t instances) override;
+    void draw(const vk::CommandBuffer& commandBuffer);
     void prepareCommoner(const std::vector<Line*>& targets);
-    int getMaxCommoners() override;
-    int getCommoner() override;
+    int getCommoner();
     size_t getPipelineRendererHashcode() override;
 };
 }

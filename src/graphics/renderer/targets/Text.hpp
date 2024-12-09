@@ -47,24 +47,20 @@ private:
     std::vector<FontVertex> m_vertices;
     std::vector<uint16_t> m_indices;
 
-    void drawIndexed(const vk::CommandBuffer& commandBuffer,
-        const VulkanGraphicsPipeline& pipeline,
-        uint32_t currentFrame,
-        uint32_t instances) override;
+    void draw(const vk::CommandBuffer& commandBuffer);
     /**
      * This functions combines all the vertices from the targets with the same fonts and creates one vertexIndexBuffer.
      * @param targets all the targets with the same font
      * @param commonerUseId the id of the font in the TextureArray on the shader
      */
     void prepareCommoner(const std::vector<Text*>& targets,int commonerUseId);
-    int getMaxCommoners() override;
-    int getCommoner() override;
+    int getCommoner();
     /**
      * This method sends a push constant to the shader and sets the font to the current one.
      * @param renderer The public renderer
      * @param pipeline The font pipeline
      */
-    void useCommoner(VulkanRenderer& renderer, VulkanGraphicsPipeline& pipeline) override;
+    void useCommoner(VulkanRenderer& renderer, VulkanGraphicsPipeline& pipeline);
     size_t getPipelineRendererHashcode() override;
 
     /**

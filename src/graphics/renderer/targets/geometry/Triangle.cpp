@@ -21,10 +21,7 @@ void Triangle::setColor(Color c) {
     }
 }
 
-void Triangle::drawIndexed(const vk::CommandBuffer& commandBuffer,
-    const VulkanGraphicsPipeline& pipeline,
-    uint32_t currentFrame,
-    uint32_t instances) {
+void Triangle::draw(const vk::CommandBuffer& commandBuffer) const {
     const vk::Buffer vertexBuffers[] = {m_viBuffer.getBuffer()};
     constexpr vk::DeviceSize offsets[] = {0};
     commandBuffer.bindVertexBuffers(0,1,vertexBuffers,offsets);

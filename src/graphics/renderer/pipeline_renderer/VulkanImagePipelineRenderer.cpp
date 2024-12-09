@@ -9,6 +9,9 @@
 #include "utils/Logger.hpp"
 #include <complex>
 #include <ranges>
+#include "image_frag.h"
+#include "image_vert.h"
+#include <fstream>
 
 namespace vz {
 
@@ -25,8 +28,9 @@ VulkanImagePipelineRenderer::VulkanImagePipelineRenderer(const std::shared_ptr<V
     };
     defaultConf.topology = vk::PrimitiveTopology::eTriangleList;
     defaultConf.polygonMode = vk::PolygonMode::eFill;
-    defaultConf.fragShaderPath = "rsc/shaders/default_frag.spv";
-    defaultConf.vertShaderPath = "rsc/shaders/default_vert.spv";
+    defaultConf.fragShaderContent = std::vector<char>(image_frag_data, image_frag_data + image_frag_data_len);
+    defaultConf.vertShaderContent = std::vector<char>(image_vert_data, image_vert_data + image_vert_data_len);
+
 
     if (!m_pipeline->createGraphicsPipeline(*renderPass, defaultConf)) {
         VZ_LOG_CRITICAL("Could not create graphics pipeline");
@@ -98,13 +102,14 @@ void VulkanImagePipelineRenderer::display(vk::CommandBuffer& commandBuffer,uint3
     m_pipeline->bindPipeline(commandBuffer);
     m_pipeline->bindDescriptorSet(commandBuffer,currentFrame,{});
     const auto& images = *std::views::values(m_renderTargetsPerCommoner).begin();
-    images[0]->drawIndexed(commandBuffer,*m_pipeline,currentFrame,1);
+    images[0]->draw(commandBuffer);
     m_renderTargets.clear();
     m_renderTargetsPerCommoner.clear();
 }
 
 size_t VulkanImagePipelineRenderer::getPipelineRenderHashcode() {
     static const size_t hashcode = typeid(VulkanImagePipelineRenderer).hash_code();
+
     return hashcode;
 }
 }

@@ -16,10 +16,7 @@ Line::~Line() {
 
 }
 
-void Line::drawIndexed(const vk::CommandBuffer& commandBuffer,
-    const VulkanGraphicsPipeline& pipeline,
-    uint32_t currentFrame,
-    uint32_t instances) {
+void Line::draw(const vk::CommandBuffer& commandBuffer) {
     commandBuffer.setLineWidth(m_lineWidth);
     const vk::Buffer vertexBuffers[] = {m_viBuffer[getCommoner()].getBuffer()};
     constexpr vk::DeviceSize offsets[] = {0};
@@ -63,10 +60,6 @@ void Line::prepareCommoner(const std::vector<Line*>& lines) {
         m_viBuffer[getCommoner()].resizeBuffer(newVertexCount,newIndexCount);
     }
     m_viBuffer[getCommoner()].updateData(vertices.data(),vertices.size(),indices.data(),indices.size());
-}
-
-int Line::getMaxCommoners() {
-    return -1;
 }
 
 int Line::getCommoner() {

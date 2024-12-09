@@ -7,6 +7,8 @@
 #include "graphics/renderer/targets/geometry/Line.hpp"
 #include "utils/Logger.hpp"
 #include <ranges>
+#include "line_frag.h"
+#include "line_vert.h"
 
 namespace vz {
 VulkanLinePipelineRenderer::VulkanLinePipelineRenderer(const std::shared_ptr<VulkanRenderPass>& renderPass,
@@ -22,8 +24,9 @@ VulkanLinePipelineRenderer::VulkanLinePipelineRenderer(const std::shared_ptr<Vul
     };
     defaultConf.topology = vk::PrimitiveTopology::eLineList;
     defaultConf.polygonMode = vk::PolygonMode::eFill;
-    defaultConf.fragShaderPath = "rsc/shaders/line_frag.spv";
-    defaultConf.vertShaderPath = "rsc/shaders/line_vert.spv";
+    defaultConf.fragShaderContent = std::vector<char>(line_frag_data, line_frag_data + line_frag_data_len);
+    defaultConf.vertShaderContent = std::vector<char>(line_vert_data, line_vert_data + line_vert_data_len);
+
 
     if (!m_pipeline->createGraphicsPipeline(*renderPass, defaultConf)) {
         VZ_LOG_CRITICAL("Could not create graphics pipeline");
@@ -67,7 +70,7 @@ void VulkanLinePipelineRenderer::display(vk::CommandBuffer& commandBuffer, uint3
     m_pipeline->bindPipeline(commandBuffer);
     m_pipeline->bindDescriptorSet(commandBuffer,currentFrame,{});
     for (const auto& targets : m_renderTargetsPerCommoner | std::views::values) {
-        targets[0]->drawIndexed(commandBuffer,*m_pipeline,currentFrame,1);
+        targets[0]->draw(commandBuffer);
     }
     m_renderTargets.clear();
     m_renderTargetsPerCommoner.clear();

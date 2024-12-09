@@ -26,7 +26,7 @@ int main() {
     spdlog::set_level(spdlog::level::debug);
 
     vz::VulkanRenderWindowConfig vulkanConfig;
-    vulkanConfig.vulkanSwapchainConfig.presentMode = vk::PresentModeKHR::eFifo;
+    vulkanConfig.vulkanSwapchainConfig.presentMode = vk::PresentModeKHR::eImmediate;
 
     vz::RenderWindow renderWindow(800,600,"Vizun",vulkanConfig);
     vz::ResourceLoader::m_imageLoader.startLoading();
@@ -49,8 +49,8 @@ int main() {
     triangle.addPoint(150,100);
     triangle.addPoint(125,150);
 
-    // vz::Rectangle rect({100,100},{200,200});
-    // rect.setFill(true);
+    vz::Rectangle rect({100,100},{200,200});
+    rect.setFill(false);
 
 
     std::vector<vz::Image> imgs;
@@ -62,15 +62,15 @@ int main() {
     for (int i = 0; i < 1; ++i) {
         vz::Image img("rsc/texts/slime-move-forward1.png");
         img.setSize(12,12);
-        img.setPosition(0,0);
+        img.setPosition(0,i*10);
         imgs.push_back(img);
         vz::Image img2("rsc/texts/slime-move-forward2.png");
         img2.setSize(12,12);
-        img2.setPosition(12,0);
+        img2.setPosition(12,i*10);
         imgs.push_back(img2);
         vz::Image img3("rsc/texts/slime-move-forward3.png");
         img3.setSize(12,12);
-        img3.setPosition(24,0);
+        img3.setPosition(24,i*10);
         imgs.push_back(img3);
     }
     // vz::Image img2("rsc/texts/img.jpg");
@@ -85,7 +85,7 @@ int main() {
         for (float i = 0; i < imgs.size(); ++i) {
              renderWindow.draw(imgs[i]);
         }
-        // renderWindow.draw(line);
+        renderWindow.draw(*rect.getRenderTarget());
         // renderWindow.draw(text);
         // renderWindow.draw(triangle);
         // renderWindow.draw(*rect.getRenderTarget());

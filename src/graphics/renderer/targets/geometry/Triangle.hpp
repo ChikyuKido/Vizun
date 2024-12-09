@@ -5,6 +5,8 @@
 #include "data/GeometryVertex.hpp"
 #include "graphics/resources/buffer/VertexIndexBuffer.hpp"
 
+
+
 namespace vz {
 class VulkanTrianglePipelineRender;
 class Triangle : public RenderTarget{
@@ -19,14 +21,10 @@ protected:
     std::vector<uint16_t> m_indices;
     Color m_color = {{1.0f,1.0f,1.0f}};
 private:
-    void drawIndexed(const vk::CommandBuffer& commandBuffer,
-       const VulkanGraphicsPipeline& pipeline,
-       uint32_t currentFrame,
-       uint32_t instances) override;
+    void draw(const vk::CommandBuffer& commandBuffer) const;
     void prepareCommoner(const std::vector<Triangle*>& targets) const;
     size_t getPipelineRendererHashcode() override;
 };
-
 };
 
 
