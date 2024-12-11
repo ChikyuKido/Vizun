@@ -26,7 +26,7 @@ int main() {
     spdlog::set_level(spdlog::level::debug);
 
     vz::VulkanRenderWindowConfig vulkanConfig;
-    vulkanConfig.vulkanSwapchainConfig.presentMode = vk::PresentModeKHR::eImmediate;
+    vulkanConfig.vulkanSwapchainConfig.presentMode = vk::PresentModeKHR::eFifo;
 
     vz::RenderWindow renderWindow(800,600,"Vizun",vulkanConfig);
     vz::ResourceLoader::m_imageLoader.startLoading();
